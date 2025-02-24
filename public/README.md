@@ -1,2 +1,7 @@
 # Multi_Games
 Website created using HTML/CSS/JS that allows multiplayer card games like Cribbage, Uno, and CAH.
+
+
+To deploy site for self:
+    Do npm run build
+    Do firebase deploy
