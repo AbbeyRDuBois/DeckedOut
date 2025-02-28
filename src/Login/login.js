@@ -1,4 +1,4 @@
-import { auth } from './firebase';
+import { auth } from '../firebase';
 import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import './styles.css'
 

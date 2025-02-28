@@ -1,5 +1,5 @@
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from './firebase'
+import { auth } from '../firebase'
 
 // Show the warning banner with a message
 function showWarningBanner(message) {

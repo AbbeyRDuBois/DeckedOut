@@ -5,10 +5,10 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: {
-    login: './src/login.js', //Entry point for login page
-    signup: './src/signup.js', //Entry point for signup page
-    counter: './src/counter.js', //Entry point for counter page
-    forgot: './src/forgot-password.js' //Entry point for forgot password page
+    login: './src/Login/login.js', //Entry point for login page
+    signup: './src/Login/signup.js',
+    counter: './src/game-selection.js',
+    forgot: './src/Login/forgot-password.js'
   },
 
   // Output configuration
@@ -36,22 +36,22 @@ module.exports = {
   // Plugins to use in the build process
   plugins: [
     new HtmlWebpackPlugin({
-        template: './public/login.html', // Use 'login.html' as the template
+        template: './public/Login/login.html', // Use 'login.html' as the template
         filename: 'login.html', // Output file name
         chunks: ['login']
       }),
     new HtmlWebpackPlugin({
-      template: './public/counter.html', // Use 'counter.html' as the template
+      template: './public/game-selection.html', // Use 'counter.html' as the template
       filename: 'counter.html', // Output file name
       chunks: ['counter'],
     }),
     new HtmlWebpackPlugin({
-        template: './public/signup.html', // Use 'signup.html' as the template
+        template: './public/Login/signup.html', // Use 'signup.html' as the template
         filename: 'signup.html', // Output file name
         chunks: ['signup'],
     }),
     new HtmlWebpackPlugin({
-      template: './public/forgot-password.html',
+      template: './public/Login/forgot-password.html',
       filename: 'forgot-password.html',
       chunks: ['forgot'],
   }),
