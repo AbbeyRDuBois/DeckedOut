@@ -1,5 +1,6 @@
 import { auth } from './firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import './styles.css'
 
 function showWarningBanner(message) {
     const banner = document.getElementById('warning-banner');

@@ -1,5 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: {
@@ -25,7 +27,7 @@ module.exports = {
       },
       {
         test: /\.css$/, // For CSS files
-        use: ['style-loader', 'css-loader'], // Load CSS and inject it into the DOM
+        use: [MiniCssExtractPlugin.loader, 'css-loader'], // Load CSS and inject it into the DOM
       },
     ],
   },
@@ -46,6 +48,14 @@ module.exports = {
         template: './public/signup.html', // Use 'signup.html' as the template
         filename: 'signup.html', // Output file name
         chunks: ['signup'],
+    }),
+    new MiniCssExtractPlugin({
+      filename: 'styles.css',  // Name of the output CSS file
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'public/fonts', to: 'fonts' },  // Copy fonts from public to dist/fonts
+      ],
     }),
   ],
   // Source map configuration for debugging
