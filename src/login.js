@@ -1,5 +1,5 @@
 import { auth } from './firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import './styles.css'
 
 function showWarningBanner(message) {
@@ -28,27 +28,38 @@ submitBtn.addEventListener('click', () => {
     showWarningBanner("");
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    let persistence;
 
     if (loginValid(email, password)){
-        signInWithEmailAndPassword(auth, `${email}`, `${password}`)
-        .then((userCredential) => {
-            console.log('User signed in: ', userCredential.user);
-            window.location.href = 'counter.html';
-        })
-        .catch((error) => {
-            console.error("Error signing in:", error.code, error.message);
+        if(document.getElementById('rememberMe').checked){
+            //User Stays logged in across sessions now
+            persistence = browserLocalPersistence;
+        }
+        else{
+            persistence = browserSessionPersistence; 
+        }
 
-            if (error.code === 'auth/invalid-credential') {
-                showWarningBanner('Invalid credentials. Please check your email and password.');
-            } else if (error.code === 'auth/user-not-found') {
-                showWarningBanner('No user found with this email address.');
-            } else if (error.code === 'auth/wrong-password') {
-                showWarningBanner('Incorrect password.');
-            } else if (error.code === 'auth/invalid-email') {
-                showWarningBanner('Please provide a valid email address.');
-            } else {
-                showWarningBanner('An error occurred: ' + error.message);
-            }
+        setPersistence(auth, persistence).then(()=> {
+            signInWithEmailAndPassword(auth, `${email}`, `${password}`)
+            .then((userCredential) => {
+                console.log('User signed in: ', userCredential.user);
+                window.location.href = 'counter.html';
+            })
+            .catch((error) => {
+                console.error("Error signing in:", error.code, error.message);
+
+                if (error.code === 'auth/invalid-credential') {
+                    showWarningBanner('Invalid credentials. Please check your email and password.');
+                } else if (error.code === 'auth/user-not-found') {
+                    showWarningBanner('No user found with this email address.');
+                } else if (error.code === 'auth/wrong-password') {
+                    showWarningBanner('Incorrect password.');
+                } else if (error.code === 'auth/invalid-email') {
+                    showWarningBanner('Please provide a valid email address.');
+                } else {
+                    showWarningBanner('An error occurred: ' + error.message);
+                }
+            });
         });
     }
 });
