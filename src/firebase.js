@@ -3,12 +3,13 @@ import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDlVbS6JpT7vHlR6NKfBVrouBx3wHhuKFU",
-  authDomain: "multi-games-f80aa.firebaseapp.com",
-  projectId: "multi-games-f80aa",
-  storageBucket: "multi-games-f80aa.firebasestorage.app",
-  messagingSenderId: "136641042337",
-  appId: "1:136641042337:web:efc128878d17df6f101de0"
+  apiKey: "AIzaSyCeSKFFsJR5F_dkrKLMRA1w9QZuxOTg3Dg",
+  authDomain: "decked0ut.firebaseapp.com",
+  databaseURL:"https://decked0ut-default-rtdb.firebaseio.com",
+  projectId: "decked0ut",
+  storageBucket: "decked0ut.firebasestorage.app",
+  messagingSenderId: "964204828145",
+  appId: "1:964204828145:web:bb37413d4cb8e4d3e3e050"
 };
 
 const app = initializeApp(firebaseConfig)

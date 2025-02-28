@@ -1,5 +1,5 @@
 {
-  "name": "multi_games",
+  "name": "decked0ut",
   "version": "1.0.0",
   "main": "login.js",
   "scripts": {
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AbbeyRDuBois/Multi_Games.git"
+    "url": "git+https://github.com/AbbeyRDuBois/DeckedOut.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AbbeyRDuBois/Multi_Games/issues"
+    "url": "https://github.com/AbbeyRDuBois/DeckedOut/issues"
   },
-  "homepage": "https://github.com/AbbeyRDuBois/Multi_Games#readme",
+  "homepage": "https://github.com/AbbeyRDuBois/DeckedOut#readme",
   "description": "Website created using HTML/CSS/JS that allows multiplayer card games like Cribbage, Uno, and CAH.",
   "dependencies": {
     "acorn": "^8.14.0",
