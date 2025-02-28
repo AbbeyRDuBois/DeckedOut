@@ -3,22 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Sign-In</title>
-  <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Warning banner (initially hidden) -->
   <div id="warning-banner" class="warning-banner" style="display: none;">
     <p id="warning-message">Invalid Email/Password Combination. Please signup if haven't yet.</p>
   </div>
-  <div class="login-form">
-    <h1>Sign In</h1>
-      <label for="email">Email:</label>
+  <div class="wrapper">
+    <h1>Login</h1>
+    <div class="input-box">
       <input type="text" id="email" placeholder="Email" required />
-      <label for="password">Password:</label>
-      <input type="password" id="password" placeholder="Password" required />
-      <button id="submit">Sign In</button>
-      <button id="signup">Sign Up</button>
+      <img src='fonts/user.svg' alt="User Icon">
+    </div>
+    <div class="input-box">
+      <input type="text" id="password" placeholder="Password" required />
+      <img src='fonts/lock.svg' alt="Lock Icon">
+    </div>
+    <div class="remember-forgot">
+      <label><input type="checkbox">Remember Me</label>
+      <a href="#">Forgot Password</a>
+    </div>
+    <button id="submit" class="btn">Login</button>
+    <div class="register-link">
+      <p>Don't have an account? <a href="signup.html">Register</a></p>
+    </div>
   </div>
 </body>
 </html>
