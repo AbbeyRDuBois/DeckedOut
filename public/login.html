@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Sign-In</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <!-- Warning banner (initially hidden) -->
+  <div id="warning-banner" class="warning-banner" style="display: none;">
+    <p id="warning-message">Invalid Email/Password Combination. Please signup if haven't yet.</p>
+  </div>
+  <div class="login-form">
+    <h1>Sign In</h1>
+      <label for="email">Email:</label>
+      <input type="text" id="email" placeholder="Email" required />
+      <label for="password">Password:</label>
+      <input type="password" id="password" placeholder="Password" required />
+      <button id="submit">Sign In</button>
+      <button id="signup">Sign Up</button>
+  </div>
+</body>
+</html>
