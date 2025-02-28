@@ -9,7 +9,7 @@ html{
   background-color: white !important;
 }
 /* For h1, p, etc. */
-h1, h2, h3, p {
+h2, h3, p {
   margin: 0 !important;
   padding: 0 !important;
 }
@@ -45,6 +45,12 @@ body{
   border-radius: 12px;
   margin: 20px -30px;
 }
+.sign-out{
+ position: absolute;
+ top: 0;
+ right: 0;
+ padding: 10px; 
+}
 .wrapper{
   width: 420px;
   background: lightseagreen;
@@ -54,7 +60,7 @@ body{
   border-radius: 12px;
   padding: 30px 40px;
 }
-.wrapper h1{
+h1{
   font-size: 36px;
   text-align: center;
 }
@@ -103,7 +109,7 @@ body{
   transform:translate(-50%);
   font-size: 20px;
 }
-.wrapper .btn{
+.btn{
   width: 100%;
   height: 45px;
   background: #fff;
