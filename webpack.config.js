@@ -8,6 +8,7 @@ module.exports = {
     login: './src/login.js', //Entry point for login page
     signup: './src/signup.js', //Entry point for signup page
     counter: './src/counter.js', //Entry point for counter page
+    forgot: './src/forgot-password.js' //Entry point for forgot password page
   },
 
   // Output configuration
@@ -49,6 +50,11 @@ module.exports = {
         filename: 'signup.html', // Output file name
         chunks: ['signup'],
     }),
+    new HtmlWebpackPlugin({
+      template: './public/forgot-password.html',
+      filename: 'forgot-password.html',
+      chunks: ['forgot'],
+  }),
     new MiniCssExtractPlugin({
       filename: 'styles.css',  // Name of the output CSS file
     }),
