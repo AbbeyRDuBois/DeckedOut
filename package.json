@@ -1,22 +1,22 @@
 {
-  "name": "multi_games",
+  "name": "decked0ut",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "login.js",
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AbbeyRDuBois/Multi_Games.git"
+    "url": "git+https://github.com/AbbeyRDuBois/DeckedOut.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AbbeyRDuBois/Multi_Games/issues"
+    "url": "https://github.com/AbbeyRDuBois/DeckedOut/issues"
   },
-  "homepage": "https://github.com/AbbeyRDuBois/Multi_Games#readme",
+  "homepage": "https://github.com/AbbeyRDuBois/DeckedOut#readme",
   "description": "Website created using HTML/CSS/JS that allows multiplayer card games like Cribbage, Uno, and CAH.",
   "dependencies": {
     "acorn": "^8.14.0",
@@ -100,8 +100,10 @@
     "@babel/core": "^7.26.9",
     "@babel/preset-env": "^7.26.9",
     "babel-loader": "^9.2.1",
+    "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^7.1.2",
     "html-webpack-plugin": "^5.6.3",
+    "mini-css-extract-plugin": "^2.9.2",
     "style-loader": "^4.0.0",
     "webpack": "^5.98.0",
     "webpack-cli": "^6.0.1",

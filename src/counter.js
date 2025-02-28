@@ -1,23 +1,21 @@
-// src/index.js
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, runTransaction } from "firebase/database";
+// src/counter.js
+import { database, auth } from "./firebase"
+import { ref, onValue, runTransaction } from "firebase/database";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDlVbS6JpT7vHlR6NKfBVrouBx3wHhuKFU",
-  authDomain: "multi-games-f80aa.firebaseapp.com",
-  projectId: "multi-games-f80aa",
-  storageBucket: "multi-games-f80aa.firebasestorage.app",
-  messagingSenderId: "136641042337",
-  appId: "1:136641042337:web:efc128878d17df6f101de0"
-};
-
-const app = initializeApp(firebaseConfig)
-const database = getDatabase(app);
 
 let isProcessing = false;
+const signOutButton = document.getElementById('sign-out-button');
 const counterRef = ref(database, 'counter')
 const counterElement = document.getElementById('counter');
 const incrementBtn = document.getElementById('incrementBtn');
+
+//Checks if user is logged in, if not redirects them to login page
+onAuthStateChanged(auth, (user) => {
+  if (!user){
+    window.location.href = 'login.html';
+  }
+});
 
 //Listens for changes to the counter value and updates the display for all devices
 onValue(counterRef, (snapshot) => {
@@ -44,4 +42,14 @@ incrementBtn.addEventListener('click', () => {
     console.error("Transaction failed: ", error);
     isProcessing = false; //Release lock
   });
+});
+
+signOutButton.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+        console.log('User signed out');
+        window.location.href = 'login.html';  // Redirect back to login page after sign-out
+    } catch (error) {
+        console.error('Error during sign-out: ', error);
+    }
 });

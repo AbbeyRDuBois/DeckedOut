@@ -1,13 +1,19 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  // Entry point for the application
-  entry: './src/index.js',
+  entry: {
+    login: './src/login.js', //Entry point for login page
+    signup: './src/signup.js', //Entry point for signup page
+    counter: './src/counter.js', //Entry point for counter page
+    forgot: './src/forgot-password.js' //Entry point for forgot password page
+  },
 
   // Output configuration
   output: {
-    filename: 'bundle.js', // The output JavaScript file
+    filename: '[name].bundle.js', // The output JavaScript file
     path: path.resolve(__dirname, 'dist'), // The output folder
     clean: true, // Clean the 'dist' folder before every build
   },
@@ -22,7 +28,7 @@ module.exports = {
       },
       {
         test: /\.css$/, // For CSS files
-        use: ['style-loader', 'css-loader'], // Load CSS and inject it into the DOM
+        use: [MiniCssExtractPlugin.loader, 'css-loader'], // Load CSS and inject it into the DOM
       },
     ],
   },
@@ -30,8 +36,32 @@ module.exports = {
   // Plugins to use in the build process
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html', // Use 'index.html' as the template
-      filename: 'index.html', // Output file name
+        template: './public/login.html', // Use 'login.html' as the template
+        filename: 'login.html', // Output file name
+        chunks: ['login']
+      }),
+    new HtmlWebpackPlugin({
+      template: './public/counter.html', // Use 'counter.html' as the template
+      filename: 'counter.html', // Output file name
+      chunks: ['counter'],
+    }),
+    new HtmlWebpackPlugin({
+        template: './public/signup.html', // Use 'signup.html' as the template
+        filename: 'signup.html', // Output file name
+        chunks: ['signup'],
+    }),
+    new HtmlWebpackPlugin({
+      template: './public/forgot-password.html',
+      filename: 'forgot-password.html',
+      chunks: ['forgot'],
+  }),
+    new MiniCssExtractPlugin({
+      filename: 'styles.css',  // Name of the output CSS file
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'public/fonts', to: 'fonts' },  // Copy fonts from public to dist/fonts
+      ],
     }),
   ],
   // Source map configuration for debugging
