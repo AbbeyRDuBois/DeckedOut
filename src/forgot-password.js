@@ -1,13 +1,11 @@
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './firebase'
 
-  // Show the warning banner with a message
-  function showWarningBanner(message) {
-    const banner = document.getElementById('warning-banner');
-    const warningMessage = document.getElementById('warning-message');
-    warningMessage.textContent = message;
-    banner.style.display = 'block';
-  }
+// Show the warning banner with a message
+function showWarningBanner(message) {
+  document.getElementById('warning-message').textContent = message;
+  document.getElementById('warning-banner').style.display = 'block';
+}
 
 function emailValid(email) {
   if(email.trim() === '') {
@@ -26,7 +24,7 @@ function emailValid(email) {
 // Set up the sign-up form
 const sendBtn= document.getElementById('submit');
 sendBtn.addEventListener('click', () => {
-  showWarningBanner("");
+  document.getElementById('warning-banner').style.display = 'none';
   const email = document.getElementById('email').value;
 
   if (emailValid(email)){

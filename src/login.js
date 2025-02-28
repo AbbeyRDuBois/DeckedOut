@@ -2,11 +2,10 @@ import { auth } from './firebase';
 import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import './styles.css'
 
+// Show the warning banner with a message
 function showWarningBanner(message) {
-    const banner = document.getElementById('warning-banner');
-    const warningMessage = document.getElementById('warning-message');
-    warningMessage.textContent = message;
-    banner.style.display = 'block';
+    document.getElementById('warning-message').textContent = message;
+    document.getElementById('warning-banner').style.display = 'block';
 }
 
 function loginValid(email, password) {
@@ -25,7 +24,7 @@ function loginValid(email, password) {
 
 const submitBtn = document.getElementById('submit');
 submitBtn.addEventListener('click', () => {
-    showWarningBanner("");
+    document.getElementById('warning-banner').style.display = 'none';
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     let persistence;

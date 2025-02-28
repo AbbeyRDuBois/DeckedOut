@@ -1,13 +1,11 @@
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebase'
 
-  // Show the warning banner with a message
-  function showWarningBanner(message) {
-    const banner = document.getElementById('warning-banner');
-    const warningMessage = document.getElementById('warning-message');
-    warningMessage.textContent = message;
-    banner.style.display = 'block';
-  }
+// Show the warning banner with a message
+function showWarningBanner(message) {
+  document.getElementById('warning-message').textContent = message;
+  document.getElementById('warning-banner').style.display = 'block';
+}
 
 function signUpValid(email, password) {
   if(email.trim() === '' || password.trim() === '') {
@@ -23,11 +21,11 @@ function signUpValid(email, password) {
   return true;
 };
 
-
 // Set up the sign-up form
 const signUpBtn= document.getElementById('submit');
 signUpBtn.addEventListener('click', () => {
-  showWarningBanner("");
+  document.getElementById('warning-banner').style.display = 'none';
+
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
