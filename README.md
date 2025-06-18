@@ -1,5 +1,5 @@
 # DeckedOut
-Website created using HTML/CSS/JS that allows multiplayer card games like Cribbage, Uno, and CAH.
+Website created using HTML/CSS/TS that allows multiplayer card games like Cribbage, Uno, and CAH.
 
 
 To deploy site for self:

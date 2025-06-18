@@ -1,7 +1,7 @@
 {
   "name": "decked0ut",
   "version": "1.0.0",
-  "main": "login.js",
+  "main": "game-selection.ts",
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production"
@@ -17,7 +17,7 @@
     "url": "https://github.com/AbbeyRDuBois/DeckedOut/issues"
   },
   "homepage": "https://github.com/AbbeyRDuBois/DeckedOut#readme",
-  "description": "Website created using HTML/CSS/JS that allows multiplayer card games like Cribbage, Uno, and CAH.",
+  "description": "Website created using HTML/CSS/TS that allows multiplayer card games like Cribbage, Uno, and CAH.",
   "dependencies": {
     "acorn": "^8.14.0",
     "ajv": "^8.17.1",
