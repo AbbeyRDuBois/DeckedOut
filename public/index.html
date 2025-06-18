@@ -6,15 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Game Selection</title>
   <link rel="stylesheet" href="styles.css">
+  <script defer src="index.js"></script> <!--TS compiled JS -->
 </head>
 <body>
   <div class="Host">
     <h1>Host a game</h1>
-    <button id="goFish" class="btn">Go Fish</button>
+    <button class="create-room-btn" data-game-type="goFish">Go Fish</button>
   </div>
   <div class="input-box">
     <h1>Join a game </h1>
-    <input type="text" id="roomCode" placeholder="Room Code"/>
+    <input type="text" id="joinRoom" placeholder="Room Code"/>
+    <button id="joinButton" class="btn">Join</button>
   </div>
 </body>
 </html>
