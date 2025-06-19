@@ -14,7 +14,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app);
-console.log("db initialized:", db);
 const auth = getAuth(app);
 
 window.addEventListener('unhandledrejection', (event) => {
@@ -24,7 +23,5 @@ window.addEventListener('unhandledrejection', (event) => {
 window.addEventListener('error', (event) => {
   console.error('Uncaught Error:', event.error);
 });
-
-setLogLevel("debug");
 
 export { db, auth };
