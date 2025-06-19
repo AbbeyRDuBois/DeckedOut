@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, arrayUnion, DocumentReference } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "./authentication";
 import { v4 } from 'uuid';
 
@@ -9,23 +9,23 @@ async function createRoom(gameType: string) {
     alert('Please enter your host name and try again.');
     return;
   }
-  const playerId = v4(); //Generates a unique playerID
+  const playerId = v4(); //Generates a unique playerId
 
   // Saves the player's Id and username in storage
   // This helps us be able to tell who is making actions later on in the application
   localStorage.setItem('playerId', playerId);
   localStorage.setItem('username', host);
 
-  return await addDoc(collection(db, "rooms"), { 
+  return (await addDoc(collection(db, "rooms"), { 
     hostId: playerId,
     gameType, 
     lastActive: Date.now(),
     players: [{playerId, username: host}]
-  });
+  })).id;
 }
 
 async function joinRoom(roomId: string, player: string) {
-  const playerId = v4(); //Generates a unique playerID
+  const playerId = v4(); //Generates a unique playerId
 
   // Saves the player's Id and username in storage
   // This helps us be able to tell who is making actions later on in the application
@@ -47,6 +47,7 @@ async function joinRoom(roomId: string, player: string) {
     }),
     lastActive: Date.now()
   });
+  window.location.href = `room.html?roomId=${roomId}`;
 }
 
 // Select all buttons with the class "create-room-btn"
