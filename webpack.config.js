@@ -1,30 +1,37 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+// Auto-detect all entries based on src/*.ts
+const entry = {};
+require('fs').readdirSync('./src').forEach((file) => {
+  if (file.endsWith('.ts')) {
+    const name = path.parse(file).name;
+    entry[name] = `./src/${file}`;
+  }
+});
+
+// Generate HtmlWebpackPlugin for each HTML file in /public
+const htmlPlugins = require('fs').readdirSync('./public')
+  .filter((file) => file.endsWith('.html'))
+  .map((file) => {
+    const name = path.parse(file).name;
+    return new HtmlWebpackPlugin({
+      template: `./public/${file}`,
+      filename: `${file}`,
+      chunks: [name], // Only inject its matching JS chunk
+    });
+  });
 
 module.exports = {
-  entry: {
-    login: './src/Login/login.js', //Entry point for login page
-    signup: './src/Login/signup.js',
-    counter: './src/game-selection.js',
-    forgot: './src/Login/forgot-password.js'
-  },
-
-  // Output configuration
-  output: {
-    filename: '[name].bundle.js', // The output JavaScript file
-    path: path.resolve(__dirname, 'dist'), // The output folder
-    clean: true, // Clean the 'dist' folder before every build
-  },
-
-  // Module rules for processing different file types
+  entry,
+  mode: 'development',
   module: {
     rules: [
       {
-        test: /\.js$/, // For JavaScript files
-        exclude: /node_modules/, // Exclude node_modules
-        use: 'babel-loader', // Use Babel to transpile JavaScript
+        test: /\.ts$/, //Loading ts files
+        use: 'ts-loader',
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/, // For CSS files
@@ -32,38 +39,21 @@ module.exports = {
       },
     ],
   },
-
+  // Output configuration
+  output: {
+    filename: '[name].bundle.js', // The output JavaScript file
+    path: path.resolve(__dirname, 'dist'), // The output folder
+    clean: true, // Clean the 'dist' folder before every build
+  },
   // Plugins to use in the build process
   plugins: [
-    new HtmlWebpackPlugin({
-        template: './public/Login/login.html', // Use 'login.html' as the template
-        filename: 'login.html', // Output file name
-        chunks: ['login']
-      }),
-    new HtmlWebpackPlugin({
-      template: './public/game-selection.html', // Use 'counter.html' as the template
-      filename: 'counter.html', // Output file name
-      chunks: ['counter'],
-    }),
-    new HtmlWebpackPlugin({
-        template: './public/Login/signup.html', // Use 'signup.html' as the template
-        filename: 'signup.html', // Output file name
-        chunks: ['signup'],
-    }),
-    new HtmlWebpackPlugin({
-      template: './public/Login/forgot-password.html',
-      filename: 'forgot-password.html',
-      chunks: ['forgot'],
-  }),
-    new MiniCssExtractPlugin({
-      filename: 'styles.css',  // Name of the output CSS file
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: 'public/fonts', to: 'fonts' },  // Copy fonts from public to dist/fonts
-      ],
-    }),
+    ...htmlPlugins,
   ],
-  // Source map configuration for debugging
-  devtool: 'source-map',
+  resolve: {
+    extensions: ['.ts', '.js'], // So you can import .ts without extensions
+  },
+  performance:{
+    hints: false,
+  },
+  devtool: 'source-map', //enables .ts line debugging in browser
 };

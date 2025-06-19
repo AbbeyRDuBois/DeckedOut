@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
+import { getFirestore, setLogLevel } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCeSKFFsJR5F_dkrKLMRA1w9QZuxOTg3Dg",
@@ -13,7 +13,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig)
-const database = getDatabase(app);
+const db = getFirestore(app);
 const auth = getAuth(app);
 
-export { database, auth };
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled Promise Rejection:', event.reason);
+});
+
+window.addEventListener('error', (event) => {
+  console.error('Uncaught Error:', event.error);
+});
+
+export { db, auth };
