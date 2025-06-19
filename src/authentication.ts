@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, setLogLevel } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCeSKFFsJR5F_dkrKLMRA1w9QZuxOTg3Dg",
@@ -12,17 +12,19 @@ const firebaseConfig = {
   appId: "1:964204828145:web:bb37413d4cb8e4d3e3e050"
 };
 
-function getSessionId(): string {
-  let sessionId = localStorage.getItem('sessionId');
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    localStorage.setItem('sessionId', sessionId);
-  }
-  return sessionId
-}
-
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app);
+console.log("db initialized:", db);
 const auth = getAuth(app);
 
-export { db, auth, getSessionId };
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled Promise Rejection:', event.reason);
+});
+
+window.addEventListener('error', (event) => {
+  console.error('Uncaught Error:', event.error);
+});
+
+setLogLevel("debug");
+
+export { db, auth };

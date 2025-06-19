@@ -1,5 +1,5 @@
 import { doc, onSnapshot, updateDoc, arrayRemove } from "firebase/firestore";
-import { db, getSessionId } from "./authentication";
+import { db } from "./authentication";
 
 async function initRoom() {
   const roomId = new URLSearchParams(window.location.search).get("roomId");
@@ -9,18 +9,16 @@ async function initRoom() {
     return;
   }
 
-  const sessionId = getSessionId();
-
   //Grabs the room that matches the Id
   const roomRef = doc(db, "rooms", roomId);
 
   // Listens for room updates
   onSnapshot(roomRef, (docSnap) => {
-    if (!docSnap.exists()) {
-      alert("Room closed or deleted");
-      window.location.href = "index.html";
-      return;
-    }
+    // if (!docSnap.exists()) {
+    //   alert("Room closed or deleted");
+    //   window.location.href = "index.html";
+    //   return;
+    // }
 
     const roomData = docSnap.data();
     const roomInfoDiv = document.getElementById("room-info")!;
@@ -35,14 +33,15 @@ async function initRoom() {
   // Leave room button
   const leaveBtn = document.getElementById("leave-room-btn")!;
   leaveBtn.addEventListener("click", async () => {
-    await leaveRoom(roomId, sessionId);
+    await leaveRoom(roomId);
   });
 }
 
-async function leaveRoom(roomId: string, sessionId: string) {
+async function leaveRoom(roomId: string) {
   const roomRef = doc(db, "rooms", roomId);
   await updateDoc(roomRef, {
-    players: arrayRemove({ sessionId }),
+    players: arrayRemove({playerId: localStorage.getItem('playerId'), username: localStorage.getItem('username')}),
+    lastActive: Date.now()
   });
   window.location.href = "index.html";
 }

@@ -1,27 +1,37 @@
-import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { db, getSessionId } from "./authentication";
+import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, arrayUnion, DocumentReference } from "firebase/firestore";
+import { db } from "./authentication";
+import { v4 } from 'uuid';
 
-export async function createRoom(gameType: string) {
-  const sessionId = getSessionId();
+//Creates the room setting up user as the host
+async function createRoom(gameType: string) {
+  const host = (document.getElementById("hostName") as HTMLInputElement).value;
+  if (host == '' || host == null){
+    alert('Please enter your host name and try again.');
+    return;
+  }
+  const playerId = v4(); //Generates a unique playerID
 
-  const roomRef = await addDoc(collection(db, 'rooms'), {
-    hostSessionId: sessionId,
-    gameType,
-    isOpen: true,
-    createdAt: serverTimestamp(),
-    lastActive: serverTimestamp(),
-    players: [
-      {
-        sessionId: sessionId,
-        joinedAt: serverTimestamp(),
-      }
-    ]
+  // Saves the player's Id and username in storage
+  // This helps us be able to tell who is making actions later on in the application
+  localStorage.setItem('playerId', playerId);
+  localStorage.setItem('username', host);
+
+  return await addDoc(collection(db, "rooms"), { 
+    hostId: playerId,
+    gameType, 
+    lastActive: Date.now(),
+    players: [{playerId, username: host}]
   });
-
-  return roomRef.id;
 }
 
-export async function joinRoom(roomId: string): Promise<void> {
+async function joinRoom(roomId: string, player: string) {
+  const playerId = v4(); //Generates a unique playerID
+
+  // Saves the player's Id and username in storage
+  // This helps us be able to tell who is making actions later on in the application
+  localStorage.setItem('playerId', playerId);
+  localStorage.setItem('username', player);
+
   const roomRef = doc(db, 'rooms', roomId);
   const roomSnap = await getDoc(roomRef);
 
@@ -29,15 +39,13 @@ export async function joinRoom(roomId: string): Promise<void> {
     throw new Error("Room does not exist");
   }
 
-  const sessionId = getSessionId();
-
   //Updates the Game room to add player to the list
   await updateDoc(roomRef, {
     players: arrayUnion({
-      sessionId,
-      joinedAt: serverTimestamp()
+      playerId,
+      username: player
     }),
-    lastActive: serverTimestamp()
+    lastActive: Date.now()
   });
 }
 
@@ -62,4 +70,22 @@ buttons.forEach(button => {
       alert('Failed to create room, try again.');
     }
   });
+});
+
+//Join Room
+document.getElementById("joinBtn")!.addEventListener('click', async () => {
+  const roomId = (document.getElementById("roomId") as HTMLInputElement).value;
+  const player = (document.getElementById("playerName") as HTMLInputElement).value;
+
+  if (roomId == '' || roomId == null){
+    alert('Please enter your player name and try again.');
+    return;
+  }
+
+  if (player == '' || player == null){
+    alert('Please enter your player name and try again.');
+    return;
+  }
+
+  await joinRoom(roomId, player);
 });
