@@ -34,8 +34,8 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.css$/, // For CSS files
-        use: [MiniCssExtractPlugin.loader, 'css-loader'], // Load CSS and inject it into the DOM
+        test: /\.css$/i,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
     ],
   },
@@ -48,6 +48,9 @@ module.exports = {
   // Plugins to use in the build process
   plugins: [
     ...htmlPlugins,
+      new MiniCssExtractPlugin({
+      filename: '[name].css', // generates CSS files like main.css
+    }),
   ],
   resolve: {
     extensions: ['.ts', '.js'], // So you can import .ts without extensions

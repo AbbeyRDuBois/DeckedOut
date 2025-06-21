@@ -1,6 +1,7 @@
 import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "./authentication";
 import { v4 } from 'uuid';
+import './styles.css'
 
 //Creates the room setting up user as the host
 async function createRoom(gameType: string) {
@@ -24,6 +25,7 @@ async function createRoom(gameType: string) {
   })).id;
 }
 
+//Allows other players to join a pre setup room. Requires them to pass in a roomId and username
 async function joinRoom(roomId: string, player: string) {
   const playerId = v4(); //Generates a unique playerId
 
