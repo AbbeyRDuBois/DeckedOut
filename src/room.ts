@@ -11,6 +11,8 @@ const MINUTE = 60 * 1000;
 let WARNING_SHOWN = false;
 let lastUpdate = 0;
 let initialSetupDone = false;
+const handContainer = document.getElementById("hand")!;
+const playedContainer = document.getElementById("played")!;
 
 //Testing purposes
 const cardsInHand = [
@@ -131,20 +133,38 @@ setInterval(checkRoomStatus, MINUTE);
   });
 });
 
+//Creates the cards that are added to hands
+//Attaches a listener that will remove it from hand and place it in played section when clicked
+function createCard(cardName: number): HTMLDivElement {
+  const card = document.createElement('div');
+  card.classList.add('card');
+  card.textContent = cardName.toString();
+
+  card.addEventListener('click', () => {
+    // Remove from hand
+    handContainer.removeChild(card);
+
+    // Clear previous played card
+    playedContainer.innerHTML = '';
+
+    //Add played line so hover no longer works on card
+    //cloneNode strips it of all listeners
+    card.classList.add('played');
+    card.replaceWith(card.cloneNode(true));
+
+
+
+    // Add card to played section
+    playedContainer.appendChild(card);
+  });
+
+  return card;
+}
+
 //Adds in card object to page based on how much is in players hand
-const handContainer = document.getElementById("hand");
-cardsInHand.forEach(card => {
-  const cardDiv = document.createElement("div");
-  cardDiv.className = "card";
-  cardDiv.textContent = card.suit;
-  cardDiv.dataset.id = card.id.toString();
-
-  //Hover and click behaviours
-  cardDiv.addEventListener("click", () => {
-    console.log('Clicked card ID: ${card.id}, Name: ${card.name}');
-  })
-
-  handContainer?.appendChild(cardDiv);
-})
+cardsInHand.forEach(name => {
+  const card = createCard(name.id);
+  handContainer.appendChild(card);
+});
 
 window.onload = initRoom;
