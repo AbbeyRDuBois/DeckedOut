@@ -17,7 +17,13 @@ export class Player {
         this.lastPlayed = lastPlayed;
     }
     
-    createHand(hand: Card[]){
-
+    toPlainObject() {
+        return {
+            id: this.id,
+            name: this.name,
+            lastPlayed: this.lastPlayed?.toPlainObject(),
+            hand: this.hand.map(card => card.toPlainObject())
+        };
     }
+
 }

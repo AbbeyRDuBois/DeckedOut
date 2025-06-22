@@ -22,7 +22,7 @@ async function createRoom(gameType: string) {
     hostId: playerId,
     gameType, 
     lastActive: Date.now(),
-    players: [JSON.stringify(new Player(playerId, host))],
+    players: [(new Player(playerId, host)).toPlainObject()],
     started: false
   })).id;
 }
@@ -45,7 +45,7 @@ async function joinRoom(roomId: string, player: string) {
 
   //Updates the Game room to add player to the list
   await updateDoc(roomRef, {
-    players: arrayUnion(JSON.stringify(new Player(playerId, player))),
+    players: arrayUnion((new Player(playerId, player)).toPlainObject()),
     lastActive: Date.now()
   });
   window.location.href = `room.html?roomId=${roomId}`;

@@ -89,12 +89,21 @@ export class Card {
             //Updates database with changes so others can see it
             const roomRef = doc(db, "rooms", roomId);
             await updateDoc(roomRef, {
-                players: players.map(p => JSON.stringify(p))
+                players: players.map(p => p.toPlainObject())
             });
         });
 
         return cardDiv;
     };
+
+    toPlainObject(){
+        return {
+            id: this.id,
+            value: this.value,
+            suit: this.suit,
+            
+        }
+    }
 }
 
 export class Deck{
