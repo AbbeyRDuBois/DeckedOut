@@ -1,6 +1,8 @@
 import { doc, onSnapshot, updateDoc, arrayRemove, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "./authentication";
 import './styles.css'
+import { Player } from "./player";
+import { Card } from "./deck";
 
 const roomId = new URLSearchParams(window.location.search).get("roomId")!;
 const roomRef = doc(db, "rooms", roomId)!; //Grabs the room that matches the Id
@@ -10,15 +12,16 @@ const TIMEOUT_CLOSE = 30;
 const MINUTE = 60 * 1000;
 let WARNING_SHOWN = false;
 let lastUpdate = 0;
-let initialSetupDone = false;
 const handContainer = document.getElementById("hand")!;
 const playedContainer = document.getElementById("played")!;
+const opponentContainter = document.getElementById('opponents')!;
+let players: Player[] = [];
 
 //Testing purposes
 const cardsInHand = [
-  { id: 2, suit: "Spade" },
-  { id: 3, suit: "Heart" },
-  { id: 4, suit: "Club" },
+  new Card(0,"Ace", "Heart"),
+  new Card(1, "King", "Club"),
+  new Card(2, "4", "Spade")
 ];
 
 /*
@@ -32,10 +35,11 @@ async function initRoom() {
     return;
   }
 
-  
+  document.getElementById("room-info")!.textContent =  `RoomID: ${roomId}`;
+
   // Listens for room updates
   const unsubscribe = onSnapshot(roomRef, (docSnap) => {
-     if (!docSnap.exists() && initialSetupDone) {
+     if (!docSnap.exists()) {
       alert("Room closed or deleted");
       unsubscribe(); //Cleans up listener
       window.location.href = "index.html";
@@ -43,18 +47,18 @@ async function initRoom() {
     }
 
     const roomData = docSnap.data();
-    const roomInfoDiv = document.getElementById("room-info")!;
-    const playersListDiv = document.getElementById("players-list")!;
-
-    roomInfoDiv.textContent = `Game: ${roomData?.gameType || "Unknown"} RoomID: ${roomId}`;
-
+    players = roomData.players.map((player: string) => rebuildPlayer(JSON.parse(player)));
     //Add players list to page
-    playersListDiv.innerHTML = "<h3>Players:</h3>" + (roomData?.players || [])
-      .map((p: any) => `<div>${p.username}${p.playerId === roomData?.hostId ? " (Host)" : ""}</div>`)
+    document.getElementById("players-list")!.innerHTML = "<h3>Players:</h3>" + 
+      players.map((player: Player) => `<div>${player.name}${player.id === roomData?.hostId ? " (Host)" : ""}</div>`)
       .join("");
+  
+    //Adds the opponent bar -> sends everyone but you
+    const opponents = players.filter(player => player.id != localStorage.getItem('playerId'));
+    if (opponents.length > 0){
+      renderOpponents(opponents);
+    }
   });
-
-  initialSetupDone = true;
 }
 
   /*
@@ -64,7 +68,7 @@ async function initRoom() {
   */
   const leaveBtn = document.getElementById("leave-room-btn")!;
   leaveBtn.addEventListener("click", async () => {
-    const playerId = localStorage.getItem('playerId');
+    const playerId = localStorage.getItem('playerId')!;
 
     const roomRef = doc(db, "rooms", roomId);
     const roomData = (await getDoc(roomRef)).data()!;
@@ -75,7 +79,7 @@ async function initRoom() {
     }
     else {
       //Remove the player from the list
-      const playerToRemove = roomData.players.find((player: any) => player.playerId === playerId)
+      const playerToRemove = await getPlayer(playerId);
 
       await updateDoc(roomRef, {
         players: arrayRemove(playerToRemove)
@@ -135,36 +139,92 @@ setInterval(checkRoomStatus, MINUTE);
 
 //Creates the cards that are added to hands
 //Attaches a listener that will remove it from hand and place it in played section when clicked
-function createCard(cardName: number): HTMLDivElement {
-  const card = document.createElement('div');
-  card.classList.add('card');
-  card.textContent = cardName.toString();
+//TODO: Add this to card/hand class eventually
+function createCard(card: Card): HTMLDivElement {
+  const cardDiv = document.createElement('div');
+  cardDiv.classList.add('card');
+  cardDiv.textContent = card.value + " " + card.suit;
+  cardDiv.setAttribute("card-id", card.id.toString());
 
-  card.addEventListener('click', () => {
+  cardDiv.addEventListener('click', async () => {
     // Remove from hand
-    handContainer.removeChild(card);
+    handContainer.removeChild(cardDiv);
 
     // Clear previous played card
     playedContainer.innerHTML = '';
 
     //Add played line so hover no longer works on card
     //cloneNode strips it of all listeners
-    card.classList.add('played');
-    card.replaceWith(card.cloneNode(true));
-
-
+    cardDiv.classList.add('played');
+    cardDiv.replaceWith(cardDiv.cloneNode(true));
 
     // Add card to played section
-    playedContainer.appendChild(card);
+    playedContainer.appendChild(cardDiv);
+
+    //Update players card count and last played
+    const player = getPlayer(localStorage.get('playerId'))!;
+    const index = player.hand.findIndex(card => cardDiv.id === card.id.toString());
+    player.hand.splice(index, 1);
+    player.lastPlayed = card;
   });
 
-  return card;
+  return cardDiv;
+}
+
+//Displays the opponent for the bar
+function renderOpponents(opponents: Player[]){
+  opponentContainter.innerHTML = ''; //Clears old content
+
+  opponents.forEach(opponent => {
+    const opponentDiv = document.createElement('div');
+    opponentDiv.classList.add('opponent');
+
+    const name = document.createElement('div');
+    name.classList.add('opponent-name');
+    name.textContent = opponent.name;
+
+    const count = document.createElement('div');
+    count.classList.add('card-back');
+    count.textContent = opponent.hand?.length.toString();
+
+    const played = document.createElement('div');
+    played.classList.add('opp-played');
+    played.textContent = opponent.lastPlayed?.toString();
+
+    const info = document.createElement('div');
+    info.classList.add('hand-info');
+
+    info.appendChild(count);
+    info.appendChild(played);
+    opponentDiv.appendChild(name);
+    opponentDiv.appendChild(info);
+    opponentContainter.appendChild(opponentDiv)
+  })
 }
 
 //Adds in card object to page based on how much is in players hand
-cardsInHand.forEach(name => {
-  const card = createCard(name.id);
+cardsInHand.forEach(async c => {
+  getPlayer(localStorage.getItem('playerId')!)?.hand.push(c);
+  const card = createCard(c);
   handContainer.appendChild(card);
 });
+
+//Gets the user out of the player list
+function getPlayer(id: string) {
+  return players.find((player: Player) => player.id === id);
+}
+
+//Needed to rebuild object from json
+function rebuildPlayer(data: any): Player {
+  const hand = Array.isArray(data.hand)
+  ? data.hand.map((c: any) => new Card(c.id, c.value, c.suit))
+  : [];
+
+  const lastPlayed = data.lastPlayed
+  ? new Card(data.lastPlayed.id, data.lastPlayed.value, data.lastPlayed.suit)
+  : new Card(0);
+
+  return new Player(data.id, data.name, lastPlayed, hand);
+}
 
 window.onload = initRoom;

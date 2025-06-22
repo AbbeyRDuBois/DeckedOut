@@ -32,5 +32,33 @@
 .card.played {
   pointer-events: none;         /* disables all interaction */
 }
-
+.opp-played {
+  width: 50px;
+  height: 70px;
+  background-color: #f8f8f8;
+  border: 2px solid transparent;
+  transition: border 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+}
+.card-back{
+  width: 50px;
+  height: 70px;
+  background-color: #f8f8f8;
+  border: 2px solid transparent;
+  transition: border 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+}
+.opponent-name{
+  display: flex;
+  justify-content: center;
+}
+.hand-info{
+  display: flex;
+  justify-content: center; 
+  gap: 6px; /*Gap between cards*/
+}
 

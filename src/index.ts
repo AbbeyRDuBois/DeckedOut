@@ -2,6 +2,7 @@ import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase
 import { db } from "./authentication";
 import { v4 } from 'uuid';
 import './styles.css'
+import { Player } from "./player";
 
 //Creates the room setting up user as the host
 async function createRoom(gameType: string) {
@@ -21,7 +22,7 @@ async function createRoom(gameType: string) {
     hostId: playerId,
     gameType, 
     lastActive: Date.now(),
-    players: [{playerId, username: host}]
+    players: [JSON.stringify(new Player(playerId, host))]
   })).id;
 }
 
@@ -43,10 +44,7 @@ async function joinRoom(roomId: string, player: string) {
 
   //Updates the Game room to add player to the list
   await updateDoc(roomRef, {
-    players: arrayUnion({
-      playerId,
-      username: player
-    }),
+    players: arrayUnion(JSON.stringify(new Player(playerId, player))),
     lastActive: Date.now()
   });
   window.location.href = `room.html?roomId=${roomId}`;
