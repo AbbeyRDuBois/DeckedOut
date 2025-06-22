@@ -16,4 +16,8 @@ export class Player {
     updateLastPlayed(lastPlayed: Card){
         this.lastPlayed = lastPlayed;
     }
+    
+    createHand(hand: Card[]){
+
+    }
 }

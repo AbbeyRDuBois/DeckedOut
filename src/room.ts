@@ -2,7 +2,7 @@ import { doc, onSnapshot, updateDoc, getDoc, deleteDoc } from "firebase/firestor
 import { db } from "./authentication";
 import './styles.css'
 import { Player } from "./player";
-import { Card } from "./deck";
+import { Card, Deck } from "./deck";
 
 const roomId = new URLSearchParams(window.location.search).get("roomId")!;
 const roomRef = doc(db, "rooms", roomId)!; //Grabs the room that matches the Id
@@ -12,17 +12,16 @@ const TIMEOUT_CLOSE = 30;
 const MINUTE = 60 * 1000;
 let WARNING_SHOWN = false;
 let lastUpdate = 0;
-const handContainer = document.getElementById("hand")!;
-const playedContainer = document.getElementById("played")!;
+const handContainer = document.getElementById('hand')!;
 const opponentContainter = document.getElementById('opponents')!;
-let players: Player[] = [];
+const popup = document.getElementById("waiting-popup")!;
+const playersList = document.getElementById("waiting-players-list")!;
+const startBtn = document.getElementById("start-game-btn")!;
+const leaveRm = document.getElementById("leave-room")!;
 
-//Testing purposes
-const cardsInHand = [
-  new Card(0,"Ace", "Heart"),
-  new Card(1, "King", "Club"),
-  new Card(2, "4", "Spade")
-];
+const deck = new Deck();
+
+let players: Player[] = [];
 
 /*
   Initializes the room.
@@ -48,16 +47,51 @@ async function initRoom() {
 
     const roomData = docSnap.data();
     players = roomData.players.map((player: string) => rebuildPlayer(JSON.parse(player)));
-    //Add players list to page
-    document.getElementById("players-list")!.innerHTML = "<h3>Players:</h3>" + 
-      players.map((player: Player) => `<div>${player.name}${player.id === roomData?.hostId ? " (Host)" : ""}</div>`)
-      .join("");
-  
-    //Adds the opponent bar -> sends everyone but you
-    const opponents = players.filter(player => player.id != localStorage.getItem('playerId'));
-    if (opponents.length > 0){
+    if (!roomData.started) {
+      popup.style.display = "block";
+      playersList.innerHTML = "<h3>Players in room:</h3><ul>" + players.map(p => `<li>${p.name}</li>`).join('') + "</ul>";
+    } else {
+      //Adds the opponent bar -> sends everyone but you
+      const opponents = players.filter(player => player.id != localStorage.getItem('playerId'));
+      if (opponents.length > 0){
       renderOpponents(opponents);
+
+      const player = players.find((player: Player) => player.id === localStorage.getItem('playerId')!)!;
+      handContainer.innerHTML = '';
+      player.hand?.forEach((card: Card) => {handContainer.appendChild(card.createCard(players))});
     }
+      popup.style.display = "none";
+    }
+
+    // //Add players list to page
+    // document.getElementById("players-list")!.innerHTML = "<h3>Players:</h3>" + 
+    //   players.map((player: Player) => `<div>${player.name}${player.id === roomData?.hostId ? " (Host)" : ""}</div>`)
+    //   .join("");
+
+  // Example handlers
+  startBtn.onclick = async () => {
+    const roomRef = doc(db, "rooms", roomId);
+    popup.style.display = "none";
+
+    //TODO: Add this to a game class setup eventually
+    //This setup is for gofish
+    players.forEach(player => {
+      for(let i = 0; i < 7; i++){
+        player.hand.push(deck.getCard()!);
+      }
+    })
+
+    const player = players.find((player: Player) => player.id === localStorage.getItem('playerId')!)!;
+
+    await updateDoc(roomRef, {
+      started: true,
+      players: players.map(p => JSON.stringify(p))
+    });
+  };
+
+  leaveRm.onclick = () => {
+    exitRoom();
+  };
   });
 }
 
@@ -68,6 +102,10 @@ async function initRoom() {
   */
   const leaveBtn = document.getElementById("leave-room-btn")!;
   leaveBtn.addEventListener("click", async () => {
+    exitRoom();
+  });
+
+  async function exitRoom(){
     const playerId = localStorage.getItem('playerId')!;
 
     const roomRef = doc(db, "rooms", roomId);
@@ -79,18 +117,16 @@ async function initRoom() {
     }
     else {
       //Remove the player from the list
-      const removeId = players.indexOf(getPlayer(playerId)!)
+      const removeId = players.indexOf(players.find((player: Player) => player.id === playerId)!)
       players.splice(removeId, 1);
 
       await updateDoc(roomRef, {
-        players: JSON.stringify(players)
+        players: players.map(p => JSON.stringify(p))
       });
     }
 
     window.location.href = "index.html";
-
-  });
-
+  };
   /*
     Checks to see if the room has been inactive 
     At 25 min gives a warning, at 30 min it closes the room
@@ -138,45 +174,6 @@ setInterval(checkRoomStatus, MINUTE);
   });
 });
 
-//Creates the cards that are added to hands
-//Attaches a listener that will remove it from hand and place it in played section when clicked
-//TODO: Add this to card/hand class eventually
-function createCard(card: Card): HTMLDivElement {
-  const cardDiv = document.createElement('div');
-  cardDiv.classList.add('card');
-  cardDiv.textContent = card.value + " " + card.suit;
-  cardDiv.setAttribute("card-id", card.id.toString());
-
-  cardDiv.addEventListener('click', async () => {
-    // Remove from hand
-    handContainer.removeChild(cardDiv);
-
-    // Clear previous played card
-    playedContainer.innerHTML = '';
-
-    //Add played line so hover no longer works on card
-    //cloneNode strips it of all listeners
-    cardDiv.classList.add('played');
-    cardDiv.replaceWith(cardDiv.cloneNode(true));
-
-    // Add card to played section
-    playedContainer.appendChild(cardDiv);
-
-    //Update players card count and last played
-    const player = getPlayer(localStorage.getItem('playerId')!)!;
-    const index = player.hand.findIndex(card => cardDiv.id === card.id.toString());
-    player.hand.splice(index, 1);
-    player.lastPlayed = card;
-
-    //Updates database with changes so others can see it
-    await updateDoc(roomRef, {
-      players: players.map(p => JSON.stringify(p))
-    });
-  });
-
-  return cardDiv;
-}
-
 //Displays the opponent for the bar
 function renderOpponents(opponents: Player[]){
   opponentContainter.innerHTML = ''; //Clears old content
@@ -206,18 +203,6 @@ function renderOpponents(opponents: Player[]){
     opponentDiv.appendChild(info);
     opponentContainter.appendChild(opponentDiv)
   })
-}
-
-//Adds in card object to page based on how much is in players hand
-cardsInHand.forEach(async c => {
-  getPlayer(localStorage.getItem('playerId')!)?.hand.push(c);
-  const card = createCard(c);
-  handContainer.appendChild(card);
-});
-
-//Gets the user out of the player list
-function getPlayer(id: string) {
-  return players.find((player: Player) => player.id === id);
 }
 
 //Needed to rebuild object from json

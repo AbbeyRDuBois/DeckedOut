@@ -22,7 +22,8 @@ async function createRoom(gameType: string) {
     hostId: playerId,
     gameType, 
     lastActive: Date.now(),
-    players: [JSON.stringify(new Player(playerId, host))]
+    players: [JSON.stringify(new Player(playerId, host))],
+    started: false
   })).id;
 }
 
