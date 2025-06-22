@@ -31,6 +31,7 @@
 /* Disable hover for played cards */
 .card.played {
   pointer-events: none;         /* disables all interaction */
+  cursor: none;
 }
 .opp-played {
   width: 50px;
@@ -38,7 +39,6 @@
   background-color: #f8f8f8;
   border: 2px solid transparent;
   transition: border 0.3s ease, transform 0.2s ease;
-  cursor: pointer;
   display: flex;
   justify-content: center;
 }
@@ -48,7 +48,6 @@
   background-color: #f8f8f8;
   border: 2px solid transparent;
   transition: border 0.3s ease, transform 0.2s ease;
-  cursor: pointer;
   display: flex;
   justify-content: center;
 }

@@ -1,4 +1,4 @@
-import { doc, onSnapshot, updateDoc, arrayRemove, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "./authentication";
 import './styles.css'
 import { Player } from "./player";
@@ -79,10 +79,11 @@ async function initRoom() {
     }
     else {
       //Remove the player from the list
-      const playerToRemove = await getPlayer(playerId);
+      const removeId = players.indexOf(getPlayer(playerId)!)
+      players.splice(removeId, 1);
 
       await updateDoc(roomRef, {
-        players: arrayRemove(playerToRemove)
+        players: JSON.stringify(players)
       });
     }
 
@@ -162,10 +163,15 @@ function createCard(card: Card): HTMLDivElement {
     playedContainer.appendChild(cardDiv);
 
     //Update players card count and last played
-    const player = getPlayer(localStorage.get('playerId'))!;
+    const player = getPlayer(localStorage.getItem('playerId')!)!;
     const index = player.hand.findIndex(card => cardDiv.id === card.id.toString());
     player.hand.splice(index, 1);
     player.lastPlayed = card;
+
+    //Updates database with changes so others can see it
+    await updateDoc(roomRef, {
+      players: players.map(p => JSON.stringify(p))
+    });
   });
 
   return cardDiv;
