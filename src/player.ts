@@ -16,4 +16,14 @@ export class Player {
     updateLastPlayed(lastPlayed: Card){
         this.lastPlayed = lastPlayed;
     }
+    
+    toPlainObject() {
+        return {
+            id: this.id,
+            name: this.name,
+            lastPlayed: this.lastPlayed?.toPlainObject(),
+            hand: this.hand.map(card => card.toPlainObject())
+        };
+    }
+
 }
