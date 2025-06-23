@@ -1,14 +1,13 @@
 const path = require('path');
+const glob = require('glob');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 // Auto-detect all entries based on src/*.ts
 const entry = {};
-require('fs').readdirSync('./src').forEach((file) => {
-  if (file.endsWith('.ts')) {
-    const name = path.parse(file).name;
-    entry[name] = `./src/${file}`;
-  }
+glob.sync('./src/**/*.ts').forEach(file => {
+  const name = path.relative('./src/', file).replace(/\\/g, '/').replace(/\.ts$/,'');
+  entry[name] = path.resolve(file);
 });
 
 // Generate HtmlWebpackPlugin for each HTML file in /public
@@ -16,10 +15,15 @@ const htmlPlugins = require('fs').readdirSync('./public')
   .filter((file) => file.endsWith('.html'))
   .map((file) => {
     const name = path.parse(file).name;
+
+    //If html has a ts that has same name use that (ex: index), oherwise use room.ts
+    const knownEntryPoints = Object.keys(entry);
+    const chunk = knownEntryPoints.includes(name) ? name : 'room';
+
     return new HtmlWebpackPlugin({
       template: `./public/${file}`,
       filename: `${file}`,
-      chunks: [name], // Only inject its matching JS chunk
+      chunks: [chunk], // Only inject its matching JS chunk
     });
   });
 
