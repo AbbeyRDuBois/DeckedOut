@@ -5,12 +5,14 @@ export class Player {
     name: string;
     lastPlayed: Card;
     hand: Card[];
+    isTurn: boolean;
 
-    constructor(id: string, name: string, lastPlayed = new Card(0), hand = []){
+    constructor(id: string, name: string, lastPlayed = new Card(0), hand = [], isTurn = false){
         this.id = id;
         this.name = name;
         this.lastPlayed = lastPlayed;
         this.hand = hand;
+        this.isTurn = isTurn;
     }
 
     updateLastPlayed(lastPlayed: Card){

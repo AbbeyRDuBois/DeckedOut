@@ -10,7 +10,7 @@ export class Card {
     value: string;
     suit: string;
 
-    constructor(id: number, value = "", suit = "",){
+    constructor(id: number, value = "", suit = ""){
         this.value = value;
         this.suit = suit;
         this.id = id;
@@ -120,19 +120,13 @@ export class Deck{
         return this.deck.splice(card, 1)[0];
     }
 
-    getHands(numHands: number, numCards: number){
+    //Will return the current hands of the player
+    getHands(players: Player[]){
         let hands: Card[][] = [];
 
-        if (numHands * numCards > this.deck.length) return hands;
-
-        for(let h = 0; h < numHands; h++){
-            let hand: Card[] = [];
-            for(let c = 0; c < numCards; c++){
-                const card = this.getCard()!;
-                hand.push(card);
-            };
-            hands.push(hand);
-        };
+        players.forEach(player => {
+            hands.push(player.hand) 
+        });
 
         return hands;
     }
