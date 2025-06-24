@@ -23,11 +23,11 @@ body {
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-.top-bar #room-info {
+.room-info {
   font-size: 12px;
   font-weight: bold;
 }
-.top-bar .leave-room {
+.leave-room {
   background-color: #e74c3c;
   border: none;
   padding: 4px 6px;
@@ -37,23 +37,62 @@ body {
   border-radius: 4px;
   transition: background-color 0.2s ease;
 }
-.top-bar .leave-room:hover {
+.leave-room:hover {
   background-color: #c0392b
 }
 
-.waiting-popup{
-  display:none; 
-  position:fixed; 
-  top:0; 
-  left:0; 
-  width:100%; 
-  height:100%; 
-  background:rgba(0,0,0,0.8); 
-  color:white; 
-  z-index:1000; 
-  text-align:center; 
-  padding-top:50px;
+/*Waiting Popup*/
+#waiting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
+  background-color: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
+#waiting-popup {
+  background: white;
+  flex-direction: column; /*Stack vertically*/
+  align-items: center;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  animation: 0.3s ease-in-out;
+}
+#popup-btns {
+  display: flex;
+  align-items: center;
+}
+#start-game {
+  background-color: #3c67e7;
+  border: none;
+  padding: 4px 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+#start-game:hover {
+  background-color: #302bc0
+}
+#waiting-popup .room-info {
+  position: relative;
+  top: 12px;
+  left: 16px;
+  font-size: 12px;
+  font-weight: bold
+}
+
+
 /*This portion takes care of the hand container what the cards look like and the hover effect of the cards*/
 #hand {
   display: flex;

@@ -1,6 +1,6 @@
 <!-- Shared UI Elements like room id and leave button -->
 <div class="top-bar">
-  <div id="room-info"></div>
+  <div class="room-info"></div>
   <button class="leave-room">Leave</button>
 </div>
 <div id="players-list"></div>
@@ -8,9 +8,14 @@
 <div class="played-card" id="played"></div>
 <div id="hand"></div>
 
-<div id="waiting-popup">
-  <h2>Waiting for players to join...</h2>
-  <div id="waiting-list" style="margin: 20px auto;"></div>
-  <button id="start-game" style="margin-right: 10px;">Start Game</button>
-  <button class="leave-room">Leave Room</button>
+<div id="waiting-overlay">
+  <div id="waiting-popup">
+    <div class="room-info"></div>
+    <h2>Waiting for players to join...</h2>
+    <div id="waiting-list" style="margin: 20px auto;"></div>
+    <div id="popup-btns">
+      <button id="start-game" style="margin-right: 10px;">Start</button>
+      <button class="leave-room">Leave</button>
+    </div>
+  </div>
 </div>

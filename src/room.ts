@@ -57,7 +57,10 @@ async function initRoom() {
   await loadSharedUI();
   sharedUILoaded = true;
 
-  document.getElementById("room-info")!.innerHTML =  `<div>Room ID: ${roomId}</div>`;
+  document.querySelectorAll('.room-info').forEach(info => {
+    info.innerHTML = `<div>Room ID: ${roomId}</div>`;
+  });
+
   game.render();
   handlePopup();
 
@@ -69,10 +72,10 @@ function handlePopup(){
   players = roomData.players.map((p: any) => rebuildPlayer(p));
 
   if (!started) {
-    document.getElementById("waiting-popup")!.style.display = "block";
+    document.getElementById("waiting-overlay")!.style.display = "flex";
     updatePlayerList();
   } else {
-    document.getElementById("waiting-popup")!.style.display = "none";
+    document.getElementById("waiting-overlay")!.style.display = "none";
 
     const playerId = localStorage.getItem("playerId")!;
     const player = players.find(p => p.id === playerId)!;
@@ -198,9 +201,7 @@ export function renderHand(player: Player) {
 export function updatePlayerList() {
     const list = document.getElementById('waiting-list')!;
     list.innerHTML = "<h3>Players in room:<h3><ul>" +
-        players.map(player => `<li>${player.name}</li>`).join('') + "</ul>";
+        players.map(player => `<div>${player.name}</div>`).join('') + "</ul>";
 }
-
-
 
 window.onload = initRoom;
