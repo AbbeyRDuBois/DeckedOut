@@ -1,11 +1,10 @@
-/* General reset */
-* {
+/* General */
+body {
+  height: 100%;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-}
-body {
-  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
 }
 
 /*Top bar of the game rooms*/
@@ -24,8 +23,21 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .room-info {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  font-weight: bold;
+}
+.bar-id {
   font-size: 12px;
   font-weight: bold;
+}
+.copy-icon {
+  cursor: pointer;
+  font-size: 1rem;
+  user-select: none;
+  line-height: 1;
+  padding-top: 1px; /* small visual alignment tweak */
 }
 .leave-room {
   background-color: #e74c3c;
@@ -56,8 +68,10 @@ body {
   z-index: 9999;
 }
 #waiting-popup {
+  position: relative;
   background: white;
   flex-direction: column; /*Stack vertically*/
+  display: flex;
   align-items: center;
   padding: 30px;
   border-radius: 10px;
@@ -66,10 +80,27 @@ body {
   max-width: 400px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   animation: 0.3s ease-in-out;
+  justify-content: center;
+}
+#waiting-popup .room-info {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+#waiting-list {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
 #popup-btns {
   display: flex;
-  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 #start-game {
   background-color: #3c67e7;
@@ -84,42 +115,25 @@ body {
 #start-game:hover {
   background-color: #302bc0
 }
-#waiting-popup .room-info {
-  position: relative;
-  top: 12px;
-  left: 16px;
-  font-size: 12px;
-  font-weight: bold
-}
+.waiting-id {
+  top: 6px;
+  left: 8px;
 
-
-/*This portion takes care of the hand container what the cards look like and the hover effect of the cards*/
-#hand {
-  display: flex;
-  flex-direction: row;   /* horizontal layout */
-  gap: 12px;             /* space between cards */
-  justify-content: center;
-  padding: 20px;
-}
-.card {
-  width: 100px;
-  height: 140px;
-  background-color: #f8f8f8;
-  border: 2px solid transparent;
-  transition: border 0.3s ease, transform 0.2s ease;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: bold;
 }
-.card:hover {
-  border: 2px solid #2196f3;
-  transform: translateY(-5px); /* card lift effect */
-}
-/* Disable hover for played cards */
-.card.played {
-  pointer-events: none;         /* disables all interaction */
-  cursor: none;
+
+/*Opponents*/
+#opponents {
+  min-height: 80px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12 px;
 }
 .opp-played {
   width: 50px;
@@ -143,9 +157,59 @@ body {
   display: flex;
   justify-content: center;
 }
+
+/* Users hand and last played*/
+#bottom-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+}
+.card.played {
+  margin-bottom: 8px;
+  pointer-events: none;  /* disables all interaction */
+  cursor: none;
+  position: fixed;
+  bottom: 100px; /* Height of hand + spacing */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: white;
+  padding: 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+#hand {
+  display: flex;
+  flex-direction: row;   /* horizontal layout */
+  gap: 6px;             /* space between cards */
+  justify-content: center;
+  padding: 8px;
+  overflow-x: auto;
+}
+.card {
+  width: 100px;
+  height: 140px;
+  background-color: #f8f8f8;
+  border: 2px solid transparent;
+  transition: border 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card:hover {
+  border: 2px solid #2196f3;
+  transform: translateY(-5px); /* card lift effect */
+}
 .hand-info{
   display: flex;
   justify-content: center; 
   gap: 6px; /*Gap between cards*/
 }
-

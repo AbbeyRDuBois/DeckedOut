@@ -57,7 +57,7 @@ async function initRoom() {
   await loadSharedUI();
   sharedUILoaded = true;
 
-  document.querySelectorAll('.room-info').forEach(info => {
+  document.querySelectorAll('.room-id').forEach(info => {
     info.innerHTML = `<div>Room ID: ${roomId}</div>`;
   });
 
@@ -145,6 +145,21 @@ async function checkRoomStatus() {
 async function createListeners(){
   const roomData = await getRoomData(roomRef);
 
+  document.querySelectorAll('.copy-icon').forEach(copy => {
+    copy.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText(roomId);
+        console.log("Text copied successfully");
+      } catch(e){
+        console.error("unable to copy to clipboard: ", e);
+      }
+    });
+  });
+
+  document.getElementById("copy-room-id")?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(roomId);
+  });
+
   //leave buttons
   document.querySelectorAll('.leave-room').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -200,8 +215,8 @@ export function renderHand(player: Player) {
 
 export function updatePlayerList() {
     const list = document.getElementById('waiting-list')!;
-    list.innerHTML = "<h3>Players in room:<h3><ul>" +
-        players.map(player => `<div>${player.name}</div>`).join('') + "</ul>";
+    list.innerHTML = "<h3>Players in room:<h3>" +
+        players.map(player => `<div>${player.name}</div>`).join('');
 }
 
 window.onload = initRoom;
