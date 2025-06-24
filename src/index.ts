@@ -1,3 +1,8 @@
+/*
+Entry point to application 
+Game selection hosting and joining
+*/
+
 import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "./authentication";
 import { v4 } from 'uuid';
@@ -37,18 +42,19 @@ async function joinRoom(roomId: string, player: string) {
   localStorage.setItem('username', player);
 
   const roomRef = doc(db, 'rooms', roomId);
-  const roomSnap = await getDoc(roomRef);
+  const roomSnap = (await getDoc(roomRef))?.data()!;
 
-  if (!roomSnap.exists()) {
-    throw new Error("Room does not exist");
-  }
+  if (roomSnap === null) {
+    alert("Room does not exist");
+    return;
+  };
 
   //Updates the Game room to add player to the list
   await updateDoc(roomRef, {
     players: arrayUnion((new Player(playerId, player)).toPlainObject()),
     lastActive: Date.now()
   });
-  window.location.href = `room.html?roomId=${roomId}`;
+  window.location.href = `${roomSnap.gameType}.html?roomId=${roomId}&game=${roomSnap.gameType}`;
 }
 
 // Select all buttons with the class "create-room-btn"
@@ -66,7 +72,7 @@ buttons.forEach(button => {
 
     try {
       const roomId = await createRoom(gameType);
-      window.location.href = `room.html?roomId=${roomId}`;
+      window.location.href = `${gameType}.html?roomId=${roomId}&game=${gameType}`;
     } catch (e) {
       console.error('Failed to create room:', e);
       alert('Failed to create room, try again.');

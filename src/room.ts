@@ -1,161 +1,117 @@
-import { doc, onSnapshot, updateDoc, getDoc, deleteDoc } from "firebase/firestore";
-import { db } from "./authentication";
+import { Gofish } from './games/gofish-game';
+import { BaseGame } from './games/base-game';
+import { Card, Deck } from './deck';
+import { loadSharedUI, rebuildPlayer } from './utils';
+import { deleteDoc, doc, DocumentData, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { Player } from './player';
+import { db } from './authentication';
 import './styles.css'
-import { Player } from "./player";
-import { Card, Deck } from "./deck";
 
-const roomId = new URLSearchParams(window.location.search).get("roomId")!;
-const roomRef = doc(db, "rooms", roomId)!; //Grabs the room that matches the Id
+const urlParams = new URLSearchParams(window.location.search);
+const roomId = urlParams.get('roomId')!;
+const gameType = urlParams.get('game')!;
 
+let roomData: DocumentData;
+let roomRef:any;
+let game: BaseGame;
+let players: Player[];
+let sharedUILoaded = false;
 
-const TIMEOUT_WARNING = 25;
-const TIMEOUT_CLOSE = 30;
 const MINUTE = 60 * 1000;
+const TIMEOUT_CLOSE = 30;
+const TIMEOUT_WARNING = 25;
 let WARNING_SHOWN = false;
-let lastUpdate = 0;
 
-const handContainer = document.getElementById('hand')!;
-const opponentContainter = document.getElementById('opponents')!;
-const popup = document.getElementById("waiting-popup")!;
-const playersList = document.getElementById("waiting-players-list")!;
-const startBtn = document.getElementById("start-game-btn")!;
-const leaveRm = document.getElementById("leave-room")!;
-const leaveBtn = document.getElementById("leave-room-btn")!;
-
-
-const deck = new Deck();
-let players: Player[] = [];
-
-//Utility Functions
-function getCurrentPlayerId(){
-  return localStorage.getItem("playerId");
-}
-
-function getLocalPlayer(): Player {
-  return players.find(player => player.id === getCurrentPlayerId())!;
-}
-
-function renderPlayerHand(player: Player) {
-  if (!handContainer) return;
-
-  handContainer.innerHTML = '';
-  player.hand.forEach(card => {
-    handContainer.appendChild(card.createCard(players));
-  });
-}
-
-//Displays the opponent for the bar
-function renderOpponents(){
-  if(!opponentContainter) return;
-
-  opponentContainter.innerHTML = ''; //Clears old content
-  const opponents = players.filter(player => player.id !== getCurrentPlayerId());
-
-  opponents.forEach(opponent => {
-    const opponentDiv = document.createElement('div');
-    opponentDiv.classList.add('opponent');
-
-    const name = document.createElement('div');
-    name.classList.add('opponent-name');
-    name.textContent = opponent.name;
-
-    const count = document.createElement('div');
-    count.classList.add('card-back');
-    count.textContent = opponent.hand?.length.toString();
-
-    const played = document.createElement('div');
-    played.classList.add('opp-played');
-    played.textContent = opponent.lastPlayed?.toString() ?? '';
-
-    const info = document.createElement('div');
-    info.classList.add('hand-info');
-
-    info.appendChild(count);
-    info.appendChild(played);
-    opponentDiv.appendChild(name);
-    opponentDiv.appendChild(info);
-    opponentContainter.appendChild(opponentDiv)
-  });
-}
-
-//Needed to rebuild object from firebase
-function rebuildPlayer(data: any): Player {
-  const hand = Array.isArray(data.hand)
-  ? data.hand.map((c: any) => new Card(c.id, c.value, c.suit))
-  : [];
-
-  const lastPlayed = data.lastPlayed
-  ? new Card(data.lastPlayed.id, data.lastPlayed.value, data.lastPlayed.suit)
-  : new Card(0);
-
-  return new Player(data.id, data.name, lastPlayed, hand);
-}
-
-function initEventListeners() {
-  if (leaveBtn){
-    leaveBtn.addEventListener("click", exitRoom);
-  }
-  if (leaveRm){
-    leaveRm.addEventListener("click", exitRoom);
-  }
-  if (startBtn) {
-    startBtn.onclick = async () => {
-      popup!.style.display = "none";
-
-      players.forEach(player => {
-        for (let i = 0; i < 7; i++) {
-          player.hand.push(deck.getCard()!);
-        }
-      });
-
-      await updateDoc(roomRef, {
-        started: true,
-        players: players.map(p => p.toPlainObject())
-      });
-    };
-  }
-}
-
-async function exitRoom(){
-  const playerId = getCurrentPlayerId();
-  const roomData = (await getDoc(roomRef)).data()!;
-
-  if (playerId === roomData.hostId){
-    //The host is leaving, delete the room and reroute everyone
-    await deleteDoc(roomRef);
-  }
-  else {
-    //Remove the player from the list
-    players = players.filter(player => player.id !== playerId);
-
-    await updateDoc(roomRef, {
-      players: players.map(p => p.toPlainObject())
-    });
-  }
-
-  window.location.href = "index.html";
+const gameMap: Record<string, any> = {
+    'gofish': Gofish,
 };
 
-function listenForRoomChanges() {
-  onSnapshot(roomRef, (docSnap) => {
-    if (!docSnap.exists()){
+async function initRoom() {
+  if (!roomId || !gameType || !gameMap[gameType]){
+    alert("Invalid room or game");
+    return window.location.href = "index.html";
+  }
+  roomRef = doc(db, "rooms", roomId);
+  roomData = (await getDoc(roomRef)).data()!;
+  if (!roomData) {
+    alert("Room not found.");
+    return;
+  }
+  players = roomData.players.map((player: any) => rebuildPlayer(player))
+  game = new gameMap[gameType]!(new Deck(), players, roomId);
+
+  onSnapshot(roomRef, (docSnap: any) => {
+    if (!docSnap.exists()) {
       alert("Room deleted or closed.");
-      window.location.href = "index.html";
-      return;
+      return window.location.href = "index.html";
     }
 
-    const roomData = docSnap.data();
-    players = roomData.players.map((player: any) => rebuildPlayer(player));
+    roomData = docSnap.data();
+    game.setPlayers(players);
 
-    if (!roomData.started) {
-      popup!.style.display = "block";
-      playersList!.innerHTML = "<ul>" + players.map(player => `<li>${player.name}<li>`).join("") + "</ul>";
+    if (sharedUILoaded) {
+      handlePopup();
+    }
+  });
+
+  await loadSharedUI();
+  sharedUILoaded = true;
+
+  document.getElementById("room-info")!.innerHTML =  `<div>Room ID: ${roomId}</div>`;
+  game.render();
+  handlePopup();
+
+  createListeners();
+};
+
+function handlePopup(){
+  const started = roomData.started;
+  players = roomData.players.map((p: any) => rebuildPlayer(p));
+
+  if (!started) {
+    document.getElementById("waiting-popup")!.style.display = "block";
+    updatePlayerList();
+  } else {
+    document.getElementById("waiting-popup")!.style.display = "none";
+
+    const playerId = localStorage.getItem("playerId")!;
+    const player = players.find(p => p.id === playerId)!;
+    const opponents = players.filter(p => p.id !== playerId);
+
+    renderHand(player);
+    renderOpponents(opponents);
+  }
+}
+
+async function getRoomData(roomRef: any): Promise<DocumentData>{
+    return (await getDoc(roomRef))?.data()!;
+}
+
+async function updatePlayers() {
+    await updateDoc(roomRef, {
+        players: players.map(player => player.toPlainObject())
+    });
+    game.setPlayers(players);
+}
+
+async function startGame(){
+    await updateDoc(roomRef, {
+        started: true,
+    });
+    game.setPlayers(players);
+    game.start();
+}
+
+async function exitRoom(playerId: string, players: any, hostId: string) {
+    if (playerId === hostId) {
+        await deleteDoc(roomRef);
     } else {
-      popup!.style.display = "none";
-      renderPlayerHand(getLocalPlayer());
-      renderOpponents();
+        players = players.filter((player: any) => player.id !== playerId);
+        await updateDoc(roomRef, {
+          players: players.map((player: any) => player.toPlainObject())
+        });
+        return window.location.href = "index.html";
     }
-  })
 }
 
 /*
@@ -164,11 +120,11 @@ function listenForRoomChanges() {
 */
 async function checkRoomStatus() {
   try {
-    const roomData = (await getDoc(roomRef)).data();
+    const roomData = await getRoomData(roomRef)!;
 
     const lastActive = roomData?.lastActive as number;
     const now = Date.now();
-    const minuteDiff = (now - lastActive) / MINUTE; 
+    const minuteDiff = (now - lastActive) / MINUTE;
 
     if (minuteDiff >= TIMEOUT_CLOSE){
       await deleteDoc(roomRef);
@@ -183,37 +139,68 @@ async function checkRoomStatus() {
   }
 }
 
-/*
-  Updates last active in room as players interact as page
-  Has a wait period of a minute per update to avoid excessive writing to db (want to avoid paying money)
-*/
-function setupInactivityTracking(){
+async function createListeners(){
+  const roomData = await getRoomData(roomRef);
+
+  //leave buttons
+  document.querySelectorAll('.leave-room').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      exitRoom(localStorage.getItem("playerId")!, players, roomData.hostId);
+    });
+  });
+
+  //start
+  const start = document.getElementById("start-game");
+  start?.addEventListener('click', async () => {
+    startGame();
+  });
+
+  //Inactivity Tracking
   ["mousemove", "keydown", "click", "touchstart"].forEach((event) => {
     window.addEventListener(event, async () => {
       const now = Date.now();
-      if (now - lastUpdate > MINUTE) {
-        lastUpdate = now;
+      if (now - roomData.lastActive > MINUTE) {
         await updateDoc(roomRef, {
-          lastActive: Date.now()
-        });
+          lastActive: now
+        })
       }
+    })
+  })
+
+  //Inactivity check every minute
+  setInterval(checkRoomStatus, MINUTE);
+}
+
+export function renderOpponents(opponents: Player[]) {
+    const opponentContainer = document.getElementById('opponents')!;
+    opponentContainer.innerHTML = ''; // clears old content
+    opponents.forEach(opponent => {
+        const div = document.createElement('div');
+        div.classList.add('opponent');
+        div.innerHTML = `
+        <div class = "opponent-name">${opponent.name}</div>
+        <div class = "hand-info">
+            <div class="card-back">${opponent.hand?.length || 0}</div>
+            <div class="opp-played">${opponent.lastPlayed?.toString() || ""} </div>
+        </div>`;
+        opponentContainer.appendChild(div);
     });
-  });
 }
 
-// Run inactivity check every minute
-setInterval(checkRoomStatus, MINUTE);
-
-//Entry Point. Sets everything up on load
-window.onload = () => {
-  if (!roomId) {
-    alert("Missing room ID.");
-    window.location.href = "index.html";
-    return;
-  }
-
-  document.getElementById("room-info")!.textContent = `Room ID: ${roomId}`;
-  initEventListeners();
-  listenForRoomChanges();
-  setupInactivityTracking();
+export function renderHand(player: Player) {
+    const handContainer = document.getElementById('hand')!;
+    handContainer.innerHTML = '';
+    player.hand?.forEach((card: Card) => {
+        handContainer.appendChild(card.createCard(players));
+    });
 }
+
+export function updatePlayerList() {
+    const list = document.getElementById('waiting-list')!;
+    list.innerHTML = "<h3>Players in room:<h3><ul>" +
+        players.map(player => `<li>${player.name}</li>`).join('') + "</ul>";
+}
+
+
+
+window.onload = initRoom;
