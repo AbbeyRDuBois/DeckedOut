@@ -4,6 +4,43 @@
   padding: 0;
   box-sizing: border-box;
 }
+body {
+  padding-top: 30px;
+}
+
+/*Top bar of the game rooms*/
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2c3e50;
+  color: white;
+  padding: 5px 10px;
+  font-family: Arial, sans-serif;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.top-bar #room-info {
+  font-size: 12px;
+  font-weight: bold;
+}
+.top-bar .leave-room {
+  background-color: #e74c3c;
+  border: none;
+  padding: 4px 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+.top-bar .leave-room:hover {
+  background-color: #c0392b
+}
+
 .waiting-popup{
   display:none; 
   position:fixed; 
