@@ -57,7 +57,10 @@ async function initRoom() {
   await loadSharedUI();
   sharedUILoaded = true;
 
-  document.getElementById("room-info")!.innerHTML =  `<div>Room ID: ${roomId}</div>`;
+  document.querySelectorAll('.room-id').forEach(info => {
+    info.innerHTML = `<div>Room ID: ${roomId}</div>`;
+  });
+
   game.render();
   handlePopup();
 
@@ -69,10 +72,10 @@ function handlePopup(){
   players = roomData.players.map((p: any) => rebuildPlayer(p));
 
   if (!started) {
-    document.getElementById("waiting-popup")!.style.display = "block";
+    document.getElementById("waiting-overlay")!.style.display = "flex";
     updatePlayerList();
   } else {
-    document.getElementById("waiting-popup")!.style.display = "none";
+    document.getElementById("waiting-overlay")!.style.display = "none";
 
     const playerId = localStorage.getItem("playerId")!;
     const player = players.find(p => p.id === playerId)!;
@@ -142,6 +145,21 @@ async function checkRoomStatus() {
 async function createListeners(){
   const roomData = await getRoomData(roomRef);
 
+  document.querySelectorAll('.copy-icon').forEach(copy => {
+    copy.addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText(roomId);
+        console.log("Text copied successfully");
+      } catch(e){
+        console.error("unable to copy to clipboard: ", e);
+      }
+    });
+  });
+
+  document.getElementById("copy-room-id")?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(roomId);
+  });
+
   //leave buttons
   document.querySelectorAll('.leave-room').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -197,10 +215,8 @@ export function renderHand(player: Player) {
 
 export function updatePlayerList() {
     const list = document.getElementById('waiting-list')!;
-    list.innerHTML = "<h3>Players in room:<h3><ul>" +
-        players.map(player => `<li>${player.name}</li>`).join('') + "</ul>";
+    list.innerHTML = "<h3>Players in room:<h3>" +
+        players.map(player => `<div>${player.name}</div>`).join('');
 }
-
-
 
 window.onload = initRoom;

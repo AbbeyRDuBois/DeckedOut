@@ -11,7 +11,7 @@ import { Player } from "./player";
 
 //Creates the room setting up user as the host
 async function createRoom(gameType: string) {
-  const host = (document.getElementById("hostName") as HTMLInputElement).value;
+  const host = (document.getElementById("username") as HTMLInputElement).value;
   if (host == '' || host == null){
     alert('Please enter your host name and try again.');
     return;
@@ -72,7 +72,9 @@ buttons.forEach(button => {
 
     try {
       const roomId = await createRoom(gameType);
-      window.location.href = `${gameType}.html?roomId=${roomId}&game=${gameType}`;
+      if (roomId != '' || roomId != null){
+        window.location.href = `${gameType}.html?roomId=${roomId}&game=${gameType}`;
+      }
     } catch (e) {
       console.error('Failed to create room:', e);
       alert('Failed to create room, try again.');
@@ -83,7 +85,7 @@ buttons.forEach(button => {
 //Join Room
 document.getElementById("joinBtn")!.addEventListener('click', async () => {
   const roomId = (document.getElementById("roomId") as HTMLInputElement).value;
-  const player = (document.getElementById("playerName") as HTMLInputElement).value;
+  const player = (document.getElementById("username") as HTMLInputElement).value;
 
   if (roomId == '' || roomId == null){
     alert('Please enter your player name and try again.');

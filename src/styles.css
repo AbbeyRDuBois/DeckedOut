@@ -1,29 +1,301 @@
-/* General reset */
-* {
+/* General */
+body {
+  height: 100%;
   margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
 }
-.waiting-popup{
-  display:none; 
-  position:fixed; 
-  top:0; 
-  left:0; 
-  width:100%; 
-  height:100%; 
-  background:rgba(0,0,0,0.8); 
-  color:white; 
-  z-index:1000; 
-  text-align:center; 
-  padding-top:50px;
+/*Game Selection*/
+.title{
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom:10px;
+  color: #2c3e50
 }
-/*This portion takes care of the hand container what the cards look like and the hover effect of the cards*/
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.username-input{
+  text-align: center;
+  display:flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.username-input label {
+  text-align: center;
+  display: block;
+  padding: 5px;
+  font-weight: bold;
+}
+.username-input input {
+  width: 200px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.sections {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+.host-section{
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.section h2 {
+  text-align:center;
+  color: #34495e;
+}
+.game-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.create-room-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: #3c67e7;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.create-room-btn:hover{
+  background-color: #2f50b2;
+}
+.join-section{
+  display:flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.join-section label {
+  text-align: center;
+  display: block;
+  padding: 5px;
+  font-weight: bold;
+}
+.join-section input {
+  width: 200px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.join-btn {
+  width: 70px;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.join-btn:hover {
+  background-color: #1e874b;
+}
+
+/*Top bar of the game rooms*/
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2c3e50;
+  color: white;
+  padding: 5px 10px;
+  font-family: Arial, sans-serif;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.room-info {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  font-weight: bold;
+}
+.bar-id {
+  font-size: 12px;
+  font-weight: bold;
+}
+.copy-icon {
+  cursor: pointer;
+  font-size: 1rem;
+  user-select: none;
+  line-height: 1;
+  padding-top: 1px; /* small visual alignment tweak */
+}
+.leave-room {
+  background-color: #e74c3c;
+  border: none;
+  padding: 4px 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+.leave-room:hover {
+  background-color: #c0392b
+}
+
+/*Waiting Popup*/
+#waiting-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
+  background-color: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#waiting-popup {
+  position: relative;
+  background: white;
+  flex-direction: column; /*Stack vertically*/
+  display: flex;
+  align-items: center;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  animation: 0.3s ease-in-out;
+  justify-content: center;
+}
+#waiting-popup .room-info {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+#waiting-list {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+#popup-btns {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+#start-game {
+  background-color: #3c67e7;
+  border: none;
+  padding: 4px 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+#start-game:hover {
+  background-color: #302bc0
+}
+.waiting-id {
+  top: 6px;
+  left: 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/*Opponents*/
+#opponents {
+  margin-top: 60px;
+  min-height: 80px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.opp-played {
+  width: 60px;
+  height: 80px;
+  background-color: #f8f8f8;
+  border: 2px solid transparent;
+  transition: border 0.3s ease, transform 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+}
+.card-back{
+  width: 40px;
+  height: 50px;
+  background-color: #f8f8f8;
+  border: 2px solid transparent;
+  transition: border 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+.opponent-name{
+  display: flex;
+  justify-content: center;
+}
+
+/* Users hand and last played*/
+#bottom-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+}
+.card.played {
+  pointer-events: none;  /* disables all interaction */
+  cursor: none;
+  width: 80px;
+  height: 110px;
+  position: fixed;
+  bottom: 120px; /* Where the played card lays on the screen */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
 #hand {
   display: flex;
   flex-direction: row;   /* horizontal layout */
-  gap: 12px;             /* space between cards */
+  gap: 6px;             /* space between cards */
   justify-content: center;
-  padding: 20px;
+  padding: 3px;
+  overflow-x: auto;
 }
 .card {
   width: 100px;
@@ -34,42 +306,15 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  border-radius: 6px;
   justify-content: center;
 }
 .card:hover {
   border: 2px solid #2196f3;
-  transform: translateY(-5px); /* card lift effect */
-}
-/* Disable hover for played cards */
-.card.played {
-  pointer-events: none;         /* disables all interaction */
-  cursor: none;
-}
-.opp-played {
-  width: 50px;
-  height: 70px;
-  background-color: #f8f8f8;
-  border: 2px solid transparent;
-  transition: border 0.3s ease, transform 0.2s ease;
-  display: flex;
-  justify-content: center;
-}
-.card-back{
-  width: 50px;
-  height: 70px;
-  background-color: #f8f8f8;
-  border: 2px solid transparent;
-  transition: border 0.3s ease, transform 0.2s ease;
-  display: flex;
-  justify-content: center;
-}
-.opponent-name{
-  display: flex;
-  justify-content: center;
+  transform: translateY(-2px); /* card lift effect */
 }
 .hand-info{
   display: flex;
   justify-content: center; 
   gap: 6px; /*Gap between cards*/
 }
-
