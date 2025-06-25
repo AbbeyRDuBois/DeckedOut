@@ -2,9 +2,107 @@
 body {
   height: 100%;
   margin: 0;
-  padding: 0;
+  padding: 30px;
   display: flex;
   flex-direction: column;
+}
+/*Game Selection*/
+.title{
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom:10px;
+  color: #2c3e50
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.username-input{
+  text-align: center;
+  display:flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.username-input label {
+  text-align: center;
+  display: block;
+  padding: 5px;
+  font-weight: bold;
+}
+.username-input input {
+  width: 200px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.sections {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+.host-section{
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.section h2 {
+  text-align:center;
+  color: #34495e;
+}
+.game-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.create-room-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: #3c67e7;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.create-room-btn:hover{
+  background-color: #2f50b2;
+}
+.join-section{
+  display:flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.join-section label {
+  text-align: center;
+  display: block;
+  padding: 5px;
+  font-weight: bold;
+}
+.join-section input {
+  width: 200px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.join-btn {
+  width: 70px;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.join-btn:hover {
+  background-color: #1e874b;
 }
 
 /*Top bar of the game rooms*/
