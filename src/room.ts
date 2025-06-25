@@ -40,6 +40,10 @@ async function initRoom() {
   players = roomData.players.map((player: any) => rebuildPlayer(player))
   game = new gameMap[gameType]!(new Deck(), players, roomId);
 
+  await updateDoc(roomRef, {
+    maxPlayers: game.getMaxPlayers()
+  })
+
   onSnapshot(roomRef, (docSnap: any) => {
     if (!docSnap.exists()) {
       alert("Room deleted or closed.");
@@ -170,6 +174,10 @@ async function createListeners(){
   //start
   const start = document.getElementById("start-game");
   start?.addEventListener('click', async () => {
+    if (game.getMinPlayers() > players.length){
+      alert(`Need ${game.getMinPlayers()} to play the game.`);
+      return;
+    }
     startGame();
   });
 

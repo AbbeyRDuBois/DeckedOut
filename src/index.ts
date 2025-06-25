@@ -8,6 +8,7 @@ import { db } from "./authentication";
 import { v4 } from 'uuid';
 import './styles.css'
 import { Player } from "./player";
+import { rebuildPlayer } from "./utils";
 
 //Creates the room setting up user as the host
 async function createRoom(gameType: string) {
@@ -49,6 +50,16 @@ async function joinRoom(roomId: string, player: string) {
     return;
   };
 
+  if (roomSnap.started){
+    alert("Game has already started. Can't join now.");
+    return;
+  }
+  const players = roomSnap.players.map((player: any) => rebuildPlayer(player));
+
+  if (roomSnap.maxPlayers >= players.length){
+    alert("Game is already full. Can't join now.");
+    return;
+  }
   //Updates the Game room to add player to the list
   await updateDoc(roomRef, {
     players: arrayUnion((new Player(playerId, player)).toPlainObject()),
@@ -88,7 +99,7 @@ document.getElementById("joinBtn")!.addEventListener('click', async () => {
   const player = (document.getElementById("username") as HTMLInputElement).value;
 
   if (roomId == '' || roomId == null){
-    alert('Please enter your player name and try again.');
+    alert('Please enter the roomId name and try again.');
     return;
   }
 
