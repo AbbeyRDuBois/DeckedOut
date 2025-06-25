@@ -172,16 +172,16 @@ body {
   box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
 }
 .card.played {
-  margin-bottom: 8px;
   pointer-events: none;  /* disables all interaction */
   cursor: none;
+  width: 80px;
+  height: 110px;
   position: fixed;
-  bottom: 100px; /* Height of hand + spacing */
+  bottom: 120px; /* Where the played card lays on the screen */
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
   background: white;
-  padding: 8px;
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
@@ -190,7 +190,7 @@ body {
   flex-direction: row;   /* horizontal layout */
   gap: 6px;             /* space between cards */
   justify-content: center;
-  padding: 8px;
+  padding: 3px;
   overflow-x: auto;
 }
 .card {
@@ -202,11 +202,12 @@ body {
   cursor: pointer;
   display: flex;
   align-items: center;
+  border-radius: 6px;
   justify-content: center;
 }
 .card:hover {
   border: 2px solid #2196f3;
-  transform: translateY(-5px); /* card lift effect */
+  transform: translateY(-2px); /* card lift effect */
 }
 .hand-info{
   display: flex;
