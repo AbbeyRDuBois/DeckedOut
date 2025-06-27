@@ -9,16 +9,14 @@ export abstract class BaseGame {
   protected players: Player[];
   protected roomId: string;
   protected roomRef: any;
-  protected maxPlayers: number;
-  protected minPlayers: number;
+  protected maxPlayers: number = 6;
+  protected minPlayers: number = 2;
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
     this.players = players;
     this.roomId = roomId;
     this.roomRef = doc(db, "rooms", roomId);
-    this.maxPlayers = 6;
-    this.minPlayers = 2;
   }
   abstract start(): void;
   abstract render(): void;
