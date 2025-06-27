@@ -1,10 +1,14 @@
-/* General */
+/**********************************
+  *
+  * General/Common Styling
+  *
+  *********************************/
 body {
   height: 100%;
   margin: 0;
-  padding: 30px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden; /* prevents horizontal scroll*/
 }
 /*Game Selection*/
 .title{
@@ -140,7 +144,8 @@ body {
 .leave-room {
   background-color: #e74c3c;
   border: none;
-  padding: 4px 6px;
+  margin-right: 20px;
+  padding: 4px 10px;
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -317,4 +322,12 @@ body {
   display: flex;
   justify-content: center; 
   gap: 6px; /*Gap between cards*/
+}
+#hand.hand-disabled .card {
+  pointer-events: none;           /* disables click, hover, etc. */
+  filter: grayscale(100%);        /* visually greys out the card */
+  opacity: 0.5;                   /* optional: make it more muted */
+  cursor: default;                /* change cursor to normal */
+  transform: none !important;     /* prevent hover lifting */
+  border: 2px solid transparent;  /* remove hover border effect */
 }

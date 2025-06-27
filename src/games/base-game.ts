@@ -26,6 +26,14 @@ export abstract class BaseGame {
   abstract getState(): any;
   abstract deal(): void;
 
+  deactivateHand(){
+    document.getElementById('hand')?.classList.add('hand-disabled');
+  }
+
+  activateHand(){
+    document.getElementById('hand')?.classList.remove('hand-disabled');
+  }
+
   setPlayers(players: Player[]) {
     this.players = players;
   }
@@ -36,5 +44,13 @@ export abstract class BaseGame {
 
   getMinPlayers(){
     return this.minPlayers;
+  }
+
+  getUserPlayer(){
+    return this.players.find((p) => p.id === localStorage.getItem('playerId')!)!;
+  }
+
+  getOpponents(){
+    return this.players.filter(p => p.id !== localStorage.getItem('playerId')!);
   }
 }

@@ -29,7 +29,7 @@ async function createRoom(gameType: string) {
     gameType, 
     lastActive: Date.now(),
     players: [(new Player(playerId, host)).toPlainObject()],
-    started: false
+    gameStarted: false
   })).id;
 }
 
@@ -56,7 +56,7 @@ async function joinRoom(roomId: string, player: string) {
   }
   const players = roomSnap.players.map((player: any) => rebuildPlayer(player));
 
-  if (roomSnap.maxPlayers >= players.length){
+  if (roomSnap.maxPlayers == players.length){
     alert("Game is already full. Can't join now.");
     return;
   }

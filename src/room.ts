@@ -1,4 +1,4 @@
-import { Gofish } from './games/gofish-game';
+import { Gofish } from './games/cribbage';
 import { BaseGame } from './games/base-game';
 import { Card, Deck } from './deck';
 import { loadSharedUI, rebuildPlayer } from './utils';
@@ -21,6 +21,8 @@ const MINUTE = 60 * 1000;
 const TIMEOUT_CLOSE = 30;
 const TIMEOUT_WARNING = 25;
 let WARNING_SHOWN = false;
+
+let gameSetup = false;
 
 const gameMap: Record<string, any> = {
     'gofish': Gofish,
@@ -56,6 +58,11 @@ async function initRoom() {
     if (sharedUILoaded) {
       handlePopup();
     }
+
+    if (roomData.gameStarted && !gameSetup){
+      game.start();
+      gameSetup = true;
+    }
   });
 
   await loadSharedUI();
@@ -65,7 +72,6 @@ async function initRoom() {
     info.innerHTML = `<div>Room ID: ${roomId}</div>`;
   });
 
-  game.render();
   handlePopup();
 
   createListeners();
@@ -125,7 +131,7 @@ async function exitRoom(playerId: string, players: any, hostId: string) {
   Checks to see if the room has been inactive 
   At 25 min gives a warning, at 30 min it closes the room
 */
-async function checkRoomStatus() {
+async function checkRoomTimeout() {
   try {
     const roomData = await getRoomData(roomRef)!;
 
@@ -179,6 +185,10 @@ async function createListeners(){
       return;
     }
     startGame();
+
+    await updateDoc(roomRef, {
+      gameStarted: true
+    })
   });
 
   //Inactivity Tracking
@@ -194,7 +204,7 @@ async function createListeners(){
   })
 
   //Inactivity check every minute
-  setInterval(checkRoomStatus, MINUTE);
+  setInterval(checkRoomTimeout, MINUTE);
 }
 
 export function renderOpponents(opponents: Player[]) {
