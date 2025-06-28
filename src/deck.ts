@@ -10,87 +10,100 @@ export class Card {
     value: string;
     suit: string;
 
-    constructor(id: number, value = "", suit = ""){
+    cardDiv?: HTMLDivElement;
+    private clickHandler?: (e: MouseEvent) => void; // for default behavior
+
+    constructor(id: number, value = "", suit = "") {
         this.value = value;
         this.suit = suit;
         this.id = id;
     }
 
-    toString(): string{
+    toString(): string {
         return `${this.value} ${this.suit}`;
     }
 
-    //Gives the int value of non number cards
-    //Passing in true turns face cards to 10 for cribbage counting
-    toInt(cribbage = false): number{
-        switch(this.value){
-            case 'A':
-                return 1;
-            case 'J':
-                return cribbage ? 10 : 11;
-            case 'Q':
-                return cribbage ? 10 : 12;
-            case 'K':
-                return cribbage ? 10 : 13;
-            case 'JK':
-                return -1;
-            default:
-                return parseInt(this.value);
+    toInt(cribbage = false): number {
+        switch (this.value) {
+            case 'A': return 1;
+            case 'J': return cribbage ? 10 : 11;
+            case 'Q': return cribbage ? 10 : 12;
+            case 'K': return cribbage ? 10 : 13;
+            case 'JK': return -1;
+            default: return parseInt(this.value);
         }
     }
 
-    //Creates the cards that are added to hands
-    //Attaches a listener that will remove it from hand and place it in played section when clicked
-    createCard(players: Player[]): HTMLDivElement {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
-        cardDiv.textContent = this.toString();
-        cardDiv.setAttribute("card-id", this.id.toString());
+    createCard(players: Player[], clickable = true): HTMLDivElement {
+        this.cardDiv = document.createElement('div');
+        this.cardDiv.className = 'card';
+        this.cardDiv.textContent = this.toString();
+        this.cardDiv.setAttribute("card-id", this.id.toString());
+
+        // Create and attach default handler
+        if (clickable){
+            this.attachDefaultClickHandler(players); 
+        }
+        
+        return this.cardDiv;
+    }
+
+    attachDefaultClickHandler(players: Player[]) {
+        if (!this.cardDiv) return;
 
         const handContainer = document.getElementById("hand")!;
         const playedContainer = document.getElementById("played")!;
         const roomId = new URLSearchParams(window.location.search).get("roomId")!;
         const roomRef = doc(db, "rooms", roomId);
 
-        cardDiv.addEventListener('click', async () => {
-            // Remove from hand
-            handContainer.removeChild(cardDiv);
+        // Save reference to the handler so it can be removed
+        this.clickHandler = async () => {
+            if (handContainer.classList.contains('hand-disabled')) return; //Returns is hand is disabled
 
-            // Clear previous played card
+            handContainer.removeChild(this.cardDiv!);
             playedContainer.innerHTML = '';
 
-            //Add played line so hover no longer works on card
-            //cloneNode strips it of all listeners
-            cardDiv.classList.add('played');
-            cardDiv.replaceWith(cardDiv.cloneNode(true));
+            this.cardDiv!.classList.add('played');
+            this.cardDiv!.replaceWith(this.cardDiv!.cloneNode(true));
+            playedContainer.appendChild(this.cardDiv!);
 
-            // Add card to played section
-            playedContainer.appendChild(cardDiv);
-
-            //Update players card count and last played
-            const player = players.find((player: Player) => player.id === localStorage.getItem('playerId')!)!;
-            const index = player.hand.findIndex(card => card.id === this.id);
+            const player = players.find((p) => p.id === localStorage.getItem('playerId')!)!;
+            const index = player.hand.findIndex(c => c.id === this.id);
             if (index !== -1) player.hand.splice(index, 1);
             player.lastPlayed = this;
 
-            //Updates database with changes so others can see it
             await updateDoc(roomRef, {
                 players: players.map(p => p.toPlainObject())
             });
-        });
+        };
 
-        return cardDiv;
-    };
+        this.cardDiv.addEventListener('click', this.clickHandler);
+    }
 
-    toPlainObject(){
+    removeClickHandler() {
+        if (this.cardDiv && this.clickHandler) {
+            this.cardDiv.removeEventListener('click', this.clickHandler);
+            this.clickHandler = undefined;
+        }
+    }
+
+    attachCustomClickHandler(customHandler: (e: MouseEvent) => void) {
+        this.removeClickHandler();
+        if (this.cardDiv) {
+            this.clickHandler = customHandler;
+            this.cardDiv.addEventListener('click', this.clickHandler);
+        }
+    }
+
+    toPlainObject() {
         return {
             id: this.id,
             value: this.value,
             suit: this.suit,
-
-        }
+        };
     }
 }
+
 
 export class Deck{
     deck: Card[] = [];

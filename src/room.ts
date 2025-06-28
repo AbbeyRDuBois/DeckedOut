@@ -1,4 +1,4 @@
-import { Gofish } from './games/cribbage';
+import { Cribbage } from './games/cribbage';
 import { BaseGame } from './games/base-game';
 import { Card, Deck } from './deck';
 import { loadSharedUI, rebuildPlayer } from './utils';
@@ -25,7 +25,7 @@ let WARNING_SHOWN = false;
 let gameSetup = false;
 
 const gameMap: Record<string, any> = {
-    'gofish': Gofish,
+    'cribbage': Cribbage,
 };
 
 async function initRoom() {
