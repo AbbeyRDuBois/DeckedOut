@@ -19,5 +19,5 @@ export function rebuildPlayer(data: any): Player {
   ? new Card(data.lastPlayed.id, data.lastPlayed.value, data.lastPlayed.suit)
   : new Card(0);
 
-  return new Player(data.id, data.name, lastPlayed, hand);
+  return new Player(data.id, data.name);
 }

@@ -3,16 +3,14 @@ import { Card } from "./deck";
 export class Player {
     id: string;
     name: string;
-    lastPlayed: Card;
-    hand: Card[];
-    isTurn: boolean;
+    lastPlayed: Card = new Card(0);
+    hand: Card[] = [];
+    isTurn: boolean = false;
+    score: number = 0;
 
-    constructor(id: string, name: string, lastPlayed = new Card(0), hand = [], isTurn = false){
+    constructor(id: string, name: string){
         this.id = id;
         this.name = name;
-        this.lastPlayed = lastPlayed;
-        this.hand = hand;
-        this.isTurn = isTurn;
     }
 
     updateLastPlayed(lastPlayed: Card){
