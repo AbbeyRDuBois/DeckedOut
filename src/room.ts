@@ -22,8 +22,6 @@ const TIMEOUT_CLOSE = 30;
 const TIMEOUT_WARNING = 25;
 let WARNING_SHOWN = false;
 
-let gameSetup = false;
-
 const gameMap: Record<string, any> = {
     'cribbage': Cribbage,
 };
@@ -55,13 +53,12 @@ async function initRoom() {
     roomData = docSnap.data();
     game.setPlayers(players);
 
-    if (sharedUILoaded) {
+    if (sharedUILoaded && !roomData.gameStarted) {
       handlePopup();
     }
 
-    if (roomData.gameStarted && !gameSetup){
+    if (roomData.gameStarted && !game.getStarted()){
       game.start();
-      gameSetup = true;
     }
   });
 
@@ -112,7 +109,6 @@ async function startGame(){
         started: true,
     });
     game.setPlayers(players);
-    game.start();
 }
 
 async function exitRoom(playerId: string, players: any, hostId: string) {

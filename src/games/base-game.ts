@@ -11,6 +11,7 @@ export abstract class BaseGame {
   protected roomRef: any;
   protected maxPlayers: number = 6;
   protected minPlayers: number = 2;
+  protected started: boolean = false;
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
@@ -42,6 +43,10 @@ export abstract class BaseGame {
 
   getMinPlayers(){
     return this.minPlayers;
+  }
+
+  getStarted() {
+    return this.started;
   }
 
   getUserPlayer(){
