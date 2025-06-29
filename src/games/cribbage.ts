@@ -1,7 +1,7 @@
 import { DocumentData, getDoc, updateDoc } from "firebase/firestore";
 import { renderHand, renderOpponents } from "../room";
 import { BaseGame } from "./base-game";
-import { Deck } from "../deck";
+import { Card, Deck } from "../deck";
 import { Player } from "../player";
 
 export class Cribbage extends BaseGame {
@@ -14,6 +14,7 @@ export class Cribbage extends BaseGame {
     pegging_phase: boolean = false; //True if players are in the pegging phase
     pegging_index: number = 0; //(crib_index + 1) % len(players)
     crib_index: number = 0; //crib_index++ each round. Crib belongs to players[crib_index%len(players)]
+    teams: Player[][] = []; //Array to hold player groups
 
     constructor( deck: Deck, players: Player[], roomId: string){
       super(deck, players, roomId);
@@ -37,8 +38,11 @@ export class Cribbage extends BaseGame {
     }
 
     start(): void {
+      this.setupTeams();
       this.deal();
       this.render();
+      this.setupListeners();
+      this.started = true;
     }
 
     async deal(): Promise<void> {
@@ -63,7 +67,9 @@ export class Cribbage extends BaseGame {
 
       renderHand(user);
       renderOpponents(opponents);
-      this.renderPairs();
+
+      this.renderScoreboard();
+      this.renderRoundTotal();
     }
 
     handleAction(data: any): void {
@@ -73,30 +79,63 @@ export class Cribbage extends BaseGame {
       throw new Error("Method not implemented.");
     }
 
-    async renderPairs() {
-      const count = this.players.length;
-      const pairsGrid = document.getElementById('pairsGrid')!;
-      //Sets the grid layout based on player count
-      if (count <= 4) {
-        pairsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-      } else {
-        pairsGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-      }
-
-      pairsGrid.innerHTML = '';
-
-      const roomData: DocumentData = (await getDoc(this.roomRef)).data()!;
-      
+    setupTeams(){
+      //Default of just one player for each team for testing.
       this.players.forEach(player => {
-        const box = document.createElement('div');
-        box.className = 'pair-slot';
+        this.teams.push([player]);
+      })
+    }
 
-        box.innerHTML =  `
-          <div class="pair-player-name">${player.name}</div>
-          <div class="pair-count">${roomData.pairs?.[player.id] ?? ''}</div>
+    renderScoreboard() {
+      const scoreboard = document.getElementById('scoreboard')!;
+      scoreboard.innerHTML = ''; // clears old content
+      
+      this.teams.forEach(team => { 
+        const div = document.createElement('div');
+        div.classList.add('team');
+        div.innerHTML=`
+          <div class="team-name">${team.map(player => player.name).join("-")}</div>
+          <div class="team-score">${team.reduce((sum, player) => sum + player.score, 0)}</div>
         `;
+        scoreboard.appendChild(div);
+      })
+    }
 
-        pairsGrid.appendChild(box);
+    renderRoundTotal() {
+      const roundTotal = document.getElementById("round-totals")!;
+      roundTotal.innerHTML = "";
+
+      this.players.forEach(player => {
+        const div = document.createElement('div');
+        div.classList.add('player-total');
+        div.innerHTML=`
+          <div class="player-score">${player.name}: ${player.score}</div>
+          <div class="total-hand"></div>
+        `;
+        const totalHand = div.querySelector(".total-hand")!;
+
+        player.hand?.forEach((card: Card) => {
+            totalHand.appendChild(card.createCard(this.players, false));
+        });
+
+        roundTotal.appendChild(div);
+      })
+    }
+
+    setupListeners() {
+      const toggle = document.getElementById("toggle-round-totals");
+      const roundTotals = document.getElementById("round-totals");
+
+      toggle?.addEventListener("click", () => {
+        const isCollapsed = roundTotals?.classList.toggle("collapsed");
+        const minus = document.getElementById("minimize")!;
+        const plus = document.getElementById("maximize")!;
+
+        minus.style.display = isCollapsed ? "none" : "inline";
+        plus.style.display = isCollapsed ? "inline" : "none";
+
+        isCollapsed ? toggle.title = "Maximize Totals" : toggle.title = "Minimize Totals";
       });
     }
+
 }

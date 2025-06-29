@@ -1,8 +1,8 @@
-/**********************************
+/***********************************************************
   *
   * General/Common Styling
   *
-  *********************************/
+  **********************************************************/
 body {
   height: 100%;
   margin: 0;
@@ -136,10 +136,8 @@ body {
 }
 .copy-icon {
   cursor: pointer;
-  font-size: 1rem;
-  user-select: none;
-  line-height: 1;
-  padding-top: 1px; /* small visual alignment tweak */
+  width: 1em;
+  height: 1em;
 }
 .leave-room {
   background-color: #e74c3c;
@@ -330,4 +328,87 @@ body {
   cursor: default;                /* change cursor to normal */
   transform: none !important;     /* prevent hover lifting */
   border: 2px solid transparent;  /* remove hover border effect */
+}
+
+/***********************************************************************
+*
+* Cribbage Elements
+*
+************************************************************************/
+
+/*Scoreboard*/
+#scoreboard {
+  position: absolute;
+  justify-content: center;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #000;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-80%);
+  align-items: center;
+}
+
+.team{
+  background-color: #444;
+  text-align: center;
+  border-radius: 8px;
+  margin: 5px;
+}
+
+.team .team-name {
+  font-size: 15px;
+  color: #a9a9a9;
+}
+
+.team .team-score {
+  font-size: 15px;
+  color: #a9a9a9;
+}
+
+/*Round Totals */
+#round-totals-wrapper {
+  position: absolute;
+  justify-content: center;
+  padding: 5px;
+  align-items: center;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #000;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-60%);
+}
+
+#round-totals.collapsed {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.player-score{
+  margin: 5px;
+}
+
+.player-total .player-score {
+  font-size: 20px;
+  color:#a9a9a9
+}
+
+.total-hand {
+  display: flex;
+  gap: 3px;
+}
+
+.total-hand .card {
+  pointer-events: none;
+  width: 50px;
+  height: 60px;
+}
+
+.toggle {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
 }
