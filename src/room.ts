@@ -97,13 +97,6 @@ async function getRoomData(roomRef: any): Promise<DocumentData>{
     return (await getDoc(roomRef))?.data()!;
 }
 
-async function updatePlayers() {
-    await updateDoc(roomRef, {
-        players: players.map(player => player.toPlainObject())
-    });
-    game.setPlayers(players);
-}
-
 async function startGame(){
     await updateDoc(roomRef, {
         started: true,

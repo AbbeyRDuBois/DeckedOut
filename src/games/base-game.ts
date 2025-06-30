@@ -12,6 +12,7 @@ export abstract class BaseGame {
   protected maxPlayers: number = 6;
   protected minPlayers: number = 2;
   protected started: boolean = false;
+  protected currentPlayer: Player = new Player("", "");
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
@@ -19,6 +20,7 @@ export abstract class BaseGame {
     this.roomId = roomId;
     this.roomRef = doc(db, "rooms", roomId);
   }
+
   abstract start(): void;
   abstract render(): void;
   abstract handleAction(data: any): void;
@@ -55,5 +57,12 @@ export abstract class BaseGame {
 
   getOpponents(){
     return this.players.filter(p => p.id !== localStorage.getItem('playerId')!);
+  }
+
+  shufflePlayerOrder(){
+    for (let i = this.players.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.players[i], this.players[j]] = [this.players[j], this.players[i]];
+    }
   }
 }

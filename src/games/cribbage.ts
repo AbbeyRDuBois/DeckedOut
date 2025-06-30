@@ -1,4 +1,4 @@
-import { DocumentData, getDoc, updateDoc } from "firebase/firestore";
+import { arrayUnion, DocumentData, getDoc, updateDoc } from "firebase/firestore";
 import { renderHand, renderOpponents } from "../room";
 import { BaseGame } from "./base-game";
 import { Card, Deck } from "../deck";
@@ -13,8 +13,9 @@ export class Cribbage extends BaseGame {
     throw_away_phase: boolean = true; //True if players still need to throw cards away
     pegging_phase: boolean = false; //True if players are in the pegging phase
     pegging_index: number = 0; //(crib_index + 1) % len(players)
-    crib_index: number = 0; //crib_index++ each round. Crib belongs to players[crib_index%len(players)]
     teams: Player[][] = []; //Array to hold player groups
+    flipped: Card = new Card(0); //Flipped Card
+    crib: Card[] = []; //Crib
 
     constructor( deck: Deck, players: Player[], roomId: string){
       super(deck, players, roomId);
@@ -33,11 +34,10 @@ export class Cribbage extends BaseGame {
           this.point_goal = 241;
           this.skunk_length = 60;
       }
-
-      this.pegging_index = (this.crib_index + 1) % players.length;
     }
 
     start(): void {
+      this.shufflePlayerOrder();
       this.setupTeams();
       this.deal();
       this.render();
@@ -70,6 +70,7 @@ export class Cribbage extends BaseGame {
 
       this.renderScoreboard();
       this.renderRoundTotal();
+      this.renderFlipped();
     }
 
     handleAction(data: any): void {
@@ -138,4 +139,28 @@ export class Cribbage extends BaseGame {
       });
     }
 
+    getFlipped() {
+      if (!this.flipped) {
+        this.flipped = this.deck.getCard()!;
+        this.renderFlipped();
+      }
+    }
+
+    async renderFlipped(){
+      const flippedDiv = document.getElementById("flipped")!;
+      flippedDiv.innerHTML = '';
+
+      if (this.flipped) {
+        const cardDiv = this.flipped.createCard(this.players, false);
+        flippedDiv.appendChild(cardDiv);
+      }
+    }
+
+    async updateGameState(){
+      await updateDoc(this.roomRef, {
+        players: this.players.forEach(player => player.toPlainObject()),
+        flipped: this.flipped.toPlainObject(),
+        crib: arrayUnion(this.crib.forEach(card => card.toPlainObject()))
+      });
+    }
 }
