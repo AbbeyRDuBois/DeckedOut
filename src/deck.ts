@@ -1,4 +1,4 @@
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, DocumentData, updateDoc } from "firebase/firestore";
 import { Player } from "./player";
 import { db } from "./authentication";
 
@@ -10,8 +10,6 @@ export class Card {
     value: string;
     suit: string;
 
-    cardDiv?: HTMLDivElement;
-    private clickHandler?: (e: MouseEvent) => void; // for default behavior
 
     constructor(id: number, value = "", suit = "") {
         this.value = value;
@@ -34,65 +32,18 @@ export class Card {
         }
     }
 
-    createCard(players: Player[], clickable = true): HTMLDivElement {
-        this.cardDiv = document.createElement('div');
-        this.cardDiv.className = 'card';
-        this.cardDiv.textContent = this.toString();
-        this.cardDiv.setAttribute("card-id", this.id.toString());
+    createCard(clickable = true, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        cardDiv.textContent = this.toString();
+        cardDiv.setAttribute("card-id", this.id.toString());
 
-        // Create and attach default handler
-        if (clickable){
-            this.attachDefaultClickHandler(players); 
+        // Attach the passed in handler
+        if (clickable && onClick){
+            cardDiv.addEventListener('click', () => onClick(this, cardDiv));
         }
         
-        return this.cardDiv;
-    }
-
-    attachDefaultClickHandler(players: Player[]) {
-        if (!this.cardDiv) return;
-
-        const handContainer = document.getElementById("hand")!;
-        const playedContainer = document.getElementById("played")!;
-        const roomId = new URLSearchParams(window.location.search).get("roomId")!;
-        const roomRef = doc(db, "rooms", roomId);
-
-        // Save reference to the handler so it can be removed
-        this.clickHandler = async () => {
-            if (handContainer.classList.contains('hand-disabled')) return; //Returns is hand is disabled
-
-            handContainer.removeChild(this.cardDiv!);
-            playedContainer.innerHTML = '';
-
-            this.cardDiv!.classList.add('played');
-            this.cardDiv!.replaceWith(this.cardDiv!.cloneNode(true));
-            playedContainer.appendChild(this.cardDiv!);
-
-            const player = players.find((p) => p.id === localStorage.getItem('playerId')!)!;
-            const index = player.hand.findIndex(c => c.id === this.id);
-            if (index !== -1) player.hand.splice(index, 1);
-            player.lastPlayed = this;
-
-            await updateDoc(roomRef, {
-                players: players.map(p => p.toPlainObject())
-            });
-        };
-
-        this.cardDiv.addEventListener('click', this.clickHandler);
-    }
-
-    removeClickHandler() {
-        if (this.cardDiv && this.clickHandler) {
-            this.cardDiv.removeEventListener('click', this.clickHandler);
-            this.clickHandler = undefined;
-        }
-    }
-
-    attachCustomClickHandler(customHandler: (e: MouseEvent) => void) {
-        this.removeClickHandler();
-        if (this.cardDiv) {
-            this.clickHandler = customHandler;
-            this.cardDiv.addEventListener('click', this.clickHandler);
-        }
+        return cardDiv;
     }
 
     toPlainObject() {
@@ -107,15 +58,17 @@ export class Card {
 
 export class Deck{
     deck: Card[] = [];
-    flipped: Card = new Card(0);
 
-    constructor(){
-        this.resetDeck();
+    constructor(deck: Card[] = []){
+        if (deck.length ===  0){
+            this.resetDeck();
+        }else {
+            this.deck = deck;
+        }
     }
 
     resetDeck(){
         this.deck = [];
-        this.flipped = new Card(0);
         let idCounter = 0;
 
         //Adds in a card of each value/suit
@@ -144,11 +97,13 @@ export class Deck{
         return hands;
     }
 
-    getFlipped(){
-        if(this.flipped === null && this.deck.length > 0){
-            const card = this.getCard()!;
-            this.flipped = card;
-        };
-        return this.flipped;
+    toPlainObject(){
+        return this.deck.map(card => card.toPlainObject());
+    }
+
+    static fromPlainObject(data: DocumentData): Deck{
+        return new Deck(Array.isArray(data)
+            ? data.map((c: any) => new Card(c.id, c.value, c.suit))
+            : []);
     }
 }

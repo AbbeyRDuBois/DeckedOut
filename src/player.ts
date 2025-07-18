@@ -1,3 +1,4 @@
+import { DocumentData } from "firebase/firestore";
 import { Card } from "./deck";
 
 export class Player {
@@ -22,8 +23,27 @@ export class Player {
             id: this.id,
             name: this.name,
             lastPlayed: this.lastPlayed?.toPlainObject(),
-            hand: this.hand.map(card => card.toPlainObject())
+            hand: this.hand.map(card => card.toPlainObject()),
+            isTurn: this.isTurn,
+            score: this.score
         };
     }
 
+    static fromPlainObject(data: DocumentData): Player {
+        let player = new Player(data.id, data.name);
+
+        player.lastPlayed = data.lastPlayed
+            ? new Card(data.lastPlayed.id, data.lastPlayed.value, data.lastPlayed.suit)
+            : new Card(0);
+
+        player.hand = Array.isArray(data.hand)
+            ? data.hand.map((c: any) => new Card(c.id, c.value, c.suit))
+            : [];
+
+        player.isTurn = data.isTurn;
+
+        player.score = data.score;
+
+        return player;
+    }
 }

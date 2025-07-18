@@ -8,7 +8,6 @@ import { db } from "./authentication";
 import { v4 } from 'uuid';
 import './styles.css'
 import { Player } from "./player";
-import { rebuildPlayer } from "./utils";
 
 //Creates the room setting up user as the host
 async function createRoom(gameType: string) {
@@ -29,7 +28,7 @@ async function createRoom(gameType: string) {
     gameType, 
     lastActive: Date.now(),
     players: [(new Player(playerId, host)).toPlainObject()],
-    gameStarted: false
+    started: false
   })).id;
 }
 
@@ -54,7 +53,7 @@ async function joinRoom(roomId: string, player: string) {
     alert("Game has already started. Can't join now.");
     return;
   }
-  const players = roomSnap.players.map((player: any) => rebuildPlayer(player));
+  const players = roomSnap.players.map((player: any) => Player.fromPlainObject(player));
 
   if (roomSnap.maxPlayers == players.length){
     alert("Game is already full. Can't join now.");

@@ -1,7 +1,6 @@
 import { Cribbage } from './games/cribbage';
 import { BaseGame } from './games/base-game';
-import { Card, Deck } from './deck';
-import { loadSharedUI, rebuildPlayer } from './utils';
+import { Deck } from './deck';
 import { deleteDoc, doc, DocumentData, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { Player } from './player';
 import { db } from './authentication';
@@ -37,28 +36,23 @@ async function initRoom() {
     alert("Room not found.");
     return;
   }
-  players = roomData.players.map((player: any) => rebuildPlayer(player))
+  players = roomData.players.map((player: any) => Player.fromPlainObject(player))
   game = new gameMap[gameType]!(new Deck(), players, roomId);
 
   await updateDoc(roomRef, {
     maxPlayers: game.getMaxPlayers()
   })
 
-  onSnapshot(roomRef, (docSnap: any) => {
+  onSnapshot(roomRef, async (docSnap: any) => {
     if (!docSnap.exists()) {
       alert("Room deleted or closed.");
       return window.location.href = "index.html";
     }
 
-    roomData = docSnap.data();
-    game.setPlayers(players);
-
-    if (sharedUILoaded && !roomData.gameStarted) {
+    if (sharedUILoaded && !game.getStarted()) {
+      roomData = docSnap.data();
+      game.setPlayers(roomData.players.map((player: any) => Player.fromPlainObject(player)));
       handlePopup();
-    }
-
-    if (roomData.gameStarted && !game.getStarted()){
-      game.start();
     }
   });
 
@@ -74,34 +68,29 @@ async function initRoom() {
   createListeners();
 };
 
+async function loadSharedUI(containerId = "room-template") {
+  const container = document.getElementById(containerId)!;
+  const html = await fetch("shared-ui.html").then(res => res.text());
+  container.innerHTML = html;
+
+  await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
+}
+
 function handlePopup(){
   const started = roomData.started;
-  players = roomData.players.map((p: any) => rebuildPlayer(p));
+  players = game.getPlayers();
 
   if (!started) {
-    document.getElementById("waiting-overlay")!.style.display = "flex";
-    updatePlayerList();
+  document.getElementById("waiting-overlay")!.style.display = "flex";
+  updatePlayerList();
   } else {
     document.getElementById("waiting-overlay")!.style.display = "none";
-
-    const playerId = localStorage.getItem("playerId")!;
-    const player = players.find(p => p.id === playerId)!;
-    const opponents = players.filter(p => p.id !== playerId);
-
-    renderHand(player);
-    renderOpponents(opponents);
+    game.guestSetup(roomData);
   }
 }
 
 async function getRoomData(roomRef: any): Promise<DocumentData>{
     return (await getDoc(roomRef))?.data()!;
-}
-
-async function startGame(){
-    await updateDoc(roomRef, {
-        started: true,
-    });
-    game.setPlayers(players);
 }
 
 async function exitRoom(playerId: string, players: any, hostId: string) {
@@ -148,7 +137,6 @@ async function createListeners(){
     copy.addEventListener("click", async () => {
       try{
         await navigator.clipboard.writeText(roomId);
-        console.log("Text copied successfully");
       } catch(e){
         console.error("unable to copy to clipboard: ", e);
       }
@@ -173,11 +161,9 @@ async function createListeners(){
       alert(`Need ${game.getMinPlayers()} to play the game.`);
       return;
     }
-    startGame();
-
-    await updateDoc(roomRef, {
-      gameStarted: true
-    })
+    game.setPlayers(players);
+    game.start();
+    document.getElementById("waiting-overlay")!.style.display = "none";
   });
 
   //Inactivity Tracking
@@ -196,29 +182,6 @@ async function createListeners(){
   setInterval(checkRoomTimeout, MINUTE);
 }
 
-export function renderOpponents(opponents: Player[]) {
-    const opponentContainer = document.getElementById('opponents')!;
-    opponentContainer.innerHTML = ''; // clears old content
-    opponents.forEach(opponent => {
-        const div = document.createElement('div');
-        div.classList.add('opponent');
-        div.innerHTML = `
-        <div class = "opponent-name">${opponent.name}</div>
-        <div class = "hand-info">
-            <div class="card-back">${opponent.hand?.length || 0}</div>
-            <div class="opp-played">${opponent.lastPlayed?.toString() || ""} </div>
-        </div>`;
-        opponentContainer.appendChild(div);
-    });
-}
-
-export function renderHand(player: Player) {
-    const handContainer = document.getElementById('hand')!;
-    handContainer.innerHTML = '';
-    player.hand?.forEach((card: Card) => {
-        handContainer.appendChild(card.createCard(players));
-    });
-}
 
 export function updatePlayerList() {
     const list = document.getElementById('waiting-list')!;
