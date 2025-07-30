@@ -32,7 +32,7 @@ export class Card {
         }
     }
 
-    createCard(clickable = true, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement {
+    createCard(clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
         cardDiv.textContent = this.toString();

@@ -2,6 +2,7 @@ import { arrayUnion, DocumentData, getDoc, onSnapshot, updateDoc } from "firebas
 import { BaseGame } from "./base-game";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
+import { v4 } from "uuid";
 
 export class Cribbage extends BaseGame {
     point_goal: number = 121; //Number of points to win
@@ -35,6 +36,8 @@ export class Cribbage extends BaseGame {
           this.point_goal = 241;
           this.skunk_length = 60;
       }
+
+      this.cardClick = this.cardClick.bind(this); //Binds this function to game so that games variables can still be used in the onClick
     }
 
     async start(): Promise<void> {
@@ -45,7 +48,7 @@ export class Cribbage extends BaseGame {
       this.deal();
 
       //This call is pretty big cause it's inital setup
-      this.updateGameState({
+      this.updateDBState({
         players: this.players.map(player => player.toPlainObject()),
         teams: this.teams.flatMap((team, row) => team.map((player, col) => ({row, col, ...player.toPlainObject()}))),
         flipped: this.flipped.toPlainObject(),
@@ -124,7 +127,7 @@ export class Cribbage extends BaseGame {
         const totalHand = div.querySelector(".total-hand")!;
 
         player.hand?.forEach((card: Card) => {
-            totalHand.appendChild(card.createCard(false));
+            totalHand.appendChild(card.createCard());
         });
 
         roundTotal.appendChild(div);
@@ -135,14 +138,13 @@ export class Cribbage extends BaseGame {
       const currentId = localStorage.getItem("playerId");
       const player = this.players.find(player => player.id === currentId)!;
       const handContainer = document.getElementById('hand')!;
-      
-      if (this.currentPlayer !== player){
+      if (this.currentPlayer.name !== player.name){
         this.deactivateHand();
       }
 
       handContainer.innerHTML = '';
       player.hand?.forEach((card: Card) => {
-          handContainer.appendChild(card.createCard());
+          handContainer.appendChild(card.createCard(true, this.cardClick));
       });
     }
 
@@ -181,13 +183,13 @@ export class Cribbage extends BaseGame {
       //Game specific room listener
       onSnapshot(this.roomRef, (docSnap: any) => {
         const roomData = docSnap.data() as DocumentData;
-
+        this.updateLocalState(roomData);
         //Enables your hand if it's your turn
         const handContainer = document.getElementById("hand")!;
-        if (roomData.currentPlayer === localStorage.getItem('playerId')){
+        if (this.currentPlayer.id === localStorage.getItem('playerId')){
           handContainer.classList.remove('hand-disabled');
+          this.isTurn = true;
         }
-
       });
     }
 
@@ -203,16 +205,16 @@ export class Cribbage extends BaseGame {
       flippedDiv.innerHTML = '';
 
       if (this.flipped) {
-        const cardDiv = this.flipped.createCard(false);
+        const cardDiv = this.flipped.createCard();
         flippedDiv.appendChild(cardDiv);
       }
     }
 
-    async updateGameState(changes: { [key: string]: any}){
+    async updateDBState(changes: { [key: string]: any}){
       await updateDoc(this.roomRef, changes);
     }
 
-    async cardOnClick(card: Card, cardDiv: HTMLDivElement) {
+    async cardClick(card: Card, cardDiv: HTMLDivElement) {
       const handContainer = document.getElementById("hand")!;
       const playedContainer = document.getElementById("played")!;
 
@@ -225,7 +227,7 @@ export class Cribbage extends BaseGame {
       cardDiv.replaceWith(cardDiv.cloneNode(true));
       playedContainer.appendChild(cardDiv);
 
-      const player = this.players.find((p) => p.id === localStorage.getItem('playerId')!)!;
+      const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
       player.lastPlayed = card;
 
       //Sets the next player
@@ -235,26 +237,26 @@ export class Cribbage extends BaseGame {
       //Updates last played for all players
       await updateDoc(this.roomRef, {
           players: this.players.map(p => p.toPlainObject()),
-          currentPlayer: this.currentPlayer
+          currentPlayer: this.currentPlayer.toPlainObject()
       });
     }
 
-    setInitialValues(data: DocumentData): void {
+    updateLocalState(data: DocumentData): void {
       this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
       this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
       this.crib_owner = this.currentPlayer;
       this.deck = Deck.fromPlainObject(data.deck);
-
-      const num_teams = Math.max(...data.teams.map((p: any) => p.row)) + 1;
-      this.teams = Array.from({ length: num_teams }, () => []); // Initialize rows
-
       data.teams.forEach((player: any) => {
         this.teams[player.row][player.col] = Player.fromPlainObject(player);
       });
     }
 
     guestSetup(data: DocumentData): void {
-      this.setInitialValues(data);
+      //Set up teams
+      const num_teams = Math.max(...data.teams.map((p: any) => p.row)) + 1;
+      this.teams = Array.from({ length: num_teams }, () => []); // Initialize rows
+
+      this.updateLocalState(data);
       this.render();
       this.setupListeners();
       this.setStarted(true);

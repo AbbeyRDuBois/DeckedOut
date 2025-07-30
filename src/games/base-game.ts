@@ -1,5 +1,5 @@
 // game.ts
-import { doc, DocumentData } from "firebase/firestore";
+import { doc, DocumentData, onSnapshot } from "firebase/firestore";
 import { Deck } from "../deck";
 import { Player } from "../player";
 import { db } from "../authentication";
@@ -28,7 +28,6 @@ export abstract class BaseGame {
   abstract getState(): any;
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
-  abstract setInitialValues(data: DocumentData): void;
 
   deactivateHand(){
     document.getElementById('hand')?.classList.add('hand-disabled');
@@ -73,9 +72,9 @@ export abstract class BaseGame {
   }
 
   nextPlayer(){
-    const index = this.players.indexOf(this.currentPlayer);
+    const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
     this.currentPlayer = this.players[(index + 1) % this.players.length];
-
+    
     if (this.currentPlayer.id === localStorage.getItem('playerId')){
       this.isTurn = true;
     }
