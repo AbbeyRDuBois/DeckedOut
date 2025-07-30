@@ -158,7 +158,7 @@ export class Cribbage extends BaseGame {
           div.innerHTML = `
           <div class = "opponent-name">${opponent.name}</div>
           <div class = "hand-info">
-              <div class="card-back">${opponent.hand?.length || 0}</div>
+              <div class="card-back">${(opponent.hand?.length - opponent.numberPlayed)|| 0}</div>
               <div class="opp-played">${opponent.lastPlayed?.toString() || ""} </div>
           </div>`;
           opponentContainer.appendChild(div);
@@ -190,6 +190,13 @@ export class Cribbage extends BaseGame {
           handContainer.classList.remove('hand-disabled');
           this.isTurn = true;
         }
+
+        this.renderOpponents();
+
+        this.renderScoreboard();
+        this.renderRoundTotal();
+        this.renderFlipped();
+        
       });
     }
 
@@ -229,6 +236,7 @@ export class Cribbage extends BaseGame {
 
       const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
       player.lastPlayed = card;
+      player.numberPlayed += 1;
 
       //Sets the next player
       this.nextPlayer();

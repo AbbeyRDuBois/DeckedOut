@@ -6,6 +6,7 @@ export class Player {
     name: string;
     lastPlayed: Card = new Card(0);
     hand: Card[] = [];
+    numberPlayed: number = 0;
     isTurn: boolean = false;
     score: number = 0;
 
@@ -25,7 +26,8 @@ export class Player {
             lastPlayed: this.lastPlayed?.toPlainObject(),
             hand: this.hand.map(card => card.toPlainObject()),
             isTurn: this.isTurn,
-            score: this.score
+            score: this.score,
+            numberPlayed: this.numberPlayed
         };
     }
 
@@ -43,6 +45,8 @@ export class Player {
         player.isTurn = data.isTurn;
 
         player.score = data.score;
+
+        player.numberPlayed = data.numberPlayed
 
         return player;
     }
