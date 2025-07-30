@@ -94,6 +94,11 @@ async function getRoomData(roomRef: any): Promise<DocumentData>{
 }
 
 async function exitRoom(playerId: string, players: any, hostId: string) {
+  
+  if(game.getStarted()){
+    await deleteDoc(roomRef);
+  }
+  else{
     if (playerId === hostId) {
         await deleteDoc(roomRef);
     } else {
@@ -103,6 +108,7 @@ async function exitRoom(playerId: string, players: any, hostId: string) {
         });
         return window.location.href = "index.html";
     }
+  }
 }
 
 /*
