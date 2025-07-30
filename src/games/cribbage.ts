@@ -2,7 +2,12 @@ import { arrayUnion, DocumentData, getDoc, onSnapshot, updateDoc } from "firebas
 import { BaseGame } from "./base-game";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
-import { v4 } from "uuid";
+
+
+enum RoundState {
+  Throwing = "Throwing",
+  Pegging = "Pegging"
+}
 
 export class Cribbage extends BaseGame {
     point_goal: number = 121; //Number of points to win
@@ -18,24 +23,11 @@ export class Cribbage extends BaseGame {
     crib: Card[] = []; //Crib
     isTurn: boolean = true; //Is it players turn to play card
     crib_owner: Player = new Player("", "");
+    roundState: string = ""
 
     constructor( deck: Deck, players: Player[], roomId: string){
       super(deck, players, roomId);
       this.maxPlayers = 8;
-
-      switch(players.length){
-        case 2:
-          this.throw_count = 2;
-          break;
-        case 3 | 4:
-          this.throw_count = 1;
-          break;
-        default: //More than 4 players
-          this.throw_count = 1;
-          this.crib_count = 8;
-          this.point_goal = 241;
-          this.skunk_length = 60;
-      }
 
       this.cardClick = this.cardClick.bind(this); //Binds this function to game so that games variables can still be used in the onClick
     }
@@ -46,6 +38,7 @@ export class Cribbage extends BaseGame {
       this.crib_owner = this.currentPlayer;
       this.setupTeams();
       this.deal();
+      this.roundState = RoundState.Throwing
 
       //This call is pretty big cause it's inital setup
       this.updateDBState({
@@ -56,7 +49,8 @@ export class Cribbage extends BaseGame {
         crib_owner: this.crib_owner.toPlainObject(),
         currentPlayer: this.currentPlayer.toPlainObject(),
         deck: this.deck.toPlainObject(),
-        started: true
+        started: true,
+        roundState: this.roundState
       });
 
       this.render();
@@ -65,8 +59,8 @@ export class Cribbage extends BaseGame {
     }
 
     async deal(): Promise<void> {
-      //Deal 5 cards if 3 or less players, 7 if more
-      const cardNum = this.players.length > 3 ? 7 : 5;
+      //Deal 6 cards if 2 players, 5 if more
+      const cardNum = this.players.length > 2 ? 5 : 6;
 
       this.players.forEach(player => {
         for(let i = 0; i < cardNum; i++){
@@ -132,13 +126,28 @@ export class Cribbage extends BaseGame {
 
         roundTotal.appendChild(div);
       })
+
+      //Adding crib (testing)
+      const div = document.createElement('div');
+      div.classList.add('player-total');
+      div.innerHTML=`
+        <div class="player-score">Crib: 0</div>
+        <div class="total-hand"></div>
+      `;
+      const totalHand = div.querySelector(".total-hand")!;
+
+      this.crib?.forEach((card: Card) => {
+          totalHand.appendChild(card.createCard());
+      });
+
+      roundTotal.appendChild(div);
     }
 
     renderHand() {
       const currentId = localStorage.getItem("playerId");
       const player = this.players.find(player => player.id === currentId)!;
       const handContainer = document.getElementById('hand')!;
-      if (this.currentPlayer.name !== player.name){
+      if (this.roundState == RoundState.Pegging && this.currentPlayer.name !== player.name){
         this.deactivateHand();
       }
 
@@ -185,8 +194,8 @@ export class Cribbage extends BaseGame {
         const roomData = docSnap.data() as DocumentData;
         this.updateLocalState(roomData);
         //Enables your hand if it's your turn
-        const handContainer = document.getElementById("hand")!;
-        if (this.currentPlayer.id === localStorage.getItem('playerId')){
+        if (this.roundState == RoundState.Pegging && this.currentPlayer.id === localStorage.getItem('playerId')){
+          const handContainer = document.getElementById("hand")!;
           handContainer.classList.remove('hand-disabled');
           this.isTurn = true;
         }
@@ -224,39 +233,69 @@ export class Cribbage extends BaseGame {
     async cardClick(card: Card, cardDiv: HTMLDivElement) {
       const handContainer = document.getElementById("hand")!;
       const playedContainer = document.getElementById("played")!;
+      const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
 
       if (handContainer.classList.contains('hand-disabled')) return; //Returns if hand is disabled
 
       handContainer.removeChild(cardDiv);
-      playedContainer.innerHTML = '';
 
-      cardDiv.classList.add('played');
-      cardDiv.replaceWith(cardDiv.cloneNode(true));
-      playedContainer.appendChild(cardDiv);
+      if (this.roundState == RoundState.Throwing){
 
-      const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
-      player.lastPlayed = card;
-      player.numberPlayed += 1;
+        //Remove from hand and add to crib
+        this.crib.push(card)
+        const cardIndex = player.hand.findIndex(c => c.id == card.id)
+        player.hand.splice(cardIndex, 1)
 
-      //Sets the next player
-      this.nextPlayer();
-      handContainer.classList.add('hand-disabled');
+        //check if you've thrown necessary cards
+        if (player.hand.length == this.hand_size){
+          handContainer.classList.add('hand-disabled');
+        }
 
-      //Updates last played for all players
-      await updateDoc(this.roomRef, {
+        let changes: Record<string, any> = {
           players: this.players.map(p => p.toPlainObject()),
-          currentPlayer: this.currentPlayer.toPlainObject()
-      });
+          crib: this.crib.map(c => c.toPlainObject())
+        };
+
+        if (this.players.every(player => player.hand.length == this.hand_size)){
+          changes.roundState = RoundState.Pegging;
+        }
+
+        await updateDoc(this.roomRef, changes);
+      }
+      //RoundState is Pegging
+      else{
+        playedContainer.innerHTML = '';
+
+        cardDiv.classList.add('played');
+        cardDiv.replaceWith(cardDiv.cloneNode(true));
+        playedContainer.appendChild(cardDiv);
+
+        const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
+        player.lastPlayed = card;
+        player.numberPlayed += 1;
+
+        //Sets the next player
+        this.nextPlayer();
+        handContainer.classList.add('hand-disabled');
+
+        //Updates last played for all players
+        await updateDoc(this.roomRef, {
+            players: this.players.map(p => p.toPlainObject()),
+            currentPlayer: this.currentPlayer.toPlainObject()
+        });
+      }
     }
 
     updateLocalState(data: DocumentData): void {
       this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
       this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
       this.crib_owner = this.currentPlayer;
+      this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit))
       this.deck = Deck.fromPlainObject(data.deck);
       data.teams.forEach((player: any) => {
         this.teams[player.row][player.col] = Player.fromPlainObject(player);
       });
+      this.roundState = data.roundState
     }
 
     guestSetup(data: DocumentData): void {
@@ -269,4 +308,5 @@ export class Cribbage extends BaseGame {
       this.setupListeners();
       this.setStarted(true);
     }
+
 }
