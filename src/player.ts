@@ -6,9 +6,11 @@ export class Player {
     name: string;
     lastPlayed: Card = new Card(0);
     hand: Card[] = [];
-    numberPlayed: number = 0;
+    playedCards: Card[] = [];
     isTurn: boolean = false;
     score: number = 0;
+    lastHand: Card[] = [];
+    lastScore: number = 0;
 
     constructor(id: string, name: string){
         this.id = id;
@@ -27,7 +29,9 @@ export class Player {
             hand: this.hand.map(card => card.toPlainObject()),
             isTurn: this.isTurn,
             score: this.score,
-            numberPlayed: this.numberPlayed
+            playedCards: this.playedCards?.map(card => card.toPlainObject()),
+            lastHand: this.lastHand?.map(card => card.toPlainObject()),
+            lastScore: this.lastScore
         };
     }
 
@@ -46,7 +50,15 @@ export class Player {
 
         player.score = data.score;
 
-        player.numberPlayed = data.numberPlayed
+        player.playedCards = Array.isArray(data.playedCards)
+            ? data.playedCards.map((c: any) => new Card(c.id, c.value, c.suit))
+            : [];
+
+        player.lastHand = Array.isArray(data.lastHand)
+            ? data.lastHand.map((c: any) => new Card(c.id, c.value, c.suit))
+            : [];
+
+        player.lastScore = data.lastScore;
 
         return player;
     }

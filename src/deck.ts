@@ -21,12 +21,12 @@ export class Card {
         return `${this.value} ${this.suit}`;
     }
 
-    toInt(cribbage = false): number {
+    toInt(counting = false): number {
         switch (this.value) {
             case 'A': return 1;
-            case 'J': return cribbage ? 10 : 11;
-            case 'Q': return cribbage ? 10 : 12;
-            case 'K': return cribbage ? 10 : 13;
+            case 'J': return counting ? 10 : 11;
+            case 'Q': return counting ? 10 : 12;
+            case 'K': return counting ? 10 : 13;
             case 'JK': return -1;
             default: return parseInt(this.value);
         }

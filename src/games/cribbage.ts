@@ -14,16 +14,16 @@ export class Cribbage extends BaseGame {
     skunk_length: number = 30; //Number of points from skunk line to end -1
     crib_count: number = 4; //Number of cards in crib
     hand_size: number = 4; //Number of cards in a hand after throwing to crib
-    throw_count: number = 0; //How many cards each player throws, initialized upon starting game
-    throw_away_phase: boolean = true; //True if players still need to throw cards away
-    pegging_phase: boolean = false; //True if players are in the pegging phase
-    pegging_index: number = 0; //(crib_index + 1) % len(players)
     teams: Player[][] = []; //Array to hold player groups
     flipped: Card = new Card(0); //Flipped Card
     crib: Card[] = []; //Crib
     isTurn: boolean = true; //Is it players turn to play card
-    crib_owner: Player = new Player("", "");
-    roundState: string = ""
+    crib_owner: Player = new Player("", ""); //Who owns the crib
+    cribScore: number = 0 // Score of the last crib
+    lastCrib: Card[] = [] //Holds the last crib
+    roundState: string = "" //Holds what phase the game is in currently
+    peggingCards: Card[] = [] //Holds sequence of cards played in pegging round
+    peggingTotal: number = 0 //Sum of current pegging round
 
     constructor( deck: Deck, players: Player[], roomId: string){
       super(deck, players, roomId);
@@ -47,10 +47,14 @@ export class Cribbage extends BaseGame {
         flipped: this.flipped.toPlainObject(),
         crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
         crib_owner: this.crib_owner.toPlainObject(),
+        cribScore: this.cribScore,
+        lastCrib: arrayUnion(...this.lastCrib.map(card => card.toPlainObject())),
         currentPlayer: this.currentPlayer.toPlainObject(),
         deck: this.deck.toPlainObject(),
         started: true,
-        roundState: this.roundState
+        roundState: this.roundState,
+        peggingCards: arrayUnion(...this.peggingCards.map(card => card.toPlainObject())),
+        peggingTotal: this.peggingTotal
       });
 
       this.render();
@@ -74,7 +78,7 @@ export class Cribbage extends BaseGame {
       this.renderOpponents();
 
       this.renderScoreboard();
-      this.renderRoundTotal();
+      this.renderAllHands();
       this.renderFlipped();
     }
 
@@ -107,7 +111,7 @@ export class Cribbage extends BaseGame {
       })
     }
 
-    renderRoundTotal() {
+    renderAllHands() {
       const roundTotal = document.getElementById("round-totals")!;
       roundTotal.innerHTML = "";
 
@@ -115,12 +119,12 @@ export class Cribbage extends BaseGame {
         const div = document.createElement('div');
         div.classList.add('player-total');
         div.innerHTML=`
-          <div class="player-score">${player.name}: ${player.score}</div>
+          <div class="player-score">${player.name}: ${player.lastScore}</div>
           <div class="total-hand"></div>
         `;
         const totalHand = div.querySelector(".total-hand")!;
 
-        player.hand?.forEach((card: Card) => {
+        player.lastHand?.forEach((card: Card) => {
             totalHand.appendChild(card.createCard());
         });
 
@@ -167,7 +171,7 @@ export class Cribbage extends BaseGame {
           div.innerHTML = `
           <div class = "opponent-name">${opponent.name}</div>
           <div class = "hand-info">
-              <div class="card-back">${(opponent.hand?.length - opponent.numberPlayed)|| 0}</div>
+              <div class="card-back">${(opponent.hand?.length - opponent.playedCards.length)|| 0}</div>
               <div class="opp-played">${opponent.lastPlayed?.toString() || ""} </div>
           </div>`;
           opponentContainer.appendChild(div);
@@ -201,9 +205,8 @@ export class Cribbage extends BaseGame {
         }
 
         this.renderOpponents();
-
         this.renderScoreboard();
-        this.renderRoundTotal();
+        this.renderAllHands();
         this.renderFlipped();
         
       });
@@ -260,10 +263,14 @@ export class Cribbage extends BaseGame {
           changes.roundState = RoundState.Pegging;
         }
 
-        await updateDoc(this.roomRef, changes);
+        await this.updateDBState(changes);
       }
       //RoundState is Pegging
       else{
+        if (this.peggingTotal + card.toInt(true) > 31) return;
+
+        this.peggingTotal += card.toInt(true);
+        console.log(`Pegging Total: ${this.peggingTotal}`)
         playedContainer.innerHTML = '';
 
         cardDiv.classList.add('played');
@@ -272,16 +279,20 @@ export class Cribbage extends BaseGame {
 
         const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
         player.lastPlayed = card;
-        player.numberPlayed += 1;
+        player.playedCards.push(card);
+        this.peggingCards.push(card)
+        player.score = this.calculatePeggingPoints(card);
 
         //Sets the next player
-        this.nextPlayer();
+        this.nextPlayer(true);
         handContainer.classList.add('hand-disabled');
 
-        //Updates last played for all players
-        await updateDoc(this.roomRef, {
-            players: this.players.map(p => p.toPlainObject()),
-            currentPlayer: this.currentPlayer.toPlainObject()
+        //Updates last played and pegging arrays for all players
+        await this.updateDBState({
+          players: this.players.map(p => p.toPlainObject()),
+          currentPlayer: this.currentPlayer.toPlainObject(),
+          peggingCards: this.peggingCards.map(card => card.toPlainObject()),
+          peggingTotal: this.peggingTotal
         });
       }
     }
@@ -290,12 +301,16 @@ export class Cribbage extends BaseGame {
       this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
       this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
       this.crib_owner = this.currentPlayer;
-      this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit))
+      this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit));
+      this.cribScore = data.cribScore;
+      this.lastCrib = data.lastCrib.map((c: any) => new Card(c.id, c.value, c.suit));
       this.deck = Deck.fromPlainObject(data.deck);
       data.teams.forEach((player: any) => {
         this.teams[player.row][player.col] = Player.fromPlainObject(player);
       });
-      this.roundState = data.roundState
+      this.roundState = data.roundState;
+      this.peggingCards = data.peggingCards.map((c: any) => new Card(c.id, c.value, c.suit));
+      this.peggingTotal = data.peggingTotal;
     }
 
     guestSetup(data: DocumentData): void {
@@ -309,4 +324,292 @@ export class Cribbage extends BaseGame {
       this.setStarted(true);
     }
 
+    calculatePeggingPoints(card: Card): number {
+      let points = 0;
+
+      // Find longest run if enough cards
+      if (this.peggingCards.length >= 3) {
+          let handValues = this.peggingCards.map(card => card.toInt(true));
+          for (let length = handValues.length; length >= 3; length--) {
+              const slice = handValues.slice(handValues.length - length); // Always ends at last card
+              const unique = new Set(slice);
+
+              // No repeated ranks allowed
+              if (unique.size !== slice.length) continue;
+
+              const sorted = [...unique].sort((a, b) => a - b);
+              const min = sorted[0];
+              const max = sorted[sorted.length - 1];
+
+              // Check for a valid run (consecutive sequence)
+              if (max - min + 1 === sorted.length) {
+                  points += sorted.length;
+                  break;
+              }
+          }
+      }
+
+      // Check for pairs
+      let pairs = 1;
+      let isDone = false;
+
+      for(let i = this.peggingCards.length - 2 ; i >= 0 && !isDone; i--){
+        if (card.value == this.peggingCards[i].value){
+            pairs += 1;
+        } else {
+            isDone = true;
+        }
+      }
+
+      // If any pairs
+      if (pairs > 1) {
+          points +=  pairs * (pairs -1)
+      }
+
+      // Check for 15 and 31
+      if (this.peggingTotal === 15 || this.peggingTotal === 31) {
+          points += 2;
+      }
+
+      console.log(`Pegging Points: ${points}`)
+      return points;
+  }
+
+  nextPlayer(pegging?: boolean): void {
+    const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
+    if(pegging){
+      let found = false;
+
+      if (this.peggingTotal != 31){
+        //Find the next player who has a playable card
+        for(let i = 1; i <= this.players.length && !found; i++){
+          const player = this.players[(index + i) % this.players.length];
+
+          const unplayedCards = player.hand.filter(card => !player.playedCards.includes(card));
+          if (unplayedCards?.some(card => card.toInt(true) + this.peggingTotal <= 31)){
+            this.currentPlayer = player;
+            found = true;
+          }
+        }
+      }
+
+      if (!found){
+        //Add in that last point and restart pegging/move to next throw round
+        this.players[index].score +=1;
+        this.endRound(index);
+      }
+
+    }
+    else{
+      //Just get the next player in the array
+      this.currentPlayer = this.players[(index + 1) % this.players.length];
+    }
+
+    if (this.currentPlayer.id === localStorage.getItem('playerId')){
+      this.isTurn = true;
+    }
+    else{
+      this.isTurn = false;
+    }
+  }
+
+  endRound(index: number){
+    let found = true;
+    //If a player still has cards to play
+    if(this.players.some(player => player.hand.length - player.playedCards.length > 0)){
+      //find the next player who has cards to play
+      for(let i = 1; i <= this.players.length && !found; i++){
+        let player = this.players[(index + i) % this.players.length];
+
+        if (player.hand.length - player.playedCards.length > 0){
+          this.currentPlayer = player;
+          found = true;
+        }
+      }
+
+      //Reset the pegging values
+      this.peggingTotal = 0;
+      this.peggingCards = [];
+    }
+    //If players don't have anymore cards update everything and deal new cards
+    else{
+      this.countHands();
+      this.countCrib();
+      this.renderAllHands();
+      this.renderScoreboard();
+      //Deal new hands
+      this.roundState = RoundState.Throwing;
+    }
+  }
+
+  countHands(){
+    this.players.forEach(player =>{
+      let points = 0;
+      let hand = player.hand;
+            
+      //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
+      points += this.findFlush(hand);
+      points += this.findNobs(hand);
+
+      hand.push(this.flipped);
+      hand.sort((a,b) => a.toInt() - b.toInt());
+
+      points += this.find15s(hand);
+      points += this.findPairs(hand);
+      points += this.findRuns(hand);
+      points += this.findFlush(hand);
+
+      console.log(`Total Hand Points: ${points}`)
+      
+      player.score += points;
+      player.lastHand = player.hand;
+      player.lastScore = points;
+    })
+  }
+
+  countCrib(){
+    let points = 0;
+    let hand = this.crib
+
+    //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
+    points += this.findFlush(hand);
+    points += this.findNobs(hand);
+
+    hand.push(this.flipped);
+    hand.sort((a,b) => a.toInt() - b.toInt());
+
+    points += this.find15s(hand);
+    points += this.findPairs(hand);
+    points += this.findRuns(hand);
+    points += this.findFlush(hand);
+
+    console.log(`Crib Total Points: ${points}`)
+    
+    this.crib_owner.score += points;
+    this.lastCrib = this.crib;
+    this.cribScore = points;
+  }
+  
+  //Finds all the 15s in the hand
+  find15s(cards: Card[]): number{
+    let handValues = cards.map(card => card.toInt(true));
+    let points = 0;
+
+    //Checking all combos of 2 or more for the 15s
+    for (let size = 2; size <= handValues.length; size++) {
+      const combos = this.getCombinations(handValues, size);
+      for (const combo of combos){
+        if (combo.reduce((sum, val) => sum + val, 0) == 15){
+          points += 2;
+        }
+      }
+    }
+    console.log(`Points for 15s: ${points}`)
+    return points;
+  }
+
+  getCombinations(values: number[], size: number): number[][] {
+    const result: number[][] = [];
+    //Defines the recursion function that will generate all the combos
+    const combine = (start: number, curr: number[]) => {
+      if (curr.length === size) {
+        result.push(curr.slice());
+        return;
+      }
+      for (let i = start; i < values.length; i++) {
+        curr.push(values[i]);
+        combine(i + 1, curr);
+        curr.pop();
+      }
+    };
+    combine(0, []);
+    return result;
+
+  }
+
+  findPairs(cards: Card[]): number{
+    let handValues = cards.map(card => card.toInt(true));
+    const counts = new Map<number, number>();
+    let points = 0; 
+
+    //Sorts all the card values into their counts Ex: 3 2s and so on
+    for(let value of handValues){
+      counts.set(value, (counts.get(value) || 0) + 1);
+    }
+
+    //Use those counts to add up pairs Ex: 3 2s -> points = 3 * (3-1) = 6 and so on
+    counts.forEach((count, value) => {
+      points += count * (count -1);
+    })
+    console.log(`Points for Pairs: ${points}`)
+    return points;
+  }  
+
+  findRuns(cards: Card[]): number{
+    let handValues = cards.map(card => card.toInt());
+    let totalMult = 1;
+    let mult = 1;
+    let runLength = 1;
+    let points = 0;
+
+    for(let i = 0; i < handValues.length; i++){
+      if (i + 1 < handValues.length){
+        //Check for multiples of a card to times run with later
+        if(handValues[i] == handValues[i+1]){
+          mult += 1;
+        } else {
+          //If next card isn't a multiple and mult changed, update the mult count/total
+          if(handValues[i] != handValues[i+1] && mult > 1){
+            totalMult *= mult;
+            mult = 1;
+          }
+
+          //Check if next card in array follows a run
+          if(handValues[i] + 1 == handValues[i+1]){
+            runLength +=1;
+          } else{
+            //When run breaks, add to points if one actually exists and reset vars
+            if (runLength >= 3){
+              points += runLength * totalMult;
+            }
+
+            totalMult = 1;
+            mult = 1;
+            runLength = 1;
+          }
+        }
+      }
+    }
+
+    //Check if last bit forms a last run
+    if(runLength >= 3){
+      points += runLength * totalMult;
+    }
+
+    console.log(`Points for Runs: ${points}`)
+    return points;
+  } 
+
+  findFlush(cards: Card[], crib = false): number{
+
+    //Add flipped to the check if it's the crib
+    if (crib){
+      cards.push(this.flipped)
+    }
+
+    const suits = cards.map(card => card.suit);
+
+    //If only one suit was found in the set you have a flush
+    if (new Set(suits).size === 1) {
+      //check to see if flipped matches to return extra point (dont if crib)
+      return this.flipped.suit == suits[0] && !crib ? cards.length + 1 : cards.length;
+    }
+    return 0;
+  } 
+
+  findNobs(cards: Card[]): number{
+    const hasNobs = cards.some(card => card.value == 'J' && this.flipped.suit == card.suit)
+
+    return hasNobs ? 1 : 0;
+  }
 }
