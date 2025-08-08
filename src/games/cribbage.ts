@@ -203,6 +203,7 @@ export class Cribbage extends BaseGame {
         this.activateHand();
       }
       else if (this.roundState == RoundState.Throwing && player.hand.length > this.hand_size){
+        document.getElementById("played")!.innerHTML = '';
         this.activateHand();
       }
       else{
