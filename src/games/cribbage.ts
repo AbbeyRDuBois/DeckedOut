@@ -71,6 +71,9 @@ export class Cribbage extends BaseGame {
         for(let i = 0; i < cardNum; i++){
           player.hand.push(this.deck.getCard()!);
         }
+
+        player.playedCards = [];
+        player.lastPlayed = new Card(0);
       })
     }
 
@@ -195,9 +198,15 @@ export class Cribbage extends BaseGame {
       if (this.roundState == RoundState.Pegging && this.currentPlayer.name !== player.name){
         this.deactivateHand();
       }
+      //If they still have cards to throw
+      else if (this.roundState == RoundState.Throwing && player.hand.length > this.hand_size){
+        this.activateHand();
+      }
 
       handContainer.innerHTML = '';
-      player.hand?.forEach((card: Card) => {
+
+      const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
+      unplayedCards.forEach((card: Card) => {
           handContainer.appendChild(card.createCard(true, this.cardClick));
       });
     }
@@ -245,11 +254,7 @@ export class Cribbage extends BaseGame {
           this.isTurn = true;
         }
 
-        this.renderOpponents();
-        this.renderScoreboard();
-        this.renderAllHands();
-        this.renderFlipped();
-        this.renderGameInfo();
+        this.render();
       });
     }
 
@@ -332,17 +337,15 @@ export class Cribbage extends BaseGame {
           changes = {
             ...changes,
             flipped: this.flipped.toPlainObject(),
-            crib: [],
+            crib: this.crib.map(card => card.toPlainObject()),
             crib_owner: this.crib_owner.toPlainObject(),
             cribScore: this.cribScore,
-            lastCrib: arrayUnion(...this.lastCrib.map(card => card.toPlainObject())),
+            lastCrib: this.lastCrib.map(card => card.toPlainObject()),
             deck: this.deck.toPlainObject(),
             roundState: this.roundState,
             lastFlipped: this.lastFlipped.toPlainObject()
           }
         }
-
-        handContainer.classList.add('hand-disabled');
 
         //Updates last played and pegging arrays for all players
         await this.updateDBState(changes);
@@ -453,6 +456,7 @@ export class Cribbage extends BaseGame {
 
     }
     else{
+      const index = this.players.findIndex(player => player.id === this.crib_owner.id);
       //Just get the next player in the array
       this.currentPlayer = this.players[(index + 1) % this.players.length];
       this.crib_owner = this.currentPlayer;
