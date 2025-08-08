@@ -17,12 +17,13 @@ export class Cribbage extends BaseGame {
     flipped: Card = new Card(0); //Flipped Card
     crib: Card[] = []; //Crib
     isTurn: boolean = true; //Is it players turn to play card
-    crib_owner: Player = new Player("", ""); //Who owns the crib
-    cribScore: number = 0 // Score of the last crib
-    lastCrib: Card[] = [] //Holds the last crib
-    roundState: string = "" //Holds what phase the game is in currently
-    peggingCards: Card[] = [] //Holds sequence of cards played in pegging round
-    peggingTotal: number = 0 //Sum of current pegging round
+    crib_owner: string = ""; //Who owns the crib
+    lastOwner: string = "";
+    cribScore: number = 0; // Score of the last crib
+    lastCrib: Card[] = [];//Holds the last crib
+    roundState: string = ""; //Holds what phase the game is in currently
+    peggingCards: Card[] = []; //Holds sequence of cards played in pegging round
+    peggingTotal: number = 0; //Sum of current pegging round
     lastFlipped: Card = new Card(0);
 
     constructor( deck: Deck, players: Player[], roomId: string){
@@ -35,7 +36,7 @@ export class Cribbage extends BaseGame {
     async start(): Promise<void> {
       this.shufflePlayerOrder();
       this.currentPlayer = this.players[0]; //First player in array starts it off
-      this.crib_owner = this.currentPlayer;
+      this.crib_owner = this.currentPlayer.name;
       this.setupTeams();
       this.deal();
       this.roundState = RoundState.Throwing
@@ -45,7 +46,8 @@ export class Cribbage extends BaseGame {
         players: this.players.map(player => player.toPlainObject()),
         flipped: this.flipped.toPlainObject(),
         crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
-        crib_owner: this.crib_owner.toPlainObject(),
+        crib_owner: this.crib_owner,
+        lastOwner: this.lastOwner,
         cribScore: this.cribScore,
         lastCrib: arrayUnion(...this.lastCrib.map(card => card.toPlainObject())),
         currentPlayer: this.currentPlayer.toPlainObject(),
@@ -108,7 +110,7 @@ export class Cribbage extends BaseGame {
       const div = document.createElement('div');
       div.innerHTML=`
         <div class="current-player"> Current Player: ${this.currentPlayer.name}</div>
-        <div class="current-owner">Crib Owner: ${this.crib_owner.name}</div>
+        <div class="current-owner">Crib Owner: ${this.crib_owner}</div>
         <div class="pegging-total">Pegging Total: ${this.peggingTotal}</div>
       `;
       currents.appendChild(div);
@@ -179,7 +181,7 @@ export class Cribbage extends BaseGame {
       const div = document.createElement('div');
       div.classList.add('player-total');
       div.innerHTML=`
-        <div class="player-score">${this.crib_owner.name}'s Crib: ${this.cribScore}</div>
+        <div class="player-score">${this.lastOwner}'s Crib: ${this.cribScore}</div>
         <div class="total-hand"></div>
       `;
       const totalHand = div.querySelector(".total-hand")!;
@@ -195,12 +197,16 @@ export class Cribbage extends BaseGame {
       const currentId = localStorage.getItem("playerId");
       const player = this.players.find(player => player.id === currentId)!;
       const handContainer = document.getElementById('hand')!;
-      if (this.roundState == RoundState.Pegging && this.currentPlayer.name !== player.name){
-        this.deactivateHand();
+      
+      //If they still have cards to throw or if it's their turn in pegging activate hand, else deactivate
+      if (this.roundState == RoundState.Pegging && this.currentPlayer.name == player.name){
+        this.activateHand();
       }
-      //If they still have cards to throw
       else if (this.roundState == RoundState.Throwing && player.hand.length > this.hand_size){
         this.activateHand();
+      }
+      else{
+        this.deactivateHand();
       }
 
       handContainer.innerHTML = '';
@@ -338,7 +344,8 @@ export class Cribbage extends BaseGame {
             ...changes,
             flipped: this.flipped.toPlainObject(),
             crib: this.crib.map(card => card.toPlainObject()),
-            crib_owner: this.crib_owner.toPlainObject(),
+            crib_owner: this.crib_owner,
+            lastOwner: this.lastOwner,
             cribScore: this.cribScore,
             lastCrib: this.lastCrib.map(card => card.toPlainObject()),
             deck: this.deck.toPlainObject(),
@@ -356,6 +363,7 @@ export class Cribbage extends BaseGame {
       this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
       this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
       this.crib_owner = data.crib_owner;
+      this.lastOwner = data.lastOwner;
       this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit));
       this.cribScore = data.cribScore;
       this.lastCrib = data.lastCrib.map((c: any) => new Card(c.id, c.value, c.suit));
@@ -456,10 +464,11 @@ export class Cribbage extends BaseGame {
 
     }
     else{
-      const index = this.players.findIndex(player => player.id === this.crib_owner.id);
+      const index = this.players.findIndex(player => player.name === this.crib_owner);
       //Just get the next player in the array
       this.currentPlayer = this.players[(index + 1) % this.players.length];
-      this.crib_owner = this.currentPlayer;
+      this.lastOwner = this.crib_owner;
+      this.crib_owner = this.currentPlayer.name;
     }
   }
 
@@ -539,9 +548,8 @@ export class Cribbage extends BaseGame {
     points += this.findRuns(hand);
     points += this.findFlush(hand);
 
-    console.log(`Crib Total Points: ${points}`)
-    
-    this.crib_owner.score += points;
+    const player = this.players.find(player => player.name == this.crib_owner)!;
+    player.score += points;
     this.lastCrib = this.crib;
     this.crib = [];
     this.cribScore = points;
