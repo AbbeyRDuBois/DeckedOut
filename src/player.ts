@@ -11,6 +11,7 @@ export class Player {
     score: number = 0;
     lastHand: Card[] = [];
     lastScore: number = 0;
+    team: number = 0;
 
     constructor(id: string, name: string){
         this.id = id;
@@ -31,7 +32,8 @@ export class Player {
             score: this.score,
             playedCards: this.playedCards?.map(card => card.toPlainObject()),
             lastHand: this.lastHand?.map(card => card.toPlainObject()),
-            lastScore: this.lastScore
+            lastScore: this.lastScore,
+            team: this.team
         };
     }
 
@@ -59,6 +61,8 @@ export class Player {
             : [];
 
         player.lastScore = data.lastScore;
+        
+        player.team = data.team;
 
         return player;
     }

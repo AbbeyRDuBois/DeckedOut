@@ -14,7 +14,6 @@ export class Cribbage extends BaseGame {
     skunk_length: number = 30; //Number of points from skunk line to end -1
     crib_count: number = 4; //Number of cards in crib
     hand_size: number = 4; //Number of cards in a hand after throwing to crib
-    teams: Player[][] = []; //Array to hold player groups
     flipped: Card = new Card(0); //Flipped Card
     crib: Card[] = []; //Crib
     isTurn: boolean = true; //Is it players turn to play card
@@ -43,7 +42,6 @@ export class Cribbage extends BaseGame {
       //This call is pretty big cause it's inital setup
       this.updateDBState({
         players: this.players.map(player => player.toPlainObject()),
-        teams: this.teams.flatMap((team, row) => team.map((player, col) => ({row, col, ...player.toPlainObject()}))),
         flipped: this.flipped.toPlainObject(),
         crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
         crib_owner: this.crib_owner.toPlainObject(),
@@ -90,9 +88,10 @@ export class Cribbage extends BaseGame {
     }
 
     setupTeams(){
+      let team = 0
       //Default of just one player for each team for testing.
       this.players.forEach(player => {
-        this.teams.push([player]);
+        player.team = team++;
       })
     }
 
@@ -100,7 +99,19 @@ export class Cribbage extends BaseGame {
       const scoreboard = document.getElementById('scoreboard')!;
       scoreboard.innerHTML = ''; // clears old content
       
-      this.teams.forEach(team => { 
+      //Creates the teams based on the players team id
+      let teams = new Map<number, Player[]>();
+
+      for(const player of this.players){
+        if (!teams.has(player.team)){
+          teams.set(player.team, [])
+        }
+
+        teams.get(player.team)!.push(player)
+      }
+
+      //For each team now update scoreboard
+      teams.forEach(team => { 
         const div = document.createElement('div');
         div.classList.add('team');
         div.innerHTML=`
@@ -240,10 +251,8 @@ export class Cribbage extends BaseGame {
 
       if (handContainer.classList.contains('hand-disabled')) return; //Returns if hand is disabled
 
-      handContainer.removeChild(cardDiv);
-
       if (this.roundState == RoundState.Throwing){
-
+        handContainer.removeChild(cardDiv);
         //Remove from hand and add to crib
         this.crib.push(card)
         const cardIndex = player.hand.findIndex(c => c.id == card.id)
@@ -268,7 +277,7 @@ export class Cribbage extends BaseGame {
       //RoundState is Pegging
       else{
         if (this.peggingTotal + card.toInt(true) > 31) return;
-
+        handContainer.removeChild(cardDiv);
         this.peggingTotal += card.toInt(true);
         console.log(`Pegging Total: ${this.peggingTotal}`)
         playedContainer.innerHTML = '';
@@ -281,8 +290,8 @@ export class Cribbage extends BaseGame {
         player.lastPlayed = card;
         player.playedCards.push(card);
         this.peggingCards.push(card)
-        player.score = this.calculatePeggingPoints(card);
-
+        player.score += this.calculatePeggingPoints(card);
+      
         //Sets the next player
         this.nextPlayer(true);
         handContainer.classList.add('hand-disabled');
@@ -305,19 +314,14 @@ export class Cribbage extends BaseGame {
       this.cribScore = data.cribScore;
       this.lastCrib = data.lastCrib.map((c: any) => new Card(c.id, c.value, c.suit));
       this.deck = Deck.fromPlainObject(data.deck);
-      data.teams.forEach((player: any) => {
-        this.teams[player.row][player.col] = Player.fromPlainObject(player);
-      });
       this.roundState = data.roundState;
       this.peggingCards = data.peggingCards.map((c: any) => new Card(c.id, c.value, c.suit));
       this.peggingTotal = data.peggingTotal;
+
+      this.setupTeams();
     }
 
     guestSetup(data: DocumentData): void {
-      //Set up teams
-      const num_teams = Math.max(...data.teams.map((p: any) => p.row)) + 1;
-      this.teams = Array.from({ length: num_teams }, () => []); // Initialize rows
-
       this.updateLocalState(data);
       this.render();
       this.setupListeners();
@@ -394,8 +398,9 @@ export class Cribbage extends BaseGame {
       }
 
       if (!found){
+        console.log("Not Found Next Player")
         //Add in that last point and restart pegging/move to next throw round
-        this.players[index].score +=1;
+        this.players[index].score += 1;
         this.endRound(index);
       }
 
@@ -489,7 +494,7 @@ export class Cribbage extends BaseGame {
     this.lastCrib = this.crib;
     this.cribScore = points;
   }
-  
+
   //Finds all the 15s in the hand
   find15s(cards: Card[]): number{
     let handValues = cards.map(card => card.toInt(true));
