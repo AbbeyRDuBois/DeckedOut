@@ -80,6 +80,7 @@ export class Cribbage extends BaseGame {
       this.renderScoreboard();
       this.renderAllHands();
       this.renderFlipped();
+      this.renderGameInfo();
     }
 
     handleAction(data: any): void {
@@ -95,6 +96,19 @@ export class Cribbage extends BaseGame {
       this.players.forEach(player => {
         player.team = team++;
       })
+    }
+
+    renderGameInfo(){
+      const currents = document.getElementById('currents')!;
+      currents.innerHTML = ''; // clears old content
+
+      const div = document.createElement('div');
+      div.innerHTML=`
+        <div class="current-player"> Current Player: ${this.currentPlayer.name}</div>
+        <div class="current-owner">Crib Owner: ${this.crib_owner.name}</div>
+        <div class="pegging-total">Pegging Total: ${this.peggingTotal}</div>
+      `;
+      currents.appendChild(div);
     }
 
     renderScoreboard() {
@@ -235,7 +249,7 @@ export class Cribbage extends BaseGame {
         this.renderScoreboard();
         this.renderAllHands();
         this.renderFlipped();
-        
+        this.renderGameInfo();
       });
     }
 
@@ -303,7 +317,6 @@ export class Cribbage extends BaseGame {
         player.playedCards.push(card);
         this.peggingCards.push(card)
         player.score += this.calculatePeggingPoints(card);
-
         this.nextPlayer(true);
 
         let changes: Record<string, any> = {
@@ -339,7 +352,7 @@ export class Cribbage extends BaseGame {
     updateLocalState(data: DocumentData): void {
       this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
       this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
-      this.crib_owner = this.currentPlayer;
+      this.crib_owner = data.crib_owner;
       this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit));
       this.cribScore = data.cribScore;
       this.lastCrib = data.lastCrib.map((c: any) => new Card(c.id, c.value, c.suit));
