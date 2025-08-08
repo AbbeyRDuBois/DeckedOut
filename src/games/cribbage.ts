@@ -23,6 +23,7 @@ export class Cribbage extends BaseGame {
     roundState: string = "" //Holds what phase the game is in currently
     peggingCards: Card[] = [] //Holds sequence of cards played in pegging round
     peggingTotal: number = 0 //Sum of current pegging round
+    lastFlipped: Card = new Card(0);
 
     constructor( deck: Deck, players: Player[], roomId: string){
       super(deck, players, roomId);
@@ -52,7 +53,8 @@ export class Cribbage extends BaseGame {
         started: true,
         roundState: this.roundState,
         peggingCards: arrayUnion(...this.peggingCards.map(card => card.toPlainObject())),
-        peggingTotal: this.peggingTotal
+        peggingTotal: this.peggingTotal,
+        lastFlipped: this.lastFlipped.toPlainObject()
       });
 
       this.render();
@@ -65,6 +67,7 @@ export class Cribbage extends BaseGame {
       const cardNum = this.players.length > 2 ? 5 : 6;
 
       this.players.forEach(player => {
+        player.hand = [];
         for(let i = 0; i < cardNum; i++){
           player.hand.push(this.deck.getCard()!);
         }
@@ -74,7 +77,6 @@ export class Cribbage extends BaseGame {
     render(): void {
       this.renderHand();
       this.renderOpponents();
-
       this.renderScoreboard();
       this.renderAllHands();
       this.renderFlipped();
@@ -126,6 +128,20 @@ export class Cribbage extends BaseGame {
       const roundTotal = document.getElementById("round-totals")!;
       roundTotal.innerHTML = "";
 
+      //Adding Flipped Card
+      if (this.lastFlipped.value != ""){
+        const flippedDiv = document.createElement('div');
+        flippedDiv.classList.add('player-total');
+        flippedDiv.innerHTML=`
+          <div class="player-score">Flipped:</div>
+          <div class="total-hand"></div>
+        `;
+        const flippedCard = flippedDiv.querySelector(".total-hand")!;
+        flippedCard.appendChild(this.lastFlipped?.createCard());
+        roundTotal.appendChild(flippedDiv);
+      }
+
+      //Adding in the player scores/hands
       this.players.forEach(player => {
         const div = document.createElement('div');
         div.classList.add('player-total');
@@ -142,16 +158,16 @@ export class Cribbage extends BaseGame {
         roundTotal.appendChild(div);
       })
 
-      //Adding crib (testing)
+      //Adding crib
       const div = document.createElement('div');
       div.classList.add('player-total');
       div.innerHTML=`
-        <div class="player-score">Crib: 0</div>
+        <div class="player-score">${this.crib_owner.name}'s Crib: ${this.cribScore}</div>
         <div class="total-hand"></div>
       `;
       const totalHand = div.querySelector(".total-hand")!;
 
-      this.crib?.forEach((card: Card) => {
+      this.lastCrib?.forEach((card: Card) => {
           totalHand.appendChild(card.createCard());
       });
 
@@ -224,20 +240,13 @@ export class Cribbage extends BaseGame {
     }
 
     getFlipped() {
-      if (!this.flipped) {
-        this.flipped = this.deck.getCard()!;
-        this.renderFlipped();
-      }
+      this.flipped = this.deck.getCard()!;
     }
 
     async renderFlipped(){
       const flippedDiv = document.getElementById("flipped")!;
       flippedDiv.innerHTML = '';
-
-      if (this.flipped) {
-        const cardDiv = this.flipped.createCard();
-        flippedDiv.appendChild(cardDiv);
-      }
+      flippedDiv.appendChild(this.flipped.createCard());
     }
 
     async updateDBState(changes: { [key: string]: any}){
@@ -268,8 +277,11 @@ export class Cribbage extends BaseGame {
           crib: this.crib.map(c => c.toPlainObject())
         };
 
+        //Once everyone has thrown get the flipped card and start pegging round
         if (this.players.every(player => player.hand.length == this.hand_size)){
           changes.roundState = RoundState.Pegging;
+          this.getFlipped();
+          changes.flipped = this.flipped.toPlainObject();
         }
 
         await this.updateDBState(changes);
@@ -291,18 +303,36 @@ export class Cribbage extends BaseGame {
         player.playedCards.push(card);
         this.peggingCards.push(card)
         player.score += this.calculatePeggingPoints(card);
-      
-        //Sets the next player
-        this.nextPlayer(true);
-        handContainer.classList.add('hand-disabled');
 
-        //Updates last played and pegging arrays for all players
-        await this.updateDBState({
+        this.nextPlayer(true);
+
+        let changes: Record<string, any> = {
           players: this.players.map(p => p.toPlainObject()),
           currentPlayer: this.currentPlayer.toPlainObject(),
           peggingCards: this.peggingCards.map(card => card.toPlainObject()),
           peggingTotal: this.peggingTotal
-        });
+        };
+
+        //Checks if the round has been Updated back to throwing (meaning people ran out of cards for pegging)
+        //Need to update a lot of variables then
+        if (this.roundState == RoundState.Throwing){
+          changes = {
+            ...changes,
+            flipped: this.flipped.toPlainObject(),
+            crib: [],
+            crib_owner: this.crib_owner.toPlainObject(),
+            cribScore: this.cribScore,
+            lastCrib: arrayUnion(...this.lastCrib.map(card => card.toPlainObject())),
+            deck: this.deck.toPlainObject(),
+            roundState: this.roundState,
+            lastFlipped: this.lastFlipped.toPlainObject()
+          }
+        }
+
+        handContainer.classList.add('hand-disabled');
+
+        //Updates last played and pegging arrays for all players
+        await this.updateDBState(changes);
       }
     }
 
@@ -317,6 +347,8 @@ export class Cribbage extends BaseGame {
       this.roundState = data.roundState;
       this.peggingCards = data.peggingCards.map((c: any) => new Card(c.id, c.value, c.suit));
       this.peggingTotal = data.peggingTotal;
+      this.flipped = Card.fromPlainObject(data.flipped);
+      this.lastFlipped = Card.fromPlainObject(data.lastFlipped);
 
       this.setupTeams();
     }
@@ -379,7 +411,7 @@ export class Cribbage extends BaseGame {
       return points;
   }
 
-  nextPlayer(pegging?: boolean): void {
+  nextPlayer(pegging = false): void {
     const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
     if(pegging){
       let found = false;
@@ -398,7 +430,6 @@ export class Cribbage extends BaseGame {
       }
 
       if (!found){
-        console.log("Not Found Next Player")
         //Add in that last point and restart pegging/move to next throw round
         if (this.peggingTotal != 31){
           this.players[index].score += 1;
@@ -411,27 +442,21 @@ export class Cribbage extends BaseGame {
     else{
       //Just get the next player in the array
       this.currentPlayer = this.players[(index + 1) % this.players.length];
-    }
-
-    if (this.currentPlayer.id === localStorage.getItem('playerId')){
-      this.isTurn = true;
-    }
-    else{
-      this.isTurn = false;
+      this.crib_owner = this.currentPlayer;
     }
   }
 
+
+  //Returns true when entire pegging round is done. False if just resetting loop
   endRound(index: number){
     //If a player still has cards to play
     if(this.players.some(player => player.hand.length - player.playedCards.length > 0)){
       let found = false;
       //find the next player who has cards to play (start at one to start check at next player)
       for(let i = 1; i <= this.players.length && !found; i++){
-        console.log("Player index checked:" + (index + i) % this.players.length);
         let player = this.players[(index + i) % this.players.length];
 
         if (player.hand.length - player.playedCards.length > 0){
-          console.log("Found Next Player:" + player.name);
           this.currentPlayer = player;
           found = true;
         }
@@ -443,20 +468,23 @@ export class Cribbage extends BaseGame {
     }
     //If players don't have anymore cards update everything and deal new cards
     else{
-      console.log("No players have cards")
       this.countHands();
       this.countCrib();
-      this.renderAllHands();
-      this.renderScoreboard();
-      //Deal new hands
+      this.deck.resetDeck();
+      this.deal();
       this.roundState = RoundState.Throwing;
+      this.lastFlipped = new Card(this.flipped.id, this.flipped.value, this.flipped.suit);
+      this.flipped = new Card(0);
+      this.nextPlayer();
+      this.peggingTotal = 0;
+      this.peggingCards = [];
     }
   }
 
   countHands(){
     this.players.forEach(player =>{
       let points = 0;
-      let hand = player.hand;
+      let hand = [...player.hand];
             
       //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
       points += this.findFlush(hand);
@@ -480,7 +508,7 @@ export class Cribbage extends BaseGame {
 
   countCrib(){
     let points = 0;
-    let hand = this.crib
+    let hand = [...this.crib];
 
     //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
     points += this.findFlush(hand);
@@ -498,6 +526,7 @@ export class Cribbage extends BaseGame {
     
     this.crib_owner.score += points;
     this.lastCrib = this.crib;
+    this.crib = [];
     this.cribScore = points;
   }
 
@@ -539,7 +568,7 @@ export class Cribbage extends BaseGame {
   }
 
   findPairs(cards: Card[]): number{
-    let handValues = cards.map(card => card.toInt(true));
+    let handValues = cards.map(card => card.toInt());
     const counts = new Map<number, number>();
     let points = 0; 
 

@@ -53,6 +53,9 @@ export class Card {
             suit: this.suit,
         };
     }
+    static fromPlainObject(data: DocumentData): Card{
+        return new Card(data.id, data.value, data.suit);
+    }
 }
 
 
@@ -84,17 +87,6 @@ export class Deck{
 
         let card = Math.floor(Math.random() * this.deck.length);
         return this.deck.splice(card, 1)[0];
-    }
-
-    //Will return the current hands of the player
-    getHands(players: Player[]){
-        let hands: Card[][] = [];
-
-        players.forEach(player => {
-            hands.push(player.hand) 
-        });
-
-        return hands;
     }
 
     toPlainObject(){
