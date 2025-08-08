@@ -389,7 +389,7 @@ export class Cribbage extends BaseGame {
         for(let i = 1; i <= this.players.length && !found; i++){
           const player = this.players[(index + i) % this.players.length];
 
-          const unplayedCards = player.hand.filter(card => !player.playedCards.includes(card));
+          const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
           if (unplayedCards?.some(card => card.toInt(true) + this.peggingTotal <= 31)){
             this.currentPlayer = player;
             found = true;
@@ -400,7 +400,10 @@ export class Cribbage extends BaseGame {
       if (!found){
         console.log("Not Found Next Player")
         //Add in that last point and restart pegging/move to next throw round
-        this.players[index].score += 1;
+        if (this.peggingTotal != 31){
+          this.players[index].score += 1;
+        }
+
         this.endRound(index);
       }
 
@@ -419,14 +422,16 @@ export class Cribbage extends BaseGame {
   }
 
   endRound(index: number){
-    let found = true;
     //If a player still has cards to play
     if(this.players.some(player => player.hand.length - player.playedCards.length > 0)){
-      //find the next player who has cards to play
+      let found = false;
+      //find the next player who has cards to play (start at one to start check at next player)
       for(let i = 1; i <= this.players.length && !found; i++){
+        console.log("Player index checked:" + (index + i) % this.players.length);
         let player = this.players[(index + i) % this.players.length];
 
         if (player.hand.length - player.playedCards.length > 0){
+          console.log("Found Next Player:" + player.name);
           this.currentPlayer = player;
           found = true;
         }
@@ -438,6 +443,7 @@ export class Cribbage extends BaseGame {
     }
     //If players don't have anymore cards update everything and deal new cards
     else{
+      console.log("No players have cards")
       this.countHands();
       this.countCrib();
       this.renderAllHands();
