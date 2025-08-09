@@ -11,8 +11,8 @@ enum RoundState {
 }
 
 export class Cribbage extends BaseGame {
-    point_goal: number = 1; //Number of points to win
-    skunk_length: number = 0; //Number of points from skunk line to end -1
+    point_goal: number = 121; //Number of points to win
+    skunk_length: number = 90; //Number of points from skunk line to end -1
     crib_count: number = 4; //Number of cards in crib
     hand_size: number = 4; //Number of cards in a hand after throwing to crib
     flipped: Card = new Card(0); //Flipped Card
