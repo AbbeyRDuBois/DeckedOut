@@ -1,11 +1,11 @@
-import { Gofish } from './games/gofish-game';
+import { Cribbage } from './games/cribbage';
 import { BaseGame } from './games/base-game';
-import { Card, Deck } from './deck';
-import { loadSharedUI, rebuildPlayer } from './utils';
+import { Deck } from './deck';
 import { deleteDoc, doc, DocumentData, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { Player } from './player';
 import { db } from './authentication';
 import './styles.css'
+import { Team } from './team';
 
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('roomId')!;
@@ -16,14 +16,11 @@ let roomRef:any;
 let game: BaseGame;
 let players: Player[];
 let sharedUILoaded = false;
+let teams: Team[];
 
-const MINUTE = 60 * 1000;
-const TIMEOUT_CLOSE = 30;
-const TIMEOUT_WARNING = 25;
-let WARNING_SHOWN = false;
 
 const gameMap: Record<string, any> = {
-    'gofish': Gofish,
+    'cribbage': Cribbage,
 };
 
 async function initRoom() {
@@ -37,19 +34,27 @@ async function initRoom() {
     alert("Room not found.");
     return;
   }
-  players = roomData.players.map((player: any) => rebuildPlayer(player))
+
+  players = roomData.players.map((player: any) => Player.fromPlainObject(player));
+  teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
   game = new gameMap[gameType]!(new Deck(), players, roomId);
 
-  onSnapshot(roomRef, (docSnap: any) => {
+  await updateDoc(roomRef, {
+    maxPlayers: game.getMaxPlayers()
+  })
+
+  onSnapshot(roomRef, async (docSnap: any) => {
     if (!docSnap.exists()) {
       alert("Room deleted or closed.");
       return window.location.href = "index.html";
     }
 
-    roomData = docSnap.data();
-    game.setPlayers(players);
-
-    if (sharedUILoaded) {
+    if (sharedUILoaded && !game.getStarted()) {
+      roomData = docSnap.data();
+      players = roomData.players.map((player: any) => Player.fromPlainObject(player));
+      game.setPlayers(players);
+      teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
+      game.setTeams(teams);
       handlePopup();
     }
   });
@@ -61,28 +66,29 @@ async function initRoom() {
     info.innerHTML = `<div>Room ID: ${roomId}</div>`;
   });
 
-  game.render();
   handlePopup();
 
   createListeners();
 };
 
+async function loadSharedUI(containerId = "room-template") {
+  const container = document.getElementById(containerId)!;
+  const html = await fetch("shared-ui.html").then(res => res.text());
+  container.innerHTML = html;
+
+  await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
+}
+
 function handlePopup(){
   const started = roomData.started;
-  players = roomData.players.map((p: any) => rebuildPlayer(p));
-
   if (!started) {
-    document.getElementById("waiting-overlay")!.style.display = "flex";
-    updatePlayerList();
+  document.getElementById("waiting-overlay")!.style.display = "flex";
+  updatePlayerList();
+  renderGameOptions();
+
   } else {
     document.getElementById("waiting-overlay")!.style.display = "none";
-
-    const playerId = localStorage.getItem("playerId")!;
-    const player = players.find(p => p.id === playerId)!;
-    const opponents = players.filter(p => p.id !== playerId);
-
-    renderHand(player);
-    renderOpponents(opponents);
+    game.guestSetup(roomData);
   }
 }
 
@@ -90,56 +96,42 @@ async function getRoomData(roomRef: any): Promise<DocumentData>{
     return (await getDoc(roomRef))?.data()!;
 }
 
-async function updatePlayers() {
-    await updateDoc(roomRef, {
-        players: players.map(player => player.toPlainObject())
-    });
-    game.setPlayers(players);
-}
-
-async function startGame(){
-    await updateDoc(roomRef, {
-        started: true,
-    });
-    game.setPlayers(players);
-    game.start();
-}
-
 async function exitRoom(playerId: string, players: any, hostId: string) {
+  
+  if(game.getStarted()){
+    await deleteDoc(roomRef);
+  }
+  else{
     if (playerId === hostId) {
         await deleteDoc(roomRef);
     } else {
         players = players.filter((player: any) => player.id !== playerId);
+        removePlayerFromTeams(playerId);
+
         await updateDoc(roomRef, {
-          players: players.map((player: any) => player.toPlainObject())
+          players: players.map((player: any) => player.toPlainObject()),
+          teams: teams.map((team: any) => team.toPlainObject())
         });
         return window.location.href = "index.html";
     }
+  }
 }
 
-/*
-  Checks to see if the room has been inactive 
-  At 25 min gives a warning, at 30 min it closes the room
-*/
-async function checkRoomStatus() {
-  try {
-    const roomData = await getRoomData(roomRef)!;
+function removePlayerFromTeams(playerId: string): void {
+    for (let i = 0; i < teams.length; i++) {
+        const team = teams[i];
+        const playerIndex = team.players.findIndex(p => p.id === playerId);
 
-    const lastActive = roomData?.lastActive as number;
-    const now = Date.now();
-    const minuteDiff = (now - lastActive) / MINUTE;
+        if (playerIndex !== -1) {
+            team.players.splice(playerIndex, 1); // Remove the player
 
-    if (minuteDiff >= TIMEOUT_CLOSE){
-      await deleteDoc(roomRef);
-    } else if (minuteDiff >= TIMEOUT_WARNING && !WARNING_SHOWN) {
-      alert("Warning: Room will close in 5 minutes due to inactivity!");
-      WARNING_SHOWN = true;
-    } else if (minuteDiff < TIMEOUT_WARNING && WARNING_SHOWN) {
-      WARNING_SHOWN = false;
+            // If the team is now empty, remove the team from the list
+            if (team.players.length === 0) {
+                teams.splice(i, 1);
+            }
+            break; // Player found and removed — exit the loop
+        }
     }
-  } catch (error){
-    console.error("Error checking room status:", error);
-  }
 }
 
 async function createListeners(){
@@ -149,7 +141,6 @@ async function createListeners(){
     copy.addEventListener("click", async () => {
       try{
         await navigator.clipboard.writeText(roomId);
-        console.log("Text copied successfully");
       } catch(e){
         console.error("unable to copy to clipboard: ", e);
       }
@@ -170,53 +161,225 @@ async function createListeners(){
   //start
   const start = document.getElementById("start-game");
   start?.addEventListener('click', async () => {
-    startGame();
+    if (game.getMinPlayers() > players.length){
+      alert(`Need ${game.getMinPlayers()} to play the game.`);
+      return;
+    }
+    game.setPlayers(players);
+    game.start();
+    document.getElementById("waiting-overlay")!.style.display = "none";
+  });
+}
+
+
+function updatePlayerList() {
+    const list = document.getElementById('waiting-list')!;
+    list.innerHTML = `
+      <div class="waiting-list-container">
+        <h3 class="waiting-title">Players in room:</h3>
+        ${players.map(player => `<div class="player-name">${player.name}</div>`).join('')}
+      </div>
+    `;
+}
+
+function renderGameOptions(){
+  switch(gameMap[gameType]){
+    case gameMap.cribbage:
+      renderTeamSelector();
+      break;
+    default:
+      renderTeamSelector();
+  }
+}
+
+function renderTeamSelector(){
+  const buttons = document.getElementById('popup-btns')!;
+  const popup = document.getElementById("waiting-popup")!;
+  let teamsContainer = document.getElementById("teams");
+
+  if (teamsContainer == null){
+    teamsContainer = document.createElement('div');
+    teamsContainer.id = "teams";
+  }
+  teamsContainer.innerHTML = "";
+
+  //Render each Team into it's own column
+  const columnsWrapper = document.createElement("div");
+  columnsWrapper.id = "team-column-wrapper";
+
+  teams.forEach((team, teamIndex) => {
+    const column = document.createElement("div");
+    column.className = "team-column";
+
+    const teamNameInput = document.createElement("input");
+    teamNameInput.id = "team-name";
+    teamNameInput.value = team.name;
+    //Blur is where the user clicks off element
+    teamNameInput.addEventListener("blur", () => {
+      const newName = teamNameInput.value.trim();
+
+      if (newName != team.name && newName != ""){
+        team.name = newName;
+        updateDoc(roomRef, {
+          teams: teams.map(team => team.toPlainObject())
+        });
+      }
+    });
+    column.appendChild(teamNameInput);
+
+    //Players
+    team.players.forEach(player => {
+      column.appendChild(createPlayerElmt(player, teamIndex));
+    });
+
+    columnsWrapper.appendChild(column);
   });
 
-  //Inactivity Tracking
-  ["mousemove", "keydown", "click", "touchstart"].forEach((event) => {
-    window.addEventListener(event, async () => {
-      const now = Date.now();
-      if (now - roomData.lastActive > MINUTE) {
-        await updateDoc(roomRef, {
-          lastActive: now
-        })
+  teamsContainer.appendChild(columnsWrapper);
+
+  //Add/Delete Team Buttons
+  teamsContainer.appendChild(createAddDelCol());
+
+  //Random assignment controls
+  teamsContainer.appendChild(createRandTeamElmts());
+
+  popup.insertBefore(teamsContainer, buttons);
+}
+
+function createRandTeamElmts(): HTMLDivElement{
+  const randomRow = document.createElement("div");
+  randomRow.id = "random-teams"
+
+  const sizeLabel = document.createElement("label");
+  sizeLabel.textContent = "Rando teams: ";
+  sizeLabel.className = "team-label";
+
+  const teamSizeInput = document.createElement("input");
+  teamSizeInput.className = "team-size";
+  teamSizeInput.type = "number";
+  teamSizeInput.value = "1";
+  teamSizeInput.min = "1";
+  teamSizeInput.max = players.length.toString();
+
+  const randomBtn = document.createElement("button");
+  randomBtn.textContent = "Rando";
+  randomBtn.id = "random-btn";
+
+  randomBtn.onclick = () => {
+    randomizeTeams(players, teams, parseInt(teamSizeInput.value));
+    updateDoc(roomRef, {
+      teams: teams.map(team => team.toPlainObject())
+    });
+  };
+
+  randomRow.appendChild(sizeLabel);
+  randomRow.appendChild(teamSizeInput);
+  randomRow.appendChild(randomBtn);
+
+  return randomRow;
+}
+
+function createAddDelCol(): HTMLDivElement{
+  const addDelContainer = document.createElement("div");
+  addDelContainer.id = "add-del-container"
+
+  const addBtn = document.createElement("button");
+  addBtn.textContent = "Add Team";
+  addBtn.className = "add-del-btn";
+
+  addBtn.onclick = () => {
+    if (teams.length < players.length) {
+      teams.push(new Team(`Team ${teams.length + 1}`, []));
+      updateDoc(roomRef, {
+        teams: teams.map(team => team.toPlainObject())
+      })
+    }
+  };
+
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "Remove Team";
+  delBtn.className = "add-del-btn";
+
+  delBtn.onclick = () => {
+    if (teams.length > 1) {
+      const removed = teams.pop();
+      // Push players from removed team back into remaining teams
+      if (removed) {
+        removed.players.forEach((p, i) => {
+          teams[i % teams.length].players.push(p);
+        });
       }
-    })
-  })
+      updateDoc(roomRef, {
+        teams: teams.map(team => team.toPlainObject())
+      });
+    }
+  };
 
-  //Inactivity check every minute
-  setInterval(checkRoomStatus, MINUTE);
+  addDelContainer.appendChild(addBtn);
+  addDelContainer.appendChild(delBtn);
+
+  return addDelContainer;
 }
 
-export function renderOpponents(opponents: Player[]) {
-    const opponentContainer = document.getElementById('opponents')!;
-    opponentContainer.innerHTML = ''; // clears old content
-    opponents.forEach(opponent => {
-        const div = document.createElement('div');
-        div.classList.add('opponent');
-        div.innerHTML = `
-        <div class = "opponent-name">${opponent.name}</div>
-        <div class = "hand-info">
-            <div class="card-back">${opponent.hand?.length || 0}</div>
-            <div class="opp-played">${opponent.lastPlayed?.toString() || ""} </div>
-        </div>`;
-        opponentContainer.appendChild(div);
-    });
+function createPlayerElmt(player: Player, teamIndex: number): HTMLDivElement{
+  const playerDiv = document.createElement("div");
+  const nameSpan = document.createElement("span");
+  nameSpan.textContent = player.name;
+  const controls = document.createElement("div");
+
+  if (teamIndex > 0) {
+    const leftBtn = document.createElement("button");
+    leftBtn.className = "move-player";
+    leftBtn.textContent = "←";
+    leftBtn.onclick = () => {
+      movePlayer(player, teamIndex, teamIndex - 1, teams);
+      updateDoc(roomRef, {
+        teams: teams.map(team => team.toPlainObject())
+      });
+    };
+    controls.appendChild(leftBtn);
+  }
+
+  if (teamIndex < teams.length - 1) {
+    const rightBtn = document.createElement("button");
+    rightBtn.className = "move-player";
+    rightBtn.textContent = "→";
+    rightBtn.onclick = () => {
+      movePlayer(player, teamIndex, teamIndex + 1, teams);
+      updateDoc(roomRef, {
+        teams: teams.map(team => team.toPlainObject())
+      })
+    };
+    controls.appendChild(rightBtn);
+  }
+
+  playerDiv.appendChild(nameSpan);
+  playerDiv.appendChild(controls);
+  return playerDiv;
 }
 
-export function renderHand(player: Player) {
-    const handContainer = document.getElementById('hand')!;
-    handContainer.innerHTML = '';
-    player.hand?.forEach((card: Card) => {
-        handContainer.appendChild(card.createCard(players));
-    });
+function movePlayer(player: Player, fromIndex: number, toIndex: number, teams: Team[]) {
+  teams[fromIndex].players = teams[fromIndex].players.filter(p => p.id !== player.id);
+  teams[toIndex].players.push(player);
 }
 
-export function updatePlayerList() {
-    const list = document.getElementById('waiting-list')!;
-    list.innerHTML = "<h3>Players in room:<h3>" +
-        players.map(player => `<div>${player.name}</div>`).join('');
+function shuffleArray<T>(arr: T[]): T[] {
+  return arr.slice().sort(() => Math.random() - 0.5);
+}
+
+function randomizeTeams(players: Player[], teams: Team[], teamSize: number) {
+  const shuffled = shuffleArray(players);
+  const newTeams: Team[] = [];
+  let teamIndex = 0;
+
+  for (let i = 0; i < shuffled.length; i += teamSize) {
+    const slice = shuffled.slice(i, i + teamSize);
+    newTeams.push(new Team(`Team ${teamIndex + 1}`, slice));
+    teamIndex++;
+  }
+
+  teams.length = 0;
+  teams.push(...newTeams);
 }
 
 window.onload = initRoom;

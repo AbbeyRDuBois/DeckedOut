@@ -1,4 +1,4 @@
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, DocumentData, updateDoc } from "firebase/firestore";
 import { Player } from "./player";
 import { db } from "./authentication";
 
@@ -10,99 +10,68 @@ export class Card {
     value: string;
     suit: string;
 
-    constructor(id: number, value = "", suit = ""){
+
+    constructor(id: number, value = "", suit = "") {
         this.value = value;
         this.suit = suit;
         this.id = id;
     }
 
-    toString(): string{
+    toString(): string {
         return `${this.value} ${this.suit}`;
     }
 
-    //Gives the int value of non number cards
-    //Passing in true turns face cards to 10 for cribbage counting
-    toInt(cribbage = false): number{
-        switch(this.value){
-            case 'A':
-                return 1;
-            case 'J':
-                return cribbage ? 10 : 11;
-            case 'Q':
-                return cribbage ? 10 : 12;
-            case 'K':
-                return cribbage ? 10 : 13;
-            case 'JK':
-                return -1;
-            default:
-                return parseInt(this.value);
+    toInt(counting = false): number {
+        switch (this.value) {
+            case 'A': return 1;
+            case 'J': return counting ? 10 : 11;
+            case 'Q': return counting ? 10 : 12;
+            case 'K': return counting ? 10 : 13;
+            case 'JK': return -1;
+            default: return parseInt(this.value);
         }
     }
 
-    //Creates the cards that are added to hands
-    //Attaches a listener that will remove it from hand and place it in played section when clicked
-    createCard(players: Player[]): HTMLDivElement {
+    createCard(clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
         cardDiv.textContent = this.toString();
         cardDiv.setAttribute("card-id", this.id.toString());
 
-        const handContainer = document.getElementById("hand")!;
-        const playedContainer = document.getElementById("played")!;
-        const roomId = new URLSearchParams(window.location.search).get("roomId")!;
-        const roomRef = doc(db, "rooms", roomId);
-
-        cardDiv.addEventListener('click', async () => {
-            // Remove from hand
-            handContainer.removeChild(cardDiv);
-
-            // Clear previous played card
-            playedContainer.innerHTML = '';
-
-            //Add played line so hover no longer works on card
-            //cloneNode strips it of all listeners
-            cardDiv.classList.add('played');
-            cardDiv.replaceWith(cardDiv.cloneNode(true));
-
-            // Add card to played section
-            playedContainer.appendChild(cardDiv);
-
-            //Update players card count and last played
-            const player = players.find((player: Player) => player.id === localStorage.getItem('playerId')!)!;
-            const index = player.hand.findIndex(card => card.id === this.id);
-            if (index !== -1) player.hand.splice(index, 1);
-            player.lastPlayed = this;
-
-            //Updates database with changes so others can see it
-            await updateDoc(roomRef, {
-                players: players.map(p => p.toPlainObject())
-            });
-        });
-
+        // Attach the passed in handler
+        if (clickable && onClick){
+            cardDiv.addEventListener('click', () => onClick(this, cardDiv));
+        }
+        
         return cardDiv;
-    };
+    }
 
-    toPlainObject(){
+    toPlainObject() {
         return {
             id: this.id,
             value: this.value,
             suit: this.suit,
-
-        }
+        };
+    }
+    static fromPlainObject(data: DocumentData): Card{
+        return new Card(data.id, data.value, data.suit);
     }
 }
 
+
 export class Deck{
     deck: Card[] = [];
-    flipped: Card = new Card(0);
 
-    constructor(){
-        this.resetDeck();
+    constructor(deck: Card[] = []){
+        if (deck.length ===  0){
+            this.resetDeck();
+        }else {
+            this.deck = deck;
+        }
     }
 
     resetDeck(){
         this.deck = [];
-        this.flipped = new Card(0);
         let idCounter = 0;
 
         //Adds in a card of each value/suit
@@ -120,22 +89,13 @@ export class Deck{
         return this.deck.splice(card, 1)[0];
     }
 
-    //Will return the current hands of the player
-    getHands(players: Player[]){
-        let hands: Card[][] = [];
-
-        players.forEach(player => {
-            hands.push(player.hand) 
-        });
-
-        return hands;
+    toPlainObject(){
+        return this.deck.map(card => card.toPlainObject());
     }
 
-    getFlipped(){
-        if(this.flipped === null && this.deck.length > 0){
-            const card = this.getCard()!;
-            this.flipped = card;
-        };
-        return this.flipped;
+    static fromPlainObject(data: DocumentData): Deck{
+        return new Deck(Array.isArray(data)
+            ? data.map((c: any) => new Card(c.id, c.value, c.suit))
+            : []);
     }
 }

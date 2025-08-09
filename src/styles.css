@@ -1,10 +1,14 @@
-/* General */
+/***********************************************************
+  *
+  * General/Common Styling
+  *
+  **********************************************************/
 body {
   height: 100%;
   margin: 0;
-  padding: 30px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden; /* prevents horizontal scroll*/
 }
 /*Game Selection*/
 .title{
@@ -132,15 +136,14 @@ body {
 }
 .copy-icon {
   cursor: pointer;
-  font-size: 1rem;
-  user-select: none;
-  line-height: 1;
-  padding-top: 1px; /* small visual alignment tweak */
+  width: 1em;
+  height: 1em;
 }
 .leave-room {
   background-color: #e74c3c;
   border: none;
-  padding: 4px 6px;
+  margin-right: 20px;
+  padding: 4px 10px;
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -151,8 +154,8 @@ body {
   background-color: #c0392b
 }
 
-/*Waiting Popup*/
-#waiting-overlay {
+/*Popup*/
+.popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -165,17 +168,18 @@ body {
   justify-content: center;
   z-index: 9999;
 }
-#waiting-popup {
+.popup {
   position: relative;
   background: white;
   flex-direction: column; /*Stack vertically*/
   display: flex;
   align-items: center;
-  padding: 30px;
+  padding: 15px;
   border-radius: 10px;
   text-align: center;
   width: 90%;
   max-width: 400px;
+  min-height: 300px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   animation: 0.3s ease-in-out;
   justify-content: center;
@@ -190,10 +194,11 @@ body {
   font-size: 12px;
   font-weight: bold;
 }
-#waiting-list {
+.waiting-list-container {
   display: flex;
-  justify-content: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 #popup-btns {
   display: flex;
@@ -213,17 +218,112 @@ body {
 #start-game:hover {
   background-color: #302bc0
 }
-.waiting-id {
-  top: 6px;
-  left: 8px;
 
+/*Team Selector Part of Popup*/
+#teams {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+#team-column-wrapper {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.team-column {
+  background-color: #f9f9f9;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 15px;
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.team-column input#team-name {
+  font-size: 1.1rem;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  text-align: center;
+  outline: none;
+  transition: border 0.2s;
+}
+.team-column input#team-name:focus {
+  border-color: #007bff;
+}
+.team-column > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+}
+.move-player {
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: 4px;
+}
+.move-player:hover {
+  background-color: #0056b3;
+}
+#add-del-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.add-del-btn {
+  background-color: #727272;
+  color: white;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+.add-del-btn:hover {
+  background-color: #525252;
+}
+#random-teams {
   display: flex;
   align-items: center;
-  gap: 6px;
-
-  font-size: 12px;
+  gap: 10px;
+  padding-bottom: 5px;
+  justify-content: center;
+}
+#random-teams .team-label {
   font-weight: bold;
 }
+.team-size {
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+#random-btn {
+  background-color: #28a745;
+  color: black;
+  padding: 4px 7px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#random-btn:hover {
+  background-color: #218838;
+}
+
 
 /*Opponents*/
 #opponents {
@@ -317,4 +417,117 @@ body {
   display: flex;
   justify-content: center; 
   gap: 6px; /*Gap between cards*/
+}
+#hand.hand-disabled .card {
+  pointer-events: none;           /* disables click, hover, etc. */
+  filter: grayscale(100%);        /* visually greys out the card */
+  opacity: 0.5;                   /* optional: make it more muted */
+  cursor: default;                /* change cursor to normal */
+  transform: none !important;     /* prevent hover lifting */
+  border: 2px solid transparent;  /* remove hover border effect */
+}
+/***********************************************************************
+*
+* Cribbage Elements
+*
+************************************************************************/
+
+/*Scoreboard*/
+#scoreboard {
+  position: absolute;
+  justify-content: center;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #000;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-80%);
+  align-items: center;
+}
+
+.team{
+  background-color: #444;
+  text-align: center;
+  border-radius: 8px;
+  margin: 5px;
+}
+
+.team .team-name {
+  font-size: 15px;
+  color: #a9a9a9;
+}
+
+.team .team-score {
+  font-size: 15px;
+  color: #a9a9a9;
+}
+
+/*Round Totals */
+#round-totals-wrapper {
+  position: absolute;
+  justify-content: center;
+  padding: 5px;
+  align-items: center;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #000;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-60%);
+}
+
+#round-totals.collapsed {
+  max-height: 0;
+  pointer-events: none;
+  display: none;
+}
+
+.player-score{
+  margin: 5px;
+}
+
+.player-total .player-score {
+  font-size: 20px;
+  color:#a9a9a9
+}
+
+.total-hand {
+  display: flex;
+  gap: 3px;
+}
+
+.total-hand .card {
+  pointer-events: none;
+  width: 50px;
+  height: 60px;
+}
+
+.toggle {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+}
+
+/*Flipped*/
+#flipped {
+  position: absolute; 
+  top: 45%;         /* Center it vertically */
+  left: 25%;          
+  transform: translateY(-50%);
+  padding: 10px;
+  pointer-events: none;    
+  filter: grayscale(100%);    
+  cursor: default;               
+}
+
+/*Game Info*/
+#game-info {
+  position: absolute; 
+  top: 45%;         /* Center it vertically */
+  left: 60%;          
+  transform: translateY(-50%);
+  padding: 10px;
+  pointer-events: none;    
+  filter: grayscale(100%);    
+  cursor: default;               
 }
