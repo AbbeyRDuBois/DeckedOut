@@ -11,8 +11,8 @@ enum RoundState {
 }
 
 export class Cribbage extends BaseGame {
-    point_goal: number = 121; //Number of points to win
-    skunk_length: number = 90; //Number of points from skunk line to end -1
+    point_goal: number = 1; //Number of points to win
+    skunk_length: number = 0; //Number of points from skunk line to end -1
     crib_count: number = 4; //Number of cards in crib
     hand_size: number = 4; //Number of cards in a hand after throwing to crib
     flipped: Card = new Card(0); //Flipped Card
@@ -291,7 +291,16 @@ export class Cribbage extends BaseGame {
       winnerPopup.style.display = "flex";
 
       const winners = document.getElementById("winners")!;
-      winners.innerHTML = `Winner(s): ${winner.name}!`;
+      winners.innerHTML = `Winner: ${winner.name}!`;
+
+      const skunked = this.teams.filter(team => team.name != winner.name && team.score <= this.skunk_length);
+
+      //Create a list of skunked teams/players to shame them
+      if (skunked.length > 0){
+        const skunkH2 = document.createElement("h2");
+        skunkH2.innerHTML = `Skunked: ${skunked.map(team => team.name).join(", ")}`;
+        winners.appendChild(skunkH2);
+      }
     }
 
     async updateDBState(changes: { [key: string]: any}){
@@ -327,6 +336,14 @@ export class Cribbage extends BaseGame {
         if (this.players.every(player => player.hand.length == this.hand_size)){
           changes.roundState = RoundState.Pegging;
           this.getFlipped();
+
+          //Check for Nibs
+          if (this.flipped.value == "J"){
+            const player = this.players.find(player => player.name == this.crib_owner)!;
+            this.findTeamByPlayer(player)!.score += 2;
+            changes.teams = this.teams.map(team => team.toPlainObject());
+          }
+
           changes.flipped = this.flipped.toPlainObject();
         }
 
@@ -343,7 +360,6 @@ export class Cribbage extends BaseGame {
         cardDiv.classList.add('played');
         cardDiv.replaceWith(cardDiv.cloneNode(true));
         playedContainer.appendChild(cardDiv);
-
         const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
         player.lastPlayed = card;
         player.playedCards.push(card);

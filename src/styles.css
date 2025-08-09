@@ -179,6 +179,7 @@ body {
   text-align: center;
   width: 90%;
   max-width: 400px;
+  min-height: 300px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   animation: 0.3s ease-in-out;
   justify-content: center;
