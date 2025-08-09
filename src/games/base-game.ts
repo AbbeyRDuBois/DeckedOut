@@ -66,10 +66,22 @@ export abstract class BaseGame {
     return this.players.filter(p => p.id !== localStorage.getItem('playerId')!);
   }
 
-  shufflePlayerOrder(){
-    for (let i = this.players.length - 1; i > 0; i--){
-      const j = Math.floor(Math.random() * (i + 1));
-      [this.players[i], this.players[j]] = [this.players[j], this.players[i]];
+  getPlayerOrder(){
+    const teamQueues = this.teams.map(team => [...team.players]); // change to Player[][]
+
+    const teamCount = teamQueues.length;
+    let currentIndex = Math.floor(Math.random() * teamCount); // random starting team index
+    let remainingPlayers = teamQueues.reduce((sum, team) => sum + team.length, 0);
+
+    while (remainingPlayers > 0) {
+      const teamQueue = teamQueues[currentIndex];
+      if (teamQueue.length > 0) {
+          const player = teamQueue.shift()!;
+          this.players.push(player);
+          remainingPlayers--;
+      }
+
+      currentIndex = (currentIndex + 1) % teamCount;
     }
   }
 
