@@ -144,53 +144,57 @@ export class Cribbage extends BaseGame {
     }
 
     renderAllHands() {
-      const roundTotal = document.getElementById("round-totals")!;
-      roundTotal.innerHTML = "";
 
-      //Adding Flipped Card
-      if (this.lastFlipped.value != ""){
-        const flippedDiv = document.createElement('div');
-        flippedDiv.classList.add('player-total');
-        flippedDiv.innerHTML=`
-          <div class="player-score">Flipped:</div>
-          <div class="total-hand"></div>
-        `;
-        const flippedCard = flippedDiv.querySelector(".total-hand")!;
-        flippedCard.appendChild(this.lastFlipped?.createCard());
-        roundTotal.appendChild(flippedDiv);
-      }
+      //Check to see if there was actually a round to render
+      if (this.players[0].lastHand.length != 0){
+        const roundTotal = document.getElementById("round-totals")!;
+        roundTotal.innerHTML = "";
 
-      //Adding in the player scores/hands
-      this.players.forEach(player => {
+        //Adding Flipped Card
+        if (this.lastFlipped.value != ""){
+          const flippedDiv = document.createElement('div');
+          flippedDiv.classList.add('player-total');
+          flippedDiv.innerHTML=`
+            <div class="player-score">Flipped:</div>
+            <div class="total-hand"></div>
+          `;
+          const flippedCard = flippedDiv.querySelector(".total-hand")!;
+          flippedCard.appendChild(this.lastFlipped?.createCard());
+          roundTotal.appendChild(flippedDiv);
+        }
+
+        //Adding in the player scores/hands
+        this.players.forEach(player => {
+          const div = document.createElement('div');
+          div.classList.add('player-total');
+          div.innerHTML=`
+            <div class="player-score">${player.name}: ${player.lastScore}</div>
+            <div class="total-hand"></div>
+          `;
+          const totalHand = div.querySelector(".total-hand")!;
+
+          player.lastHand?.forEach((card: Card) => {
+              totalHand.appendChild(card.createCard());
+          });
+
+          roundTotal.appendChild(div);
+        })
+
+        //Adding Crib
         const div = document.createElement('div');
         div.classList.add('player-total');
         div.innerHTML=`
-          <div class="player-score">${player.name}: ${player.lastScore}</div>
+          <div class="player-score">${this.lastOwner}'s Crib: ${this.cribScore}</div>
           <div class="total-hand"></div>
         `;
         const totalHand = div.querySelector(".total-hand")!;
 
-        player.lastHand?.forEach((card: Card) => {
+        this.lastCrib?.forEach((card: Card) => {
             totalHand.appendChild(card.createCard());
         });
 
         roundTotal.appendChild(div);
-      })
-
-      //Adding crib
-      const div = document.createElement('div');
-      div.classList.add('player-total');
-      div.innerHTML=`
-        <div class="player-score">${this.lastOwner}'s Crib: ${this.cribScore}</div>
-        <div class="total-hand"></div>
-      `;
-      const totalHand = div.querySelector(".total-hand")!;
-
-      this.lastCrib?.forEach((card: Card) => {
-          totalHand.appendChild(card.createCard());
-      });
-
-      roundTotal.appendChild(div);
+      }
     }
 
     renderHand() {
