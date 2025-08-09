@@ -346,7 +346,7 @@ export class Cribbage extends BaseGame {
         player.lastPlayed = card;
         player.playedCards.push(card);
         this.peggingCards.push(card)
-        player.score += this.calculatePeggingPoints(card);
+        this.findTeamByPlayer(player)!.score += this.calculatePeggingPoints(card);
 
         this.checkIfWon(player)
 
@@ -492,7 +492,7 @@ export class Cribbage extends BaseGame {
       if (!found){
         //Add in that last point and restart pegging/move to next throw round
         if (this.peggingTotal != 31){
-          this.players[index].score += 1;
+          this.findTeamByPlayer(this.players[index])!.score += 1;
         }
 
         this.endRound(index);
@@ -571,7 +571,7 @@ export class Cribbage extends BaseGame {
 
       console.log(`Total Hand Points: ${points}`)
       
-      player.score += points;
+      this.findTeamByPlayer(player)!.score
       player.lastHand = player.hand;
       player.lastScore = points;
     
@@ -598,7 +598,7 @@ export class Cribbage extends BaseGame {
     points += this.findFlush(hand);
 
     const player = this.players.find(player => player.name == this.crib_owner)!;
-    player.score += points;
+    this.findTeamByPlayer(player)!.score += points;
     this.lastCrib = this.crib;
     this.crib = [];
     this.cribScore = points;
