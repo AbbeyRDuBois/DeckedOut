@@ -12,7 +12,7 @@ enum RoundState {
 
 export class Cribbage extends BaseGame {
     point_goal: number = 121; //Number of points to win
-    skunk_length: number = 30; //Number of points from skunk line to end -1
+    skunk_length: number = 90; //Number of points from skunk line to end -1
     crib_count: number = 4; //Number of cards in crib
     hand_size: number = 4; //Number of cards in a hand after throwing to crib
     flipped: Card = new Card(0); //Flipped Card
@@ -37,14 +37,15 @@ export class Cribbage extends BaseGame {
 
     async start(): Promise<void> {
       this.shufflePlayerOrder();
-      this.currentPlayer = this.players[0]; //First player in array starts it off
-      this.crib_owner = this.currentPlayer.name;
+      this.crib_owner = this.players[0].name;//First player in array starts it off
+      this.currentPlayer = this.players[1]; //Player after crib owner is current player (always at least 2 people in game so it's fine)
       this.deal();
       this.roundState = RoundState.Throwing
 
       //This call is pretty big cause it's inital setup
       this.updateDBState({
         players: this.players.map(player => player.toPlainObject()),
+        teams: this.teams.map(team => team.toPlainObject()),
         flipped: this.flipped.toPlainObject(),
         crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
         crib_owner: this.crib_owner,
@@ -318,6 +319,7 @@ export class Cribbage extends BaseGame {
 
         let changes: Record<string, any> = {
           players: this.players.map(p => p.toPlainObject()),
+          teams: this.teams.map(team => team.toPlainObject()),
           crib: this.crib.map(c => c.toPlainObject())
         };
 
@@ -348,11 +350,12 @@ export class Cribbage extends BaseGame {
         this.peggingCards.push(card)
         this.findTeamByPlayer(player)!.score += this.calculatePeggingPoints(card);
 
-        this.checkIfWon(player)
+        this.checkIfWon(player);
 
         if(this.ended){
           await this.updateDBState({
             players: this.players.map(p => p.toPlainObject()),
+            teams: this.teams.map(team => team.toPlainObject()),
             ended: true});
           return;
         }
@@ -363,12 +366,14 @@ export class Cribbage extends BaseGame {
         if(this.ended){
           await this.updateDBState({
             players: this.players.map(p => p.toPlainObject()),
+            teams: this.teams.map(team => team.toPlainObject()),
             ended: true});
           return;
         }
 
         let changes: Record<string, any> = {
           players: this.players.map(p => p.toPlainObject()),
+          teams: this.teams.map(team => team.toPlainObject()),
           currentPlayer: this.currentPlayer.toPlainObject(),
           peggingCards: this.peggingCards.map(card => card.toPlainObject()),
           peggingTotal: this.peggingTotal
@@ -398,6 +403,7 @@ export class Cribbage extends BaseGame {
 
     updateLocalState(data: DocumentData): void {
       this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
+      this.teams = data.teams.map((team: any) => Team.fromPlainObject(team));
       this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
       this.crib_owner = data.crib_owner;
       this.lastOwner = data.lastOwner;
@@ -571,7 +577,7 @@ export class Cribbage extends BaseGame {
 
       console.log(`Total Hand Points: ${points}`)
       
-      this.findTeamByPlayer(player)!.score
+      this.findTeamByPlayer(player)!.score += points;
       player.lastHand = player.hand;
       player.lastScore = points;
     
