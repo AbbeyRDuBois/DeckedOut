@@ -154,8 +154,8 @@ body {
   background-color: #c0392b
 }
 
-/*Waiting Popup*/
-#waiting-overlay {
+/*Popup*/
+.popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -168,7 +168,7 @@ body {
   justify-content: center;
   z-index: 9999;
 }
-#waiting-popup {
+.popup {
   position: relative;
   background: white;
   flex-direction: column; /*Stack vertically*/
@@ -329,7 +329,6 @@ body {
   transform: none !important;     /* prevent hover lifting */
   border: 2px solid transparent;  /* remove hover border effect */
 }
-
 /***********************************************************************
 *
 * Cribbage Elements

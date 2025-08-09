@@ -21,8 +21,9 @@
 <div id="bottom-section">
   <div id="hand"></div>
 </div>
-<div id="waiting-overlay">
-  <div id="waiting-popup">
+
+<div id="waiting-overlay" class="popup-overlay">
+  <div id="waiting-popup" class="popup">
     <div class="room-info">
       <div class="room-id" id="waiting-id"></div>
       <span id="copy-room-id" class="copy-icon" title="Copy to clipboard">
@@ -40,6 +41,15 @@
     <div id="waiting-list" style="margin: 20px auto;"></div>
     <div id="popup-btns">
       <button id="start-game" style="margin-right: 10px;">Start</button>
+      <button class="leave-room">Leave</button>
+    </div>
+  </div>
+</div>
+
+<div id="winner-overlay" class="popup-overlay" style="display: none;" >
+  <div id="winner-popup" class="popup">
+    <div id="winners"></div>
+    <div id="popup-btns">
       <button class="leave-room">Leave</button>
     </div>
   </div>
