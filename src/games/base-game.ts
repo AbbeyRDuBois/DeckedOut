@@ -3,10 +3,12 @@ import { doc, DocumentData, onSnapshot } from "firebase/firestore";
 import { Deck } from "../deck";
 import { Player } from "../player";
 import { db } from "../authentication";
+import { Team } from "../team";
 
 export abstract class BaseGame {
   protected deck: Deck;
   protected players: Player[];
+  protected teams: Team[] = [];
   protected roomId: string;
   protected roomRef: any;
   protected maxPlayers: number = 6;
@@ -91,4 +93,17 @@ export abstract class BaseGame {
     return this.players;
   }
 
+  getTeams(): Team[]{
+    return this.teams;
+  }
+
+  setTeams(teams: Team[]) {
+    this.teams = teams;
+  }
+
+  findTeamByPlayer(player: Player): Team | undefined {
+    return this.teams.find(team =>
+        team.players.some(p => p.id === player.id)
+    );
+}
 }

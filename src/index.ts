@@ -8,6 +8,7 @@ import { db } from "./authentication";
 import { v4 } from 'uuid';
 import './styles.css'
 import { Player } from "./player";
+import { Team } from "./team";
 
 //Creates the room setting up user as the host
 async function createRoom(gameType: string) {
@@ -23,11 +24,13 @@ async function createRoom(gameType: string) {
   localStorage.setItem('playerId', playerId);
   localStorage.setItem('username', host);
 
+  const player = new Player(playerId, host);
+
   return (await addDoc(collection(db, "rooms"), { 
     hostId: playerId,
     gameType, 
-    lastActive: Date.now(),
-    players: [(new Player(playerId, host)).toPlainObject()],
+    players: [player.toPlainObject()],
+    teams: [(new Team(player.name, [player])).toPlainObject()],
     started: false
   })).id;
 }
@@ -59,10 +62,13 @@ async function joinRoom(roomId: string, player: string) {
     alert("Game is already full. Can't join now.");
     return;
   }
+
+  const newPlayer = new Player(playerId, player);
+
   //Updates the Game room to add player to the list
   await updateDoc(roomRef, {
-    players: arrayUnion((new Player(playerId, player)).toPlainObject()),
-    lastActive: Date.now()
+    players: arrayUnion(newPlayer.toPlainObject()),
+    teams: arrayUnion((new Team(player, [newPlayer])).toPlainObject())
   });
   window.location.href = `${roomSnap.gameType}.html?roomId=${roomId}&game=${roomSnap.gameType}`;
 }

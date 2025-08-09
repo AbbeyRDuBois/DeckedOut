@@ -2,6 +2,7 @@ import { arrayUnion, DocumentData, getDoc, onSnapshot, updateDoc } from "firebas
 import { BaseGame } from "./base-game";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
+import { Team } from "../team";
 
 
 enum RoundState {
@@ -38,7 +39,6 @@ export class Cribbage extends BaseGame {
       this.shufflePlayerOrder();
       this.currentPlayer = this.players[0]; //First player in array starts it off
       this.crib_owner = this.currentPlayer.name;
-      this.setupTeams();
       this.deal();
       this.roundState = RoundState.Throwing
 
@@ -82,46 +82,26 @@ export class Cribbage extends BaseGame {
     }
 
     checkIfWon(player: Player){
-      let team = this.getTeams().get(player.team)!;
+      let team = this.findTeamByPlayer(player)!;
 
-      if (team.reduce((sum, player) => sum + player.score, 0) >= this.point_goal){
+      if (team.score >= this.point_goal){
         this.ended = true;
       }
-    }
-
-    getTeams(): Map<number, Player[]>{
-            //Creates the teams based on the players team id
-      let teams = new Map<number, Player[]>();
-
-      for(const player of this.players){
-        if (!teams.has(player.team)){
-          teams.set(player.team, [])
-        }
-
-        teams.get(player.team)!.push(player)
-      }
-
-      return teams;
     }
 
     render(): void {
       //Render the winner popup if someone won
       if (this.ended){
-        const teams = this.getTeams();
-        let winner: Player[] = [];
+        let winner: Team = new Team("", []);
 
-        for (const key of teams.keys()) {
-          let players = teams.get(key)!;
-          const totalPoints = players.reduce((sum, player) => sum + player.score, 0);
-          if (totalPoints >= 30) {
-              winner = players;
+        for (const team of this.teams) {
+          if (team.score >= this.point_goal) {
+              winner = team;
               break; // stop at the first match
           }
         }
 
-        if (winner.length > 0){
-          this.renderWinner(winner);
-        }
+        this.renderWinner(winner);
         return;
       }
 
@@ -140,14 +120,6 @@ export class Cribbage extends BaseGame {
       throw new Error("Method not implemented.");
     }
 
-    setupTeams(){
-      let team = 0
-      //Default of just one player for each team for testing.
-      this.players.forEach(player => {
-        player.team = team++;
-      })
-    }
-
     renderGameInfo(){
       const currents = document.getElementById('currents')!;
       currents.innerHTML = ''; // clears old content
@@ -164,17 +136,14 @@ export class Cribbage extends BaseGame {
     renderScoreboard() {
       const scoreboard = document.getElementById('scoreboard')!;
       scoreboard.innerHTML = ''; // clears old content
-      
-      //Creates the teams based on the players team id
-      const teams = this.getTeams();
 
       //For each team now update scoreboard
-      teams.forEach(team => { 
+      this.teams.forEach(team => { 
         const div = document.createElement('div');
         div.classList.add('team');
         div.innerHTML=`
-          <div class="team-name">${team.map(player => player.name).join("-")}</div>
-          <div class="team-score">${team.reduce((sum, player) => sum + player.score, 0)}</div>
+          <div class="team-name">${team.name}</div>
+          <div class="team-score">${team.score}</div>
         `;
         scoreboard.appendChild(div);
       })
@@ -316,12 +285,12 @@ export class Cribbage extends BaseGame {
       flippedDiv.appendChild(this.flipped.createCard());
     }
 
-    async renderWinner(winner: Player[]){
+    async renderWinner(winner: Team){
       const winnerPopup = document.getElementById("winner-overlay")!;
       winnerPopup.style.display = "flex";
 
       const winners = document.getElementById("winners")!;
-      winners.innerHTML = `Winner(s): ${winner.map(player => player.name).join(", ")}!`;
+      winners.innerHTML = `Winner(s): ${winner.name}!`;
     }
 
     async updateDBState(changes: { [key: string]: any}){
@@ -442,8 +411,6 @@ export class Cribbage extends BaseGame {
       this.flipped = Card.fromPlainObject(data.flipped);
       this.lastFlipped = Card.fromPlainObject(data.lastFlipped);
       this.ended = data.ended;
-
-      this.setupTeams();
     }
 
     guestSetup(data: DocumentData): void {
