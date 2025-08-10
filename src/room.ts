@@ -38,6 +38,7 @@ async function initRoom() {
   players = roomData.players.map((player: any) => Player.fromPlainObject(player));
   teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
   game = new gameMap[gameType]!(new Deck(), players, roomId);
+  game.setTeams(teams);
 
   await updateDoc(roomRef, {
     maxPlayers: game.getMaxPlayers()
@@ -52,7 +53,6 @@ async function initRoom() {
     if (sharedUILoaded && !game.getStarted()) {
       roomData = docSnap.data();
       players = roomData.players.map((player: any) => Player.fromPlainObject(player));
-      game.setPlayers(players);
       teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
       game.setTeams(teams);
       handlePopup();
@@ -165,7 +165,6 @@ async function createListeners(){
       alert(`Need ${game.getMinPlayers()} to play the game.`);
       return;
     }
-    game.setPlayers(players);
     game.start();
     document.getElementById("waiting-overlay")!.style.display = "none";
   });

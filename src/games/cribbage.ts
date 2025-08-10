@@ -36,7 +36,7 @@ export class Cribbage extends BaseGame {
     }
 
     async start(): Promise<void> {
-      this.shufflePlayerOrder();
+      this.getPlayerOrder();
       this.crib_owner = this.players[0].name;//First player in array starts it off
       this.currentPlayer = this.players[1]; //Player after crib owner is current player (always at least 2 people in game so it's fine)
       this.deal();
@@ -249,6 +249,9 @@ export class Cribbage extends BaseGame {
     setupListeners() {
       const toggle = document.getElementById("toggle-round-totals");
       const roundTotals = document.getElementById("round-totals");
+      const toggleBtn = document.getElementById("panel-toggle-btn")!;
+      const panel = document.getElementById("side-panel")!;
+      const closeBtn = document.getElementById("panel-close-btn")!;
 
       toggle?.addEventListener("click", () => {
         const isCollapsed = roundTotals?.classList.toggle("collapsed");
@@ -273,6 +276,38 @@ export class Cribbage extends BaseGame {
         }
 
         this.render();
+      });
+
+      // Toggle panel open/close
+      toggleBtn.addEventListener("click", () => {
+        panel.classList.remove("hidden");
+      });
+
+      closeBtn.addEventListener("click", () => {
+        panel.classList.add("hidden");
+      });
+
+      // Tab switching logic
+      const tabButtons = document.querySelectorAll(".tab-button");
+      const tabContents = document.querySelectorAll(".tab-content");
+
+      tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tab = btn.getAttribute("data-tab");
+
+          // Toggle active tab button
+          tabButtons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          // Toggle visible content
+          tabContents.forEach(content => {
+            if (content.id === `${tab}-tab`) {
+              content.classList.remove("hidden");
+            } else {
+              content.classList.add("hidden");
+            }
+          });
+        });
       });
     }
 

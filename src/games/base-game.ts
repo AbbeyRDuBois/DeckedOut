@@ -67,21 +67,18 @@ export abstract class BaseGame {
   }
 
   getPlayerOrder(){
-    const teamQueues = this.teams.map(team => [...team.players]); // change to Player[][]
+    this.players = [];
+    const maxPlayers = Math.max(...this.teams.map(team => team.players.length));
+    //Want to start out with random team
+    const rand = Math.floor(Math.random() * this.teams.length);
 
-    const teamCount = teamQueues.length;
-    let currentIndex = Math.floor(Math.random() * teamCount); // random starting team index
-    let remainingPlayers = teamQueues.reduce((sum, team) => sum + team.length, 0);
-
-    while (remainingPlayers > 0) {
-      const teamQueue = teamQueues[currentIndex];
-      if (teamQueue.length > 0) {
-          const player = teamQueue.shift()!;
-          this.players.push(player);
-          remainingPlayers--;
+    for(let playerIndex = 0; playerIndex < maxPlayers; playerIndex++){
+      for(let teamIndex = 0; teamIndex < this.teams.length; teamIndex++){
+        const index = (teamIndex + rand) % this.teams.length;
+        if (playerIndex < this.teams[index].players.length){
+          this.players.push(this.teams[index].players[playerIndex]);
+        }
       }
-
-      currentIndex = (currentIndex + 1) % teamCount;
     }
   }
 
@@ -113,9 +110,9 @@ export abstract class BaseGame {
     this.teams = teams;
   }
 
-  findTeamByPlayer(player: Player): Team | undefined {
+  findTeamByPlayer(player: Player): Team {
     return this.teams.find(team =>
         team.players.some(p => p.id === player.id)
-    );
+    )!;
 }
 }
