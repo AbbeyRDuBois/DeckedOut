@@ -250,8 +250,7 @@ export class Cribbage extends BaseGame {
       const toggle = document.getElementById("toggle-round-totals");
       const roundTotals = document.getElementById("round-totals");
       const toggleBtn = document.getElementById("panel-toggle-btn")!;
-      const panel = document.getElementById("side-panel")!;
-      const closeBtn = document.getElementById("panel-close-btn")!;
+      const panel = document.getElementById("info-panel")!;
 
       toggle?.addEventListener("click", () => {
         const isCollapsed = roundTotals?.classList.toggle("collapsed");
@@ -280,11 +279,12 @@ export class Cribbage extends BaseGame {
 
       // Toggle panel open/close
       toggleBtn.addEventListener("click", () => {
-        panel.classList.remove("hidden");
-      });
-
-      closeBtn.addEventListener("click", () => {
-        panel.classList.add("hidden");
+        if (panel.classList.contains("hidden")){
+          panel.classList.remove("hidden");
+        }
+        else{
+          panel.classList.add("hidden");
+        }
       });
 
       // Tab switching logic
