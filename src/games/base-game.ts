@@ -114,5 +114,13 @@ export abstract class BaseGame {
     return this.teams.find(team =>
         team.players.some(p => p.id === player.id)
     )!;
-}
+  }
+
+  getInfo(): string {
+    return  this.teams.map(team => `
+      Team: ${team.name} Score: ${team.score}<br>
+      ${team.players.map(player => `&nbsp;&nbsp;&nbsp;&nbsp;${player.name}: ${player.score}<br>`).join("")}
+      <br>
+    `).join("");
+  }
 }

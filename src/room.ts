@@ -49,13 +49,16 @@ async function initRoom() {
       alert("Room deleted or closed.");
       return window.location.href = "index.html";
     }
-
+    roomData = docSnap.data();
     if (sharedUILoaded && !game.getStarted()) {
-      roomData = docSnap.data();
       players = roomData.players.map((player: any) => Player.fromPlainObject(player));
       teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
       game.setTeams(teams);
       handlePopup();
+    }
+
+    if (sharedUILoaded){
+      renderInfo();
     }
   });
 
@@ -168,6 +171,42 @@ async function createListeners(){
     game.start();
     document.getElementById("waiting-overlay")!.style.display = "none";
   });
+
+
+  const toggleBtn = document.getElementById("panel-toggle-btn")!;
+  const panel = document.getElementById("info-panel")!;
+  // Toggle panel open/close
+  toggleBtn.addEventListener("click", () => {
+    if (panel.classList.contains("hidden")){
+      panel.classList.remove("hidden");
+    }
+    else{
+      panel.classList.add("hidden");
+    }
+  });
+
+  // Tab switching logic
+  const tabButtons = document.querySelectorAll(".tab-button");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.getAttribute("data-tab");
+
+      // Toggle active tab button
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // Toggle visible content
+      tabContents.forEach(content => {
+        if (content.id === `${tab}-tab`) {
+          content.classList.remove("hidden");
+        } else {
+          content.classList.add("hidden");
+        }
+      });
+    });
+  });
 }
 
 
@@ -180,6 +219,12 @@ function updatePlayerList() {
       </div>
     `;
 }
+
+function renderInfo(){
+  const info = document.getElementById('info-tab')!;
+  info.innerHTML = game.getInfo();
+}
+
 
 function renderGameOptions(){
   switch(gameMap[gameType]){
