@@ -426,15 +426,13 @@ body {
 }
 .card {
   width: 100px;
-  height: 140px;
-  background-color: #f8f8f8;
-  border: 2px solid transparent;
+  height: 150px;
   transition: border 0.3s ease, transform 0.2s ease;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  border-radius: 6px;
-  justify-content: center;
+  border-radius: 15px;
+  background-image: url('card_art/Cats_Deck.png');
+  background-size: 1300px 750px; /* Total size of the sprite sheet (columns * cardWidth, rows * cardHeight) */
+  background-repeat: no-repeat;
 }
 .card:hover {
   border: 2px solid #2196f3;
@@ -542,8 +540,7 @@ body {
   left: 25%;          
   transform: translateY(-50%);
   padding: 10px;
-  pointer-events: none;    
-  filter: grayscale(100%);    
+  pointer-events: none;   
   cursor: default;               
 }
 

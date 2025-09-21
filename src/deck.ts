@@ -3,12 +3,15 @@ import { Player } from "./player";
 import { db } from "./authentication";
 
 const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-const SUITS = ["Heart", "Diamond", "Club", "Spade"];
+const SUITS = ["Club","Diamond", "Heart","Spade"];
 
 export class Card {
     id: number;
     value: string;
     suit: string;
+    cardWidth = 100;
+    cardHeight = 150;
+
 
 
     constructor(id: number, value = "", suit = "") {
@@ -28,15 +31,36 @@ export class Card {
             case 'Q': return counting ? 10 : 12;
             case 'K': return counting ? 10 : 13;
             case 'JK': return -1;
+            case "": return 3; //Assuming Card Back here
             default: return parseInt(this.value);
         }
     }
 
-    createCard(clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement {
+    createCard(clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement { 
+        var suitIndex = 0;         
+        switch (this.suit) {
+            case SUITS[0]: 
+                suitIndex = 0; 
+                break;
+            case SUITS[1]: 
+                suitIndex = 1; 
+                break;
+            case SUITS[2]: 
+                suitIndex = 2;
+                break;
+            case SUITS[3]: 
+                suitIndex = 3;
+                break;
+            default: suitIndex = 4;
+        }
+        //Get positions in spritesheet
+        const col = (this.toInt() - 1) * this.cardWidth;
+        const row = suitIndex * this.cardHeight;
+
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
-        cardDiv.textContent = this.toString();
         cardDiv.setAttribute("card-id", this.id.toString());
+        cardDiv.style.backgroundPosition = `-${col}px -${row}px`;
 
         // Attach the passed in handler
         if (clickable && onClick){
