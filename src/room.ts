@@ -323,6 +323,7 @@ function createAddDelCol(): HTMLDivElement{
 
 function createPlayerElmt(player: Player, teamIndex: number): HTMLDivElement{
   const playerDiv = document.createElement("div");
+  playerDiv.className = "team-player";
   const nameSpan = document.createElement("span");
   nameSpan.textContent = player.name;
   const controls = document.createElement("div");
