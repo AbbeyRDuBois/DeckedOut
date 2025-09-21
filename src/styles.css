@@ -371,6 +371,10 @@ body {
   justify-content: center;
   align-items: center;
   border-radius: 6px;
+  background-image: url('card_art/Cats_Deck.png');
+  background-size: 60% 53.33%; /* This scales the image down to fit the card's dimensions */
+  background-repeat: no-repeat;
+  background-position: center; /* Center the image within the card */
 }
 .card-back{
   width: 40px;
@@ -382,6 +386,10 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
+  background-image: url('card_art/Cats_Deck.png');
+  background-size: 40% 33.33%; /* This scales the image down to fit the card's dimensions */
+  background-repeat: no-repeat;
+  background-position: center; /* Center the image within the card */
 }
 .opponent-name{
   display: flex;
@@ -405,16 +413,14 @@ body {
 .card.played {
   pointer-events: none;  /* disables all interaction */
   cursor: none;
-  width: 80px;
-  height: 110px;
   position: fixed;
   bottom: 120px; /* Where the played card lays on the screen */
-  left: 50%;
+  left: 90%;
   transform: translateX(-50%);
   z-index: 10;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  background-image: url('card_art/Cats_Deck.png');
+  background-repeat: no-repeat;
+  background-position: center; /* Center the image within the card */
 }
 #hand {
   display: flex;

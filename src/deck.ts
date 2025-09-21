@@ -9,8 +9,6 @@ export class Card {
     id: number;
     value: string;
     suit: string;
-    cardWidth = 100;
-    cardHeight = 150;
 
 
 
@@ -37,25 +35,11 @@ export class Card {
     }
 
     createCard(clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement { 
-        var suitIndex = 0;         
-        switch (this.suit) {
-            case SUITS[0]: 
-                suitIndex = 0; 
-                break;
-            case SUITS[1]: 
-                suitIndex = 1; 
-                break;
-            case SUITS[2]: 
-                suitIndex = 2;
-                break;
-            case SUITS[3]: 
-                suitIndex = 3;
-                break;
-            default: suitIndex = 4;
-        }
+        var cardWidth = 100;
+        var cardHeight = 150;
         //Get positions in spritesheet
-        const col = (this.toInt() - 1) * this.cardWidth;
-        const row = suitIndex * this.cardHeight;
+        const col = (this.toInt() - 1) * cardWidth;
+        const row = this.getRow() * cardHeight;
 
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
@@ -68,6 +52,20 @@ export class Card {
         }
         
         return cardDiv;
+    }
+
+    getRow(){        
+        switch (this.suit) {
+            case SUITS[0]: 
+                return 0;
+            case SUITS[1]: 
+                return 1;
+            case SUITS[2]: 
+                return 2;
+            case SUITS[3]: 
+                return 3;
+            default: return 4;
+        }   
     }
 
     toPlainObject() {
