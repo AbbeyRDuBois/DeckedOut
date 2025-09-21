@@ -59,7 +59,9 @@ body {
   width: 200px;
   padding: 5px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--fg-color);
+  background-color: var(--fg-color);
+  color: var(--text-color);
 }
 .sections {
   display: flex;
@@ -88,15 +90,15 @@ body {
 .create-room-btn {
   padding: 10px 16px;
   border: none;
-  background-color: #3c67e7;
-  color: white;
+  background-color: var(--bl-btn);
+  color: var(--text-color);
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s ease;
 }
 .create-room-btn:hover{
-  background-color: #2f50b2;
+  background-color: var(--bl-btn-hv);
 }
 .join-section{
   display:flex;
@@ -113,12 +115,14 @@ body {
   width: 200px;
   padding: 5px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--fg-color);
+  background-color: var(--fg-color);
+  color: var(--text-color); 
 }
 .join-btn {
   width: 70px;
-  background-color: #27ae60;
-  color: white;
+  background-color: var(--gn-btn);
+  color: var(--text-color) ;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -126,7 +130,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .join-btn:hover {
-  background-color: #1e874b;
+  background-color: var(--gn-btn-hv);
 }
 
 /*Top bar of the game rooms*/
