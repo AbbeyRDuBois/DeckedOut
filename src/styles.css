@@ -1,5 +1,23 @@
 /***********************************************************
   *
+  * Color Schemes
+  *
+  **********************************************************/
+  :root {
+  --bg-color: #19232c;
+  --mg-color: #22303c;
+  --fg-color: #344a5d;
+  --text-color: #a9a9a9;
+  --bl-btn:#213571;
+  --bl-btn-hv: #1a2a5a;
+  --rd-btn:#6f0000;
+  --rd-btn-hv:#610000;
+  --gn-btn:#154f30;
+  --gn-btn-hv:#124429;
+}
+
+/***********************************************************
+  *
   * General/Common Styling
   *
   **********************************************************/
@@ -9,6 +27,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden; /* prevents horizontal scroll*/
+  color: var(--text-color);
+  background: var(--bg-color);
 }
 /*Game Selection*/
 .title{
@@ -39,7 +59,9 @@ body {
   width: 200px;
   padding: 5px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--fg-color);
+  background-color: var(--fg-color);
+  color: var(--text-color);
 }
 .sections {
   display: flex;
@@ -68,15 +90,15 @@ body {
 .create-room-btn {
   padding: 10px 16px;
   border: none;
-  background-color: #3c67e7;
-  color: white;
+  background-color: var(--bl-btn);
+  color: var(--text-color);
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s ease;
 }
 .create-room-btn:hover{
-  background-color: #2f50b2;
+  background-color: var(--bl-btn-hv);
 }
 .join-section{
   display:flex;
@@ -93,12 +115,14 @@ body {
   width: 200px;
   padding: 5px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--fg-color);
+  background-color: var(--fg-color);
+  color: var(--text-color); 
 }
 .join-btn {
   width: 70px;
-  background-color: #27ae60;
-  color: white;
+  background-color: var(--gn-btn);
+  color: var(--text-color) ;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -106,7 +130,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .join-btn:hover {
-  background-color: #1e874b;
+  background-color: var(--gn-btn-hv);
 }
 
 /*Top bar of the game rooms*/
@@ -114,7 +138,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2c3e50;
+  background: var(--mg-color);
   color: white;
   padding: 5px 10px;
   font-family: Arial, sans-serif;
@@ -140,18 +164,17 @@ body {
   height: 1em;
 }
 .leave-room {
-  background-color: #e74c3c;
+  background-color: var(--rd-btn);
   border: none;
   margin-right: 20px;
   padding: 4px 10px;
-  color: white;
   font-weight: bold;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.2s ease;
 }
 .leave-room:hover {
-  background-color: #c0392b
+  background-color: var(--rd-btn-hv)
 }
 
 /*Popup*/
@@ -170,7 +193,7 @@ body {
 }
 .popup {
   position: relative;
-  background: white;
+  background: var(--bg-color);
   flex-direction: column; /*Stack vertically*/
   display: flex;
   align-items: center;
@@ -206,17 +229,16 @@ body {
   gap: 12px;
 }
 #start-game {
-  background-color: #3c67e7;
+  background-color: var(--bl-btn);
   border: none;
   padding: 4px 6px;
-  color: white;
   font-weight: bold;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.2s ease;
 }
 #start-game:hover {
-  background-color: #302bc0
+  background-color: var(--bl-btn-hv)
 }
 
 /*Team Selector Part of Popup*/
@@ -233,8 +255,8 @@ body {
   justify-content: center;
 }
 .team-column {
-  background-color: #f9f9f9;
-  border: 2px solid #ccc;
+  background-color: var(--mg-color);
+  border: 2px solid black;
   border-radius: 12px;
   padding: 15px;
   width: 35%;
@@ -245,7 +267,8 @@ body {
 }
 .team-column input#team-name {
   font-size: 1.1rem;
-  border: 1px solid #bbb;
+  background-color: var(--fg-color);
+  border: 1px solid black;
   border-radius: 8px;
   text-align: center;
   outline: none;
@@ -254,7 +277,7 @@ body {
 .team-column input#team-name:focus {
   border-color: #007bff;
 }
-.team-column > div {
+.team-player {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -263,11 +286,14 @@ body {
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 0.95rem;
+  background-color: var(--fg-color);
+  border: 1px solid black;
+  color: black;
 }
 .move-player {
   border: none;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--bl-btn);
+  color: var(--text-color);
   border-radius: 50%;
   padding: 2px 4px;
   cursor: pointer;
@@ -276,7 +302,7 @@ body {
   margin-left: 4px;
 }
 .move-player:hover {
-  background-color: #0056b3;
+  background-color: var(--bl-btn-hv);
 }
 #add-del-container {
   display: flex;
@@ -284,8 +310,7 @@ body {
   gap: 15px;
 }
 .add-del-btn {
-  background-color: #727272;
-  color: white;
+  background-color: var(--fg-color);
   padding: 5px 8px;
   border-radius: 10px;
   border: none;
@@ -293,7 +318,7 @@ body {
   cursor: pointer;
 }
 .add-del-btn:hover {
-  background-color: #525252;
+  background-color: var(--mg-color);
 }
 #random-teams {
   display: flex;
@@ -306,13 +331,14 @@ body {
   font-weight: bold;
 }
 .team-size {
+  background-color: var(--fg-color);
   padding: 6px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid;
   text-align: center;
 }
 #random-btn {
-  background-color: #28a745;
+  background-color: var(--gn-btn);
   color: black;
   padding: 4px 7px;
   border: none;
@@ -321,7 +347,7 @@ body {
   cursor: pointer;
 }
 #random-btn:hover {
-  background-color: #218838;
+  background-color: var(--gn-btn-hv);
 }
 
 /* Game Info */
@@ -422,6 +448,10 @@ body {
   justify-content: center;
   align-items: center;
   border-radius: 6px;
+  background-image: url('card_art/Cats_Deck.png');
+  background-size: 60% 53.33%; /* This scales the image down to fit the card's dimensions */
+  background-repeat: no-repeat;
+  background-position: center; /* Center the image within the card */
 }
 .card-back{
   width: 40px;
@@ -433,6 +463,10 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
+  background-image: url('card_art/Cats_Deck.png');
+  background-size: 40% 33.33%; /* This scales the image down to fit the card's dimensions */
+  background-repeat: no-repeat;
+  background-position: center; /* Center the image within the card */
 }
 .opponent-name{
   display: flex;
@@ -451,20 +485,19 @@ body {
   align-items: center;
   gap: 8px;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  background: var(--mg-color);
 }
 .card.played {
   pointer-events: none;  /* disables all interaction */
   cursor: none;
-  width: 80px;
-  height: 110px;
   position: fixed;
   bottom: 120px; /* Where the played card lays on the screen */
-  left: 50%;
+  left: 90%;
   transform: translateX(-50%);
   z-index: 10;
-  background: white;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  background-image: url('card_art/Cats_Deck.png');
+  background-repeat: no-repeat;
+  background-position: center; /* Center the image within the card */
 }
 #hand {
   display: flex;
@@ -476,15 +509,13 @@ body {
 }
 .card {
   width: 100px;
-  height: 140px;
-  background-color: #f8f8f8;
-  border: 2px solid transparent;
+  height: 150px;
   transition: border 0.3s ease, transform 0.2s ease;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  border-radius: 6px;
-  justify-content: center;
+  border-radius: 15px;
+  background-image: url('card_art/Cats_Deck.png');
+  background-size: 1300px 750px; /* Total size of the sprite sheet (columns * cardWidth, rows * cardHeight) */
+  background-repeat: no-repeat;
 }
 .card:hover {
   border: 2px solid #2196f3;
@@ -592,8 +623,7 @@ body {
   left: 25%;          
   transform: translateY(-50%);
   padding: 10px;
-  pointer-events: none;    
-  filter: grayscale(100%);    
+  pointer-events: none;   
   cursor: default;               
 }
 

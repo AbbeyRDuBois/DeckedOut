@@ -198,8 +198,49 @@ export class Cribbage extends BaseGame {
       this.lastCrib?.forEach((card: Card) => {
           totalHand.appendChild(card.createCard());
       });
-
       roundTotal.appendChild(div);
+		}
+	}
+		
+    renderOpponents() {
+      const opponents = this.players.filter(p => p.id !== localStorage.getItem('playerId'));
+      const opponentContainer = document.getElementById('opponents')!;
+      opponentContainer.innerHTML = ''; // clears old content
+      opponents.forEach(opponent => {
+          const cardBack = (new Card(1, "","")).createCard();
+          cardBack.innerHTML = `${(opponent.hand?.length - opponent.playedCards.length) || 0}`;
+          cardBack.className = ''; 
+          cardBack.classList.add('card-back');
+
+          const opponentDiv = document.createElement('div');
+          opponentDiv.classList.add('opponent');
+
+          const opponentName = document.createElement('div');
+          opponentName.classList.add('opponent-name');
+          opponentName.textContent = opponent.name;
+
+          const handInfo = document.createElement('div');
+          handInfo.classList.add('hand-info');
+
+          handInfo.appendChild(cardBack);
+          var oppCard;
+          if (opponent.lastPlayed) {
+            oppCard = opponent.lastPlayed.createCard();
+          }
+          else{
+            oppCard = (new Card(1, "","")).createCard();
+          }
+
+          oppCard.className = ''; 
+          oppCard.innerHTML = opponent.lastPlayed == null ? "" : opponent.lastPlayed.toString();
+          oppCard.classList.add('opp-played');
+
+          handInfo.appendChild(oppCard);
+          
+          opponentDiv.appendChild(opponentName);
+          opponentDiv.appendChild(handInfo);
+          opponentContainer.appendChild(opponentDiv);
+      });
     }
   }
 
@@ -225,23 +266,6 @@ export class Cribbage extends BaseGame {
     const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
     unplayedCards.forEach((card: Card) => {
         handContainer.appendChild(card.createCard(true, this.cardClick));
-    });
-  }
-
-  renderOpponents() {
-    const opponents = this.players.filter(p => p.id !== localStorage.getItem('playerId'));
-    const opponentContainer = document.getElementById('opponents')!;
-    opponentContainer.innerHTML = ''; // clears old content
-    opponents.forEach(opponent => {
-        const div = document.createElement('div');
-        div.classList.add('opponent');
-        div.innerHTML = `
-        <div class = "opponent-name">${opponent.name}</div>
-        <div class = "hand-info">
-            <div class="card-back">${(opponent.hand?.length - opponent.playedCards.length)|| 0}</div>
-            <div class="opp-played">${opponent.lastPlayed?.toString() || ""} </div>
-        </div>`;
-        opponentContainer.appendChild(div);
     });
   }
 
