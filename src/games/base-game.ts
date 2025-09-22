@@ -66,10 +66,19 @@ export abstract class BaseGame {
     return this.players.filter(p => p.id !== localStorage.getItem('playerId')!);
   }
 
-  shufflePlayerOrder(){
-    for (let i = this.players.length - 1; i > 0; i--){
-      const j = Math.floor(Math.random() * (i + 1));
-      [this.players[i], this.players[j]] = [this.players[j], this.players[i]];
+  getPlayerOrder(){
+    this.players = [];
+    const maxPlayers = Math.max(...this.teams.map(team => team.players.length));
+    //Want to start out with random team
+    const rand = Math.floor(Math.random() * this.teams.length);
+
+    for(let playerIndex = 0; playerIndex < maxPlayers; playerIndex++){
+      for(let teamIndex = 0; teamIndex < this.teams.length; teamIndex++){
+        const index = (teamIndex + rand) % this.teams.length;
+        if (playerIndex < this.teams[index].players.length){
+          this.players.push(this.teams[index].players[playerIndex]);
+        }
+      }
     }
   }
 
@@ -101,9 +110,17 @@ export abstract class BaseGame {
     this.teams = teams;
   }
 
-  findTeamByPlayer(player: Player): Team | undefined {
+  findTeamByPlayer(player: Player): Team {
     return this.teams.find(team =>
         team.players.some(p => p.id === player.id)
-    );
-}
+    )!;
+  }
+
+  getInfo(): string {
+    return  this.teams.map(team => `
+      Team: ${team.name} Score: ${team.score}<br>
+      ${team.players.map(player => `&nbsp;&nbsp;&nbsp;&nbsp;${player.name}: ${player.score}<br>`).join("")}
+      <br>
+    `).join("");
+  }
 }

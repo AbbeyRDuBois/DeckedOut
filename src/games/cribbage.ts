@@ -11,224 +11,197 @@ enum RoundState {
 }
 
 export class Cribbage extends BaseGame {
-    point_goal: number = 121; //Number of points to win
-    skunk_length: number = 90; //Number of points from skunk line to end -1
-    crib_count: number = 4; //Number of cards in crib
-    hand_size: number = 4; //Number of cards in a hand after throwing to crib
-    flipped: Card = new Card(0); //Flipped Card
-    crib: Card[] = []; //Crib
-    isTurn: boolean = true; //Is it players turn to play card
-    crib_owner: string = ""; //Who owns the crib
-    lastOwner: string = "";
-    cribScore: number = 0; // Score of the last crib
-    lastCrib: Card[] = [];//Holds the last crib
-    roundState: string = ""; //Holds what phase the game is in currently
-    peggingCards: Card[] = []; //Holds sequence of cards played in pegging round
-    peggingTotal: number = 0; //Sum of current pegging round
-    lastFlipped: Card = new Card(0);
-    ended: boolean = false;
+  protected point_goal: number = 121; //Number of points to win
+  protected skunk_length: number = 90; //Number of points from skunk line to end -1
+  protected crib_count: number = 4; //Number of cards in crib
+  protected hand_size: number = 4; //Number of cards in a hand after throwing to crib
+  protected flipped: Card = new Card(0); //Flipped Card
+  protected crib: Card[] = []; //Crib
+  protected isTurn: boolean = true; //Is it players turn to play card
+  protected crib_owner: string = ""; //Who owns the crib
+  protected lastOwner: string = "";
+  protected cribScore: number = 0; // Score of the last crib
+  protected lastCrib: Card[] = [];//Holds the last crib
+  protected roundState: string = ""; //Holds what phase the game is in currently
+  protected peggingCards: Card[] = []; //Holds sequence of cards played in pegging round
+  protected peggingTotal: number = 0; //Sum of current pegging round
+  protected lastFlipped: Card = new Card(0);
+  protected ended: boolean = false;
 
-    constructor( deck: Deck, players: Player[], roomId: string){
-      super(deck, players, roomId);
-      this.maxPlayers = 8;
+  constructor( deck: Deck, players: Player[], roomId: string){
+    super(deck, players, roomId);
+    this.maxPlayers = 8;
 
-      this.cardClick = this.cardClick.bind(this); //Binds this function to game so that games variables can still be used in the onClick
-    }
+    this.cardClick = this.cardClick.bind(this); //Binds this function to game so that games variables can still be used in the onClick
+  }
 
-    async start(): Promise<void> {
-      this.shufflePlayerOrder();
-      this.crib_owner = this.players[0].name;//First player in array starts it off
-      this.currentPlayer = this.players[1]; //Player after crib owner is current player (always at least 2 people in game so it's fine)
-      this.deal();
-      this.roundState = RoundState.Throwing
+  async start(): Promise<void> {
+    this.getPlayerOrder();
+    this.crib_owner = this.players[0].name;//First player in array starts it off
+    this.currentPlayer = this.players[1]; //Player after crib owner is current player (always at least 2 people in game so it's fine)
+    this.deal();
+    this.roundState = RoundState.Throwing;
 
-      //This call is pretty big cause it's inital setup
-      this.updateDBState({
-        players: this.players.map(player => player.toPlainObject()),
-        teams: this.teams.map(team => team.toPlainObject()),
-        flipped: this.flipped.toPlainObject(),
-        crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
-        crib_owner: this.crib_owner,
-        lastOwner: this.lastOwner,
-        cribScore: this.cribScore,
-        lastCrib: arrayUnion(...this.lastCrib.map(card => card.toPlainObject())),
-        currentPlayer: this.currentPlayer.toPlainObject(),
-        deck: this.deck.toPlainObject(),
-        started: true,
-        roundState: this.roundState,
-        peggingCards: arrayUnion(...this.peggingCards.map(card => card.toPlainObject())),
-        peggingTotal: this.peggingTotal,
-        lastFlipped: this.lastFlipped.toPlainObject(),
-        ended: this.ended
-      });
+    //This call is pretty big cause it's inital setup
+    this.updateDBState({
+      players: this.players.map(player => player.toPlainObject()),
+      teams: this.teams.map(team => team.toPlainObject()),
+      flipped: this.flipped.toPlainObject(),
+      crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
+      crib_owner: this.crib_owner,
+      lastOwner: this.lastOwner,
+      cribScore: this.cribScore,
+      lastCrib: arrayUnion(...this.lastCrib.map(card => card.toPlainObject())),
+      currentPlayer: this.currentPlayer.toPlainObject(),
+      deck: this.deck.toPlainObject(),
+      started: true,
+      roundState: this.roundState,
+      peggingCards: arrayUnion(...this.peggingCards.map(card => card.toPlainObject())),
+      peggingTotal: this.peggingTotal,
+      lastFlipped: this.lastFlipped.toPlainObject(),
+      ended: this.ended
+    });
 
-      this.render();
-      this.setupListeners();
-      this.started = true;
-    }
+    this.render();
+    this.setupListeners();
+    this.started = true;
+  }
 
-    async deal(): Promise<void> {
-      //Deal 6 cards if 2 players, 5 if more
-      const cardNum = this.players.length > 2 ? 5 : 6;
+  async deal(): Promise<void> {
+    //Deal 6 cards if 2 players, 5 if more
+    const cardNum = this.players.length > 2 ? 5 : 6;
 
-      this.players.forEach(player => {
-        player.hand = [];
-        for(let i = 0; i < cardNum; i++){
-          player.hand.push(this.deck.getCard()!);
-        }
-
-        player.playedCards = [];
-        player.lastPlayed = new Card(0);
-      })
-    }
-
-    checkIfWon(player: Player){
-      let team = this.findTeamByPlayer(player)!;
-
-      if (team.score >= this.point_goal){
-        this.ended = true;
-      }
-    }
-
-    render(): void {
-      //Render the winner popup if someone won
-      if (this.ended){
-        let winner: Team = new Team("", []);
-
-        for (const team of this.teams) {
-          if (team.score >= this.point_goal) {
-              winner = team;
-              break; // stop at the first match
-          }
-        }
-
-        this.renderWinner(winner);
-        return;
+    this.players.forEach(player => {
+      player.hand = [];
+      for(let i = 0; i < cardNum; i++){
+        player.hand.push(this.deck.getCard()!);
       }
 
-      this.renderHand();
-      this.renderOpponents();
-      this.renderScoreboard();
-      this.renderAllHands();
-      this.renderFlipped();
-      this.renderGameInfo();
+      player.playedCards = [];
+      player.lastPlayed = new Card(0);
+    })
+  }
+
+  checkIfWon(player: Player){
+    let team = this.findTeamByPlayer(player)!;
+
+    if (team.score >= this.point_goal){
+      this.ended = true;
+    }
+  }
+
+  render(): void {
+    //Render the winner popup if someone won
+    if (this.ended){
+      let winner: Team = new Team("", []);
+
+      for (const team of this.teams) {
+        if (team.score >= this.point_goal) {
+            winner = team;
+            break; // stop at the first match
+        }
+      }
+
+      this.renderWinner(winner);
+      return;
     }
 
-    handleAction(data: any): void {
-      throw new Error("Method not implemented.");
-    }
-    getState() {
-      throw new Error("Method not implemented.");
-    }
+    this.renderHand();
+    this.renderOpponents();
+    this.renderScoreboard();
+    this.renderAllHands();
+    this.renderFlipped();
+    this.renderGameInfo();
+  }
 
-    renderGameInfo(){
-      const currents = document.getElementById('currents')!;
-      currents.innerHTML = ''; // clears old content
+  handleAction(data: any): void {
+    throw new Error("Method not implemented.");
+  }
+  getState() {
+    throw new Error("Method not implemented.");
+  }
 
+  renderGameInfo(){
+    const currents = document.getElementById('currents')!;
+    currents.innerHTML = ''; // clears old content
+
+    const div = document.createElement('div');
+    div.innerHTML=`
+      <div class="current-player"> Current Player: ${this.currentPlayer.name}</div>
+      <div class="current-owner">Crib Owner: ${this.crib_owner}</div>
+      <div class="pegging-total">Pegging Total: ${this.peggingTotal}</div>
+    `;
+    currents.appendChild(div);
+  }
+
+  renderScoreboard() {
+    const scoreboard = document.getElementById('scoreboard')!;
+    scoreboard.innerHTML = ''; // clears old content
+
+    //For each team now update scoreboard
+    this.teams.forEach(team => { 
       const div = document.createElement('div');
+      div.classList.add('team');
       div.innerHTML=`
-        <div class="current-player"> Current Player: ${this.currentPlayer.name}</div>
-        <div class="current-owner">Crib Owner: ${this.crib_owner}</div>
-        <div class="pegging-total">Pegging Total: ${this.peggingTotal}</div>
+        <div class="team-name">${team.name}</div>
+        <div class="team-score">${team.score}</div>
       `;
-      currents.appendChild(div);
-    }
+      scoreboard.appendChild(div);
+    })
+  }
 
-    renderScoreboard() {
-      const scoreboard = document.getElementById('scoreboard')!;
-      scoreboard.innerHTML = ''; // clears old content
+  renderAllHands() {
+    //Check to see if there was actually a round to render
+    if (this.players[0].lastHand.length != 0){
+      const roundTotal = document.getElementById("round-totals")!;
+      roundTotal.innerHTML = "";
 
-      //For each team now update scoreboard
-      this.teams.forEach(team => { 
-        const div = document.createElement('div');
-        div.classList.add('team');
-        div.innerHTML=`
-          <div class="team-name">${team.name}</div>
-          <div class="team-score">${team.score}</div>
+      //Adding Flipped Card
+      if (this.lastFlipped.value != ""){
+        const flippedDiv = document.createElement('div');
+        flippedDiv.classList.add('player-total');
+        flippedDiv.innerHTML=`
+          <div class="player-score">Flipped:</div>
+          <div class="total-hand"></div>
         `;
-        scoreboard.appendChild(div);
-      })
-    }
+        const flippedCard = flippedDiv.querySelector(".total-hand")!;
+        flippedCard.appendChild(this.lastFlipped?.createCard());
+        roundTotal.appendChild(flippedDiv);
+      }
 
-    renderAllHands() {
-
-      //Check to see if there was actually a round to render
-      if (this.players[0].lastHand.length != 0){
-        const roundTotal = document.getElementById("round-totals")!;
-        roundTotal.innerHTML = "";
-
-        //Adding Flipped Card
-        if (this.lastFlipped.value != ""){
-          const flippedDiv = document.createElement('div');
-          flippedDiv.classList.add('player-total');
-          flippedDiv.innerHTML=`
-            <div class="player-score">Flipped:</div>
-            <div class="total-hand"></div>
-          `;
-          const flippedCard = flippedDiv.querySelector(".total-hand")!;
-          flippedCard.appendChild(this.lastFlipped?.createCard());
-          roundTotal.appendChild(flippedDiv);
-        }
-
-        //Adding in the player scores/hands
-        this.players.forEach(player => {
-          const div = document.createElement('div');
-          div.classList.add('player-total');
-          div.innerHTML=`
-            <div class="player-score">${player.name}: ${player.lastScore}</div>
-            <div class="total-hand"></div>
-          `;
-          const totalHand = div.querySelector(".total-hand")!;
-
-          player.lastHand?.forEach((card: Card) => {
-              totalHand.appendChild(card.createCard());
-          });
-
-          roundTotal.appendChild(div);
-        })
-
-        //Adding Crib
+      //Adding in the player scores/hands
+      this.players.forEach(player => {
         const div = document.createElement('div');
         div.classList.add('player-total');
         div.innerHTML=`
-          <div class="player-score">${this.lastOwner}'s Crib: ${this.cribScore}</div>
+          <div class="player-score">${player.name}: ${player.lastScore}</div>
           <div class="total-hand"></div>
         `;
         const totalHand = div.querySelector(".total-hand")!;
 
-        this.lastCrib?.forEach((card: Card) => {
+        player.lastHand?.forEach((card: Card) => {
             totalHand.appendChild(card.createCard());
         });
 
         roundTotal.appendChild(div);
-      }
-    }
+      })
 
-    renderHand() {
-      const currentId = localStorage.getItem("playerId");
-      const player = this.players.find(player => player.id === currentId)!;
-      const handContainer = document.getElementById('hand')!;
-      
-      //If they still have cards to throw or if it's their turn in pegging activate hand, else deactivate
-      if (this.roundState == RoundState.Pegging && this.currentPlayer.name == player.name){
-        this.activateHand();
-      }
-      else if (this.roundState == RoundState.Throwing && player.hand.length > this.hand_size){
-        document.getElementById("played")!.innerHTML = '';
-        this.activateHand();
-      }
-      else{
-        this.deactivateHand();
-      }
+      //Adding Crib
+      const div = document.createElement('div');
+      div.classList.add('player-total');
+      div.innerHTML=`
+        <div class="player-score">${this.lastOwner}'s Crib: ${this.cribScore}</div>
+        <div class="total-hand"></div>
+      `;
+      const totalHand = div.querySelector(".total-hand")!;
 
-      handContainer.innerHTML = '';
-
-      const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
-      unplayedCards.forEach((card: Card) => {
-          handContainer.appendChild(card.createCard(true, this.cardClick));
+      this.lastCrib?.forEach((card: Card) => {
+          totalHand.appendChild(card.createCard());
       });
-    }
-
+      roundTotal.appendChild(div);
+		}
+	}
+		
     renderOpponents() {
       const opponents = this.players.filter(p => p.id !== localStorage.getItem('playerId'));
       const opponentContainer = document.getElementById('opponents')!;
@@ -269,252 +242,281 @@ export class Cribbage extends BaseGame {
           opponentContainer.appendChild(opponentDiv);
       });
     }
+  }
 
-    setupListeners() {
-      const toggle = document.getElementById("toggle-round-totals");
-      const roundTotals = document.getElementById("round-totals");
-
-      toggle?.addEventListener("click", () => {
-        const isCollapsed = roundTotals?.classList.toggle("collapsed");
-        const minus = document.getElementById("minimize")!;
-        const plus = document.getElementById("maximize")!;
-
-        minus.style.display = isCollapsed ? "none" : "inline";
-        plus.style.display = isCollapsed ? "inline" : "none";
-
-        isCollapsed ? toggle.title = "Maximize Totals" : toggle.title = "Minimize Totals";
-      });
-
-      //Game specific room listener
-      onSnapshot(this.roomRef, (docSnap: any) => {
-        const roomData = docSnap.data() as DocumentData;
-        this.updateLocalState(roomData);
-        //Enables your hand if it's your turn
-        if (this.roundState == RoundState.Pegging && this.currentPlayer.id === localStorage.getItem('playerId')){
-          const handContainer = document.getElementById("hand")!;
-          handContainer.classList.remove('hand-disabled');
-          this.isTurn = true;
-        }
-
-        this.render();
-      });
+  renderHand() {
+    const currentId = localStorage.getItem("playerId");
+    const player = this.players.find(player => player.id === currentId)!;
+    const handContainer = document.getElementById('hand')!;
+    
+    //If they still have cards to throw or if it's their turn in pegging activate hand, else deactivate
+    if (this.roundState == RoundState.Pegging && this.currentPlayer.name == player.name){
+      this.activateHand();
+    }
+    else if (this.roundState == RoundState.Throwing && player.hand.length > this.hand_size){
+      document.getElementById("played")!.innerHTML = '';
+      this.activateHand();
+    }
+    else{
+      this.deactivateHand();
     }
 
-    getFlipped() {
-      this.flipped = this.deck.getCard()!;
-    }
+    handContainer.innerHTML = '';
 
-    async renderFlipped(){
-      const flippedDiv = document.getElementById("flipped")!;
-      flippedDiv.innerHTML = '';
-      flippedDiv.appendChild(this.flipped.createCard());
-    }
+    const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
+    unplayedCards.forEach((card: Card) => {
+        handContainer.appendChild(card.createCard(true, this.cardClick));
+    });
+  }
 
-    async renderWinner(winner: Team){
-      const winnerPopup = document.getElementById("winner-overlay")!;
-      winnerPopup.style.display = "flex";
+  setupListeners() {
+    const toggle = document.getElementById("toggle-round-totals");
+    const roundTotals = document.getElementById("round-totals");
 
-      const winners = document.getElementById("winners")!;
-      winners.innerHTML = `Winner: ${winner.name}!`;
+    toggle?.addEventListener("click", () => {
+      const isCollapsed = roundTotals?.classList.toggle("collapsed");
+      const minus = document.getElementById("minimize")!;
+      const plus = document.getElementById("maximize")!;
 
-      const skunked = this.teams.filter(team => team.name != winner.name && team.score <= this.skunk_length);
+      minus.style.display = isCollapsed ? "none" : "inline";
+      plus.style.display = isCollapsed ? "inline" : "none";
 
-      //Create a list of skunked teams/players to shame them
-      if (skunked.length > 0){
-        const skunkH2 = document.createElement("h2");
-        skunkH2.innerHTML = `Skunked: ${skunked.map(team => team.name).join(", ")}`;
-        winners.appendChild(skunkH2);
+      isCollapsed ? toggle.title = "Maximize Totals" : toggle.title = "Minimize Totals";
+    });
+
+    //Game specific room listener
+    onSnapshot(this.roomRef, (docSnap: any) => {
+      const roomData = docSnap.data() as DocumentData;
+      this.updateLocalState(roomData);
+      //Enables your hand if it's your turn
+      if (this.roundState == RoundState.Pegging && this.currentPlayer.id === localStorage.getItem('playerId')){
+        const handContainer = document.getElementById("hand")!;
+        handContainer.classList.remove('hand-disabled');
+        this.isTurn = true;
       }
-    }
 
-    async updateDBState(changes: { [key: string]: any}){
-      await updateDoc(this.roomRef, changes);
-    }
-
-    async cardClick(card: Card, cardDiv: HTMLDivElement) {
-      const handContainer = document.getElementById("hand")!;
-      const playedContainer = document.getElementById("played")!;
-      const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
-
-      if (handContainer.classList.contains('hand-disabled')) return; //Returns if hand is disabled
-
-      if (this.roundState == RoundState.Throwing){
-        handContainer.removeChild(cardDiv);
-        //Remove from hand and add to crib
-        this.crib.push(card)
-        const cardIndex = player.hand.findIndex(c => c.id == card.id)
-        player.hand.splice(cardIndex, 1)
-
-        //check if you've thrown necessary cards
-        if (player.hand.length == this.hand_size){
-          handContainer.classList.add('hand-disabled');
-        }
-
-        let changes: Record<string, any> = {
-          players: this.players.map(p => p.toPlainObject()),
-          teams: this.teams.map(team => team.toPlainObject()),
-          crib: this.crib.map(c => c.toPlainObject())
-        };
-
-        //Once everyone has thrown get the flipped card and start pegging round
-        if (this.players.every(player => player.hand.length == this.hand_size)){
-          changes.roundState = RoundState.Pegging;
-          this.getFlipped();
-
-          //Check for Nibs
-          if (this.flipped.value == "J"){
-            const player = this.players.find(player => player.name == this.crib_owner)!;
-            this.findTeamByPlayer(player)!.score += 2;
-            changes.teams = this.teams.map(team => team.toPlainObject());
-          }
-
-          changes.flipped = this.flipped.toPlainObject();
-        }
-
-        await this.updateDBState(changes);
-      }
-      //RoundState is Pegging
-      else{
-        if (this.peggingTotal + card.toInt(true) > 31) return;
-        handContainer.removeChild(cardDiv);
-        this.peggingTotal += card.toInt(true);
-        console.log(`Pegging Total: ${this.peggingTotal}`)
-        playedContainer.innerHTML = '';
-
-        cardDiv.classList.add('played');
-        cardDiv.replaceWith(cardDiv.cloneNode(true));
-        playedContainer.appendChild(cardDiv);
-        const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
-        player.lastPlayed = card;
-        player.playedCards.push(card);
-        this.peggingCards.push(card)
-        this.findTeamByPlayer(player)!.score += this.calculatePeggingPoints(card);
-
-        this.checkIfWon(player);
-
-        if(this.ended){
-          await this.updateDBState({
-            players: this.players.map(p => p.toPlainObject()),
-            teams: this.teams.map(team => team.toPlainObject()),
-            ended: true});
-          return;
-        }
-
-        this.nextPlayer(true);
-
-        //Doing this twice as nextPlayer could have updated the player counts after end round
-        if(this.ended){
-          await this.updateDBState({
-            players: this.players.map(p => p.toPlainObject()),
-            teams: this.teams.map(team => team.toPlainObject()),
-            ended: true});
-          return;
-        }
-
-        let changes: Record<string, any> = {
-          players: this.players.map(p => p.toPlainObject()),
-          teams: this.teams.map(team => team.toPlainObject()),
-          currentPlayer: this.currentPlayer.toPlainObject(),
-          peggingCards: this.peggingCards.map(card => card.toPlainObject()),
-          peggingTotal: this.peggingTotal
-        };
-
-        //Checks if the round has been Updated back to throwing (meaning people ran out of cards for pegging)
-        //Need to update a lot of variables then
-        if (this.roundState == RoundState.Throwing){
-          changes = {
-            ...changes,
-            flipped: this.flipped.toPlainObject(),
-            crib: this.crib.map(card => card.toPlainObject()),
-            crib_owner: this.crib_owner,
-            lastOwner: this.lastOwner,
-            cribScore: this.cribScore,
-            lastCrib: this.lastCrib.map(card => card.toPlainObject()),
-            deck: this.deck.toPlainObject(),
-            roundState: this.roundState,
-            lastFlipped: this.lastFlipped.toPlainObject()
-          }
-        }
-
-        //Updates last played and pegging arrays for all players
-        await this.updateDBState(changes);
-      }
-    }
-
-    updateLocalState(data: DocumentData): void {
-      this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
-      this.teams = data.teams.map((team: any) => Team.fromPlainObject(team));
-      this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
-      this.crib_owner = data.crib_owner;
-      this.lastOwner = data.lastOwner;
-      this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit));
-      this.cribScore = data.cribScore;
-      this.lastCrib = data.lastCrib.map((c: any) => new Card(c.id, c.value, c.suit));
-      this.deck = Deck.fromPlainObject(data.deck);
-      this.roundState = data.roundState;
-      this.peggingCards = data.peggingCards.map((c: any) => new Card(c.id, c.value, c.suit));
-      this.peggingTotal = data.peggingTotal;
-      this.flipped = Card.fromPlainObject(data.flipped);
-      this.lastFlipped = Card.fromPlainObject(data.lastFlipped);
-      this.ended = data.ended;
-    }
-
-    guestSetup(data: DocumentData): void {
-      this.updateLocalState(data);
       this.render();
-      this.setupListeners();
-      this.setStarted(true);
+    });
+  }
+
+  getFlipped() {
+    this.flipped = this.deck.getCard()!;
+  }
+
+  async renderFlipped(){
+    const flippedDiv = document.getElementById("flipped")!;
+    flippedDiv.innerHTML = '';
+    flippedDiv.appendChild(this.flipped.createCard());
+  }
+
+  async renderWinner(winner: Team){
+    const winnerPopup = document.getElementById("winner-overlay")!;
+    winnerPopup.style.display = "flex";
+
+    const winners = document.getElementById("winners")!;
+    winners.innerHTML = `Winner: ${winner.name}!`;
+
+    const skunked = this.teams.filter(team => team.name != winner.name && team.score <= this.skunk_length);
+
+    //Create a list of skunked teams/players to shame them
+    if (skunked.length > 0){
+      const skunkH2 = document.createElement("h2");
+      skunkH2.innerHTML = `Skunked: ${skunked.map(team => team.name).join(", ")}`;
+      winners.appendChild(skunkH2);
     }
+  }
 
-    calculatePeggingPoints(card: Card): number {
-      let points = 0;
+  async updateDBState(changes: { [key: string]: any}){
+    await updateDoc(this.roomRef, changes);
+  }
 
-      // Find longest run if enough cards
-      if (this.peggingCards.length >= 3) {
-          let handValues = this.peggingCards.map(card => card.toInt(true));
-          for (let length = handValues.length; length >= 3; length--) {
-              const slice = handValues.slice(handValues.length - length); // Always ends at last card
-              const unique = new Set(slice);
+  async cardClick(card: Card, cardDiv: HTMLDivElement) {
+    const handContainer = document.getElementById("hand")!;
+    const playedContainer = document.getElementById("played")!;
+    const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
 
-              // No repeated ranks allowed
-              if (unique.size !== slice.length) continue;
+    if (handContainer.classList.contains('hand-disabled')) return; //Returns if hand is disabled
 
-              const sorted = [...unique].sort((a, b) => a - b);
-              const min = sorted[0];
-              const max = sorted[sorted.length - 1];
+    if (this.roundState == RoundState.Throwing){
+      handContainer.removeChild(cardDiv);
+      //Remove from hand and add to crib
+      this.crib.push(card)
+      const cardIndex = player.hand.findIndex(c => c.id == card.id)
+      player.hand.splice(cardIndex, 1)
 
-              // Check for a valid run (consecutive sequence)
-              if (max - min + 1 === sorted.length) {
-                  points += sorted.length;
-                  break;
-              }
-          }
+      //check if you've thrown necessary cards
+      if (player.hand.length == this.hand_size){
+        handContainer.classList.add('hand-disabled');
       }
 
-      // Check for pairs
-      let pairs = 1;
-      let isDone = false;
+      let changes: Record<string, any> = {
+        players: this.players.map(p => p.toPlainObject()),
+        teams: this.teams.map(team => team.toPlainObject()),
+        crib: this.crib.map(c => c.toPlainObject())
+      };
 
-      for(let i = this.peggingCards.length - 2 ; i >= 0 && !isDone; i--){
-        if (card.value == this.peggingCards[i].value){
-            pairs += 1;
-        } else {
-            isDone = true;
+      //Once everyone has thrown get the flipped card and start pegging round
+      if (this.players.every(player => player.hand.length == this.hand_size)){
+        changes.roundState = RoundState.Pegging;
+        this.getFlipped();
+
+        //Check for Nibs
+        if (this.flipped.value == "J"){
+          const player = this.players.find(player => player.name == this.crib_owner)!;
+          this.findTeamByPlayer(player)!.score += 2;
+          player.score += 2;
+          changes.teams = this.teams.map(team => team.toPlainObject());
+        }
+
+        changes.flipped = this.flipped.toPlainObject();
+      }
+
+      await this.updateDBState(changes);
+    }
+    //RoundState is Pegging
+    else{
+      if (this.peggingTotal + card.toInt(true) > 31) return;
+      handContainer.removeChild(cardDiv);
+      this.peggingTotal += card.toInt(true);
+      console.log(`Pegging Total: ${this.peggingTotal}`)
+      playedContainer.innerHTML = '';
+
+      cardDiv.classList.add('played');
+      cardDiv.replaceWith(cardDiv.cloneNode(true));
+      playedContainer.appendChild(cardDiv);
+      const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
+      player.lastPlayed = card;
+      player.playedCards.push(card);
+      this.peggingCards.push(card)
+      let points = this.calculatePeggingPoints(card);
+      this.findTeamByPlayer(player)!.score += points;
+      player.score += points;
+
+      this.checkIfWon(player);
+
+      if(this.ended){
+        await this.updateDBState({
+          players: this.players.map(p => p.toPlainObject()),
+          teams: this.teams.map(team => team.toPlainObject()),
+          ended: true});
+        return;
+      }
+
+      this.nextPlayer(true);
+
+      //Doing this twice as nextPlayer could have updated the player counts after end round
+      if(this.ended){
+        await this.updateDBState({
+          players: this.players.map(p => p.toPlainObject()),
+          teams: this.teams.map(team => team.toPlainObject()),
+          ended: true});
+        return;
+      }
+
+      let changes: Record<string, any> = {
+        players: this.players.map(p => p.toPlainObject()),
+        teams: this.teams.map(team => team.toPlainObject()),
+        currentPlayer: this.currentPlayer.toPlainObject(),
+        peggingCards: this.peggingCards.map(card => card.toPlainObject()),
+        peggingTotal: this.peggingTotal
+      };
+
+      //Checks if the round has been Updated back to throwing (meaning people ran out of cards for pegging)
+      //Need to update a lot of variables then
+      if (this.roundState == RoundState.Throwing){
+        changes = {
+          ...changes,
+          flipped: this.flipped.toPlainObject(),
+          crib: this.crib.map(card => card.toPlainObject()),
+          crib_owner: this.crib_owner,
+          lastOwner: this.lastOwner,
+          cribScore: this.cribScore,
+          lastCrib: this.lastCrib.map(card => card.toPlainObject()),
+          deck: this.deck.toPlainObject(),
+          roundState: this.roundState,
+          lastFlipped: this.lastFlipped.toPlainObject()
         }
       }
 
-      // If any pairs
-      if (pairs > 1) {
-          points +=  pairs * (pairs -1)
-      }
+      //Updates last played and pegging arrays for all players
+      await this.updateDBState(changes);
+    }
+  }
 
-      // Check for 15 and 31
-      if (this.peggingTotal === 15 || this.peggingTotal === 31) {
-          points += 2;
-      }
+  updateLocalState(data: DocumentData): void {
+    this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
+    this.teams = data.teams.map((team: any) => Team.fromPlainObject(team));
+    this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
+    this.crib_owner = data.crib_owner;
+    this.lastOwner = data.lastOwner;
+    this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit));
+    this.cribScore = data.cribScore;
+    this.lastCrib = data.lastCrib.map((c: any) => new Card(c.id, c.value, c.suit));
+    this.deck = Deck.fromPlainObject(data.deck);
+    this.roundState = data.roundState;
+    this.peggingCards = data.peggingCards.map((c: any) => new Card(c.id, c.value, c.suit));
+    this.peggingTotal = data.peggingTotal;
+    this.flipped = Card.fromPlainObject(data.flipped);
+    this.lastFlipped = Card.fromPlainObject(data.lastFlipped);
+    this.ended = data.ended;
+  }
 
-      console.log(`Pegging Points: ${points}`)
-      return points;
+  guestSetup(data: DocumentData): void {
+    this.updateLocalState(data);
+    this.render();
+    this.setupListeners();
+    this.setStarted(true);
+  }
+
+  calculatePeggingPoints(card: Card): number {
+    let points = 0;
+
+    // Find longest run if enough cards
+    if (this.peggingCards.length >= 3) {
+        let handValues = this.peggingCards.map(card => card.toInt(true));
+        for (let length = handValues.length; length >= 3; length--) {
+            const slice = handValues.slice(handValues.length - length); // Always ends at last card
+            const unique = new Set(slice);
+
+            // No repeated ranks allowed
+            if (unique.size !== slice.length) continue;
+
+            const sorted = [...unique].sort((a, b) => a - b);
+            const min = sorted[0];
+            const max = sorted[sorted.length - 1];
+
+            // Check for a valid run (consecutive sequence)
+            if (max - min + 1 === sorted.length) {
+                points += sorted.length;
+                break;
+            }
+        }
+    }
+
+    // Check for pairs
+    let pairs = 1;
+    let isDone = false;
+
+    for(let i = this.peggingCards.length - 2 ; i >= 0 && !isDone; i--){
+      if (card.value == this.peggingCards[i].value){
+          pairs += 1;
+      } else {
+          isDone = true;
+      }
+    }
+
+    // If any pairs
+    if (pairs > 1) {
+        points +=  pairs * (pairs -1)
+    }
+
+    // Check for 15 and 31
+    if (this.peggingTotal === 15 || this.peggingTotal === 31) {
+        points += 2;
+    }
+
+    console.log(`Pegging Points: ${points}`)
+    return points;
   }
 
   nextPlayer(pegging = false): void {
@@ -539,6 +541,7 @@ export class Cribbage extends BaseGame {
         //Add in that last point and restart pegging/move to next throw round
         if (this.peggingTotal != 31){
           this.findTeamByPlayer(this.players[index])!.score += 1;
+          this.players[index].score += 1;
         }
 
         this.endRound(index);
@@ -618,6 +621,7 @@ export class Cribbage extends BaseGame {
       console.log(`Total Hand Points: ${points}`)
       
       this.findTeamByPlayer(player)!.score += points;
+      player.score += points;
       player.lastHand = player.hand;
       player.lastScore = points;
     
@@ -645,6 +649,7 @@ export class Cribbage extends BaseGame {
 
     const player = this.players.find(player => player.name == this.crib_owner)!;
     this.findTeamByPlayer(player)!.score += points;
+    player.score += points;
     this.lastCrib = this.crib;
     this.crib = [];
     this.cribScore = points;
