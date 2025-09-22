@@ -16,6 +16,7 @@ export abstract class BaseGame {
   protected started: boolean = false;
   protected currentPlayer: Player = new Player("", "");
   protected isTurn: boolean = false;
+  protected logs: string[] = [];
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
@@ -87,6 +88,14 @@ export abstract class BaseGame {
 
   setTeams(teams: Team[]) {
     this.teams = teams;
+  }
+
+  getLogs(): string[]{
+    return this.logs;
+  }
+
+  addLog(log: string){
+    this.logs.push(log);
   }
 
   setHandState(player: Player){

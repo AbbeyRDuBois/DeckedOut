@@ -62,7 +62,7 @@ import { BaseGame } from "./base-game";
         }
 
         oppCard.className = ''; 
-        oppCard.innerHTML = opponent.lastPlayed == null ? "" : opponent.lastPlayed.toString();
+        oppCard.innerHTML = opponent.lastPlayed == null ? "" : opponent.lastPlayed.toHTML();
         oppCard.classList.add('opp-played');
 
         handInfo.appendChild(oppCard);
@@ -71,4 +71,18 @@ import { BaseGame } from "./base-game";
         opponentDiv.appendChild(handInfo);
         opponentContainer.appendChild(opponentDiv);
     });
-  }
+}
+
+export function renderLogs(game: BaseGame){
+  const logBox = document.getElementById('logs')!;
+  logBox.innerHTML = '';
+  game.getLogs().forEach(log => {
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry';
+    logEntry.innerHTML = log;
+    logBox.appendChild(logEntry);
+  });
+
+  // Auto-scroll to bottom
+  logBox.scrollTop = logBox.scrollHeight;
+}
