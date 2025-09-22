@@ -1,6 +1,6 @@
 // game.ts
 import { doc, DocumentData, onSnapshot } from "firebase/firestore";
-import { Deck } from "../deck";
+import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { db } from "../authentication";
 import { Team } from "../team";
@@ -26,18 +26,9 @@ export abstract class BaseGame {
 
   abstract start(): void;
   abstract render(): void;
-  abstract handleAction(data: any): void;
-  abstract getState(): any;
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
-
-  deactivateHand(){
-    document.getElementById('hand')?.classList.add('hand-disabled');
-  }
-
-  activateHand(){
-    document.getElementById('hand')?.classList.remove('hand-disabled');
-  }
+  abstract cardClick(card: Card, cardDiv: HTMLDivElement): void;
 
   setPlayers(players: Player[]) {
     this.players = players;
@@ -82,18 +73,6 @@ export abstract class BaseGame {
     }
   }
 
-  nextPlayer(){
-    const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
-    this.currentPlayer = this.players[(index + 1) % this.players.length];
-    
-    if (this.currentPlayer.id === localStorage.getItem('playerId')){
-      this.isTurn = true;
-    }
-    else{
-      this.isTurn = false;
-    }
-  }
-
   getCurrentPlayer(){
     return this.currentPlayer;
   }
@@ -108,6 +87,30 @@ export abstract class BaseGame {
 
   setTeams(teams: Team[]) {
     this.teams = teams;
+  }
+
+  setHandState(player: Player){
+    this.activateHand();
+  }
+
+  deactivateHand(){
+    document.getElementById('hand')?.classList.add('hand-disabled');
+  }
+
+  activateHand(){
+    document.getElementById('hand')?.classList.remove('hand-disabled');
+  }
+
+  nextPlayer(){
+    const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
+    this.currentPlayer = this.players[(index + 1) % this.players.length];
+    
+    if (this.currentPlayer.id === localStorage.getItem('playerId')){
+      this.isTurn = true;
+    }
+    else{
+      this.isTurn = false;
+    }
   }
 
   findTeamByPlayer(player: Player): Team {
