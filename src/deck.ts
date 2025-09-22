@@ -1,16 +1,17 @@
-import { doc, DocumentData, updateDoc } from "firebase/firestore";
-import { Player } from "./player";
-import { db } from "./authentication";
+import { DocumentData } from "firebase/firestore";
 
 const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-const SUITS = ["Club","Diamond", "Heart","Spade"];
+const SUITS = [
+    { name: 'Clubs', symbol: '♣', color: 'black' },
+    { name: 'Diamonds', symbol: '♦', color: 'darkred' },
+    { name: 'Hearts', symbol: '♥', color: 'darkred' },
+    { name: 'Spades', symbol: '♠', color: 'black' },
+];
 
 export class Card {
     id: number;
     value: string;
     suit: string;
-
-
 
     constructor(id: number, value = "", suit = "") {
         this.value = value;
@@ -18,8 +19,12 @@ export class Card {
         this.id = id;
     }
 
-    toString(): string {
-        return `${this.value} ${this.suit}`;
+    toHTML(): string {
+        if (this.suit != ""){
+            var suit = SUITS.filter(suit => suit.name == this.suit)[0];
+            return `<span style="color: ${suit.color};">${this.value}${suit.symbol}</span>`;
+        }
+        return "";
     }
 
     toInt(counting = false): number {
@@ -56,13 +61,13 @@ export class Card {
 
     getRow(){        
         switch (this.suit) {
-            case SUITS[0]: 
+            case SUITS[0].name: 
                 return 0;
-            case SUITS[1]: 
+            case SUITS[1].name: 
                 return 1;
-            case SUITS[2]: 
+            case SUITS[2].name: 
                 return 2;
-            case SUITS[3]: 
+            case SUITS[3].name: 
                 return 3;
             default: return 4;
         }   
@@ -99,7 +104,7 @@ export class Deck{
         //Adds in a card of each value/suit
         for (const suit of SUITS){
             for(const value of VALUES){
-                this.deck.push(new Card(idCounter++, value, suit));
+                this.deck.push(new Card(idCounter++, value, suit.name));
             }
         }
     }
