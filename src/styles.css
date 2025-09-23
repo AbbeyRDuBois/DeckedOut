@@ -16,11 +16,11 @@
   --gn-btn-hv:#124429;
 }
 
-/**********************************************************************************************************************************************
+/**************************************
   *
   * General/Common Styling
   *
-  *********************************************************************************************************************************************/
+  ************************************/
 body {
   height: 100%;
   margin: 0;
@@ -30,7 +30,11 @@ body {
   color: var(--text-color);
   background: var(--bg-color);
 }
-/*Game Selection*/
+/********************************************************************************************************************************************
+*
+* Game Selection Screen
+*
+*********************************************************************************************************************************************/
 .title{
   text-align: center;
   font-size: 2.5rem;
@@ -133,7 +137,11 @@ body {
   background-color: var(--gn-btn-hv);
 }
 
-/*Top bar of the game rooms*/
+/********************************************************************************************************************************************
+*
+* Default Room Items
+*
+*********************************************************************************************************************************************/
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -177,7 +185,45 @@ body {
   background-color: var(--rd-btn-hv)
 }
 
-/*Popup*/
+/***************************************
+*
+* Scoreboard
+*
+***************************************/
+#scoreboard {
+  position: absolute;
+  justify-content: center;
+  background-color: #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #000;
+  top: 50%;
+  right: 5px;
+  transform: translateY(-80%);
+  align-items: center;
+}
+
+.team{
+  background-color: #444;
+  text-align: center;
+  border-radius: 8px;
+  margin: 5px;
+}
+
+.team .team-name {
+  font-size: 15px;
+  color: #a9a9a9;
+}
+
+.team .team-score {
+  font-size: 15px;
+  color: #a9a9a9;
+}
+
+/***************************************
+*
+* Waiting Popup
+*
+***************************************/
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -350,7 +396,11 @@ body {
   background-color: var(--gn-btn-hv);
 }
 
-/*Logs*/
+/***************************************
+*
+* Logs
+*
+***************************************/
 .logs {
   position: absolute;
   top: 0;
@@ -371,7 +421,11 @@ body {
   padding-bottom: 4px;
 }
 
-/* Game Info */
+/***************************************
+*
+* Settings
+*
+***************************************/
 #info-panel {
   position: absolute;
   justify-content: center;
@@ -449,7 +503,11 @@ body {
   display: none;
 }
 
-/*Opponents*/
+/**************************************************************************************************************************************
+*
+* Opponents Section
+*
+***************************************************************************************************************************************/
 #opponents {
   margin-top: 60px;
   min-height: 80px;
@@ -494,7 +552,11 @@ body {
   justify-content: center;
 }
 
-/* Users hand and last played*/
+/**************************************************************************************************************************************
+*
+* Player Hand
+*
+***************************************************************************************************************************************/
 #bottom-section {
   position: fixed;
   bottom: 0;
@@ -555,87 +617,12 @@ body {
   transform: none !important;     /* prevent hover lifting */
   border: 2px solid transparent;  /* remove hover border effect */
 }
+
 /**********************************************************************************************************************************************
 *
 * Cribbage Elements
 *
 *********************************************************************************************************************************************/
-
-/*Scoreboard*/
-#scoreboard {
-  position: absolute;
-  justify-content: center;
-  background-color: #333;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #000;
-  top: 50%;
-  right: 5px;
-  transform: translateY(-80%);
-  align-items: center;
-}
-
-.team{
-  background-color: #444;
-  text-align: center;
-  border-radius: 8px;
-  margin: 5px;
-}
-
-.team .team-name {
-  font-size: 15px;
-  color: #a9a9a9;
-}
-
-.team .team-score {
-  font-size: 15px;
-  color: #a9a9a9;
-}
-
-/*Round Totals */
-#round-totals-wrapper {
-  position: absolute;
-  justify-content: center;
-  padding: 5px;
-  align-items: center;
-  background-color: #333;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #000;
-  top: 50%;
-  left: 20px;
-  transform: translateY(-60%);
-}
-
-#round-totals.collapsed {
-  max-height: 0;
-  pointer-events: none;
-  display: none;
-}
-
-.player-score{
-  margin: 5px;
-}
-
-.player-total .player-score {
-  font-size: 20px;
-  color:#a9a9a9
-}
-
-.total-hand {
-  display: flex;
-  gap: 3px;
-}
-
-.total-hand .card {
-  pointer-events: none;
-  width: 50px;
-  height: 60px;
-}
-
-.toggle {
-  cursor: pointer;
-  width: 20px;
-  height: 20px;
-}
 
 /*Flipped*/
 #flipped {
