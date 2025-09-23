@@ -1,5 +1,5 @@
 // game.ts
-import { doc, DocumentData, onSnapshot } from "firebase/firestore";
+import { doc, DocumentData } from "firebase/firestore";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { db } from "../authentication";
@@ -88,6 +88,16 @@ export abstract class BaseGame {
 
   setTeams(teams: Team[]) {
     this.teams = teams;
+  }
+
+  getPlayerTeam(playerId: string): Team | null{
+    for (let i = 0; i < this.teams.length; i++) {
+        const team = this.teams[i];
+        if (team.players.findIndex(p => p.id === playerId) !== -1) {
+          return team;
+        }
+    }
+    return null;
   }
 
   getLogs(): string[]{

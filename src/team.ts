@@ -1,6 +1,6 @@
 import { DocumentData } from "firebase/firestore";
-import { Card } from "./deck";
 import { Player } from "./player";
+import { BaseGame } from "./games/base-game";
 
 export class Team {
     name: string;
@@ -30,4 +30,14 @@ export class Team {
 
         return team;
     }
+
+    removePlayer(playerId: string, game: BaseGame): void {
+        this.players.splice(this.players.findIndex(p => p.id === playerId), 1); // Remove the player
+
+        // If the team is now empty, remove the team from the list
+        if (this.players.length === 0) {
+            game.getTeams().splice(game.getTeams().findIndex(team => team.name = this.name), 1);
+        }
+    }
+
 }

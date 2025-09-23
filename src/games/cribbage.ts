@@ -3,7 +3,7 @@ import { BaseGame } from "./base-game";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
-import { renderHand, renderScoreboard, renderOpponents, renderLogs} from "./base-render"
+import { renderHand, renderScoreboard, renderOpponents, renderLogs} from "./game-render"
 import { renderFlipped, renderGameInfo, renderWinner } from "./cribbage-render";
 
 
@@ -21,13 +21,9 @@ export class Cribbage extends BaseGame {
   protected crib: Card[] = [];
   protected isTurn: boolean = true; //Is it players turn to play card
   protected crib_owner: string = "";
-  protected lastOwner: string = "";
-  protected cribScore: number = 0;
-  protected lastCrib: Card[] = [];//Holds the last crib
   protected roundState: string = ""; //Holds what phase the game is in currently
   protected peggingCards: Card[] = []; //Holds sequence of cards played in pegging round
   protected peggingTotal: number = 0; //Sum of current pegging round
-  protected lastFlipped: Card = new Card(0);
   protected ended: boolean = false;
 
   constructor( deck: Deck, players: Player[], roomId: string){
@@ -96,16 +92,12 @@ export class Cribbage extends BaseGame {
       flipped: this.flipped.toPlainObject(),
       crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
       crib_owner: this.crib_owner,
-      lastOwner: this.lastOwner,
-      cribScore: this.cribScore,
-      lastCrib: arrayUnion(...this.lastCrib.map(card => card.toPlainObject())),
       currentPlayer: this.currentPlayer.toPlainObject(),
       deck: this.deck.toPlainObject(),
       started: true,
       roundState: this.roundState,
       peggingCards: arrayUnion(...this.peggingCards.map(card => card.toPlainObject())),
       peggingTotal: this.peggingTotal,
-      lastFlipped: this.lastFlipped.toPlainObject(),
       ended: this.ended,
       logs: this.logs
     });
@@ -181,16 +173,12 @@ export class Cribbage extends BaseGame {
     this.teams = data.teams.map((team: any) => Team.fromPlainObject(team));
     this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
     this.crib_owner = data.crib_owner;
-    this.lastOwner = data.lastOwner;
     this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit));
-    this.cribScore = data.cribScore;
-    this.lastCrib = data.lastCrib.map((c: any) => new Card(c.id, c.value, c.suit));
     this.deck = Deck.fromPlainObject(data.deck);
     this.roundState = data.roundState;
     this.peggingCards = data.peggingCards.map((c: any) => new Card(c.id, c.value, c.suit));
     this.peggingTotal = data.peggingTotal;
     this.flipped = Card.fromPlainObject(data.flipped);
-    this.lastFlipped = Card.fromPlainObject(data.lastFlipped);
     this.ended = data.ended;
     this.logs = data.logs;
   }
@@ -319,12 +307,8 @@ export class Cribbage extends BaseGame {
           flipped: this.flipped.toPlainObject(),
           crib: this.crib.map(card => card.toPlainObject()),
           crib_owner: this.crib_owner,
-          lastOwner: this.lastOwner,
-          cribScore: this.cribScore,
-          lastCrib: this.lastCrib.map(card => card.toPlainObject()),
           deck: this.deck.toPlainObject(),
           roundState: this.roundState,
-          lastFlipped: this.lastFlipped.toPlainObject()
         }
       }
 
@@ -373,7 +357,6 @@ export class Cribbage extends BaseGame {
       const index = this.players.findIndex(player => player.name === this.crib_owner);
       //Just get the next player in the array
       this.currentPlayer = this.players[(index + 1) % this.players.length];
-      this.lastOwner = this.crib_owner;
       this.crib_owner = this.currentPlayer.name;
       this.addLog(`${this.crib_owner} is the new crib owner.`);
     }
@@ -411,7 +394,6 @@ export class Cribbage extends BaseGame {
       this.deck.resetDeck();
       this.deal();
       this.roundState = RoundState.Throwing;
-      this.lastFlipped = new Card(this.flipped.id, this.flipped.value, this.flipped.suit);
       this.flipped = new Card(0);
       this.nextPlayer();
       this.peggingTotal = 0;
@@ -526,9 +508,7 @@ export class Cribbage extends BaseGame {
     this.findTeamByPlayer(player)!.score += points;
     player.score += points;
     this.addLog(`${player.name} got ${points} points with crib ${this.crib.map(card => card.toHTML())}`);
-    this.lastCrib = this.crib;
     this.crib = [];
-    this.cribScore = points;
 
     this.checkIfWon(player);
   }
@@ -547,7 +527,6 @@ export class Cribbage extends BaseGame {
         }
       }
     }
-    console.log(`Points for 15s: ${points}`)
     return points;
   }
 
@@ -584,7 +563,6 @@ export class Cribbage extends BaseGame {
     counts.forEach((count, value) => {
       points += count * (count -1);
     })
-    console.log(`Points for Pairs: ${points}`)
     return points;
   }  
 
@@ -628,8 +606,6 @@ export class Cribbage extends BaseGame {
     if(runLength >= 3){
       points += runLength * totalMult;
     }
-
-    console.log(`Points for Runs: ${points}`)
     return points;
   } 
 
