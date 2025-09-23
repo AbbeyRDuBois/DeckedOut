@@ -1,12 +1,6 @@
 import { updateDoc } from "firebase/firestore";
-import { BaseGame } from "./games/base-game";
 import { Team } from "./team";
 import { Player } from "./player";
-
-export function renderInfo(game: BaseGame){
-  const info = document.getElementById('info-tab')!;
-  info.innerHTML = game.getInfo();
-}
 
 export function renderGameOptions(gameType: String, gameMap: Record<string, any>, teams: Team[], players: Player[], roomRef: any){
   switch(gameType){

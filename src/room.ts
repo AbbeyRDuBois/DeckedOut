@@ -6,7 +6,7 @@ import { Player } from './player';
 import { db } from './authentication';
 import './styles.css'
 import { Team } from './team';
-import { renderGameOptions, renderInfo } from './room-render';
+import { renderGameOptions } from './room-render';
 
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('roomId')!;
@@ -59,10 +59,6 @@ async function initRoom() {
       teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
       game.setTeams(teams);
       handlePopup();
-    }
-
-    if (sharedUILoaded){
-      renderInfo(game);
     }
   });
 
@@ -155,40 +151,18 @@ async function createListeners(){
     document.getElementById("waiting-overlay")!.style.display = "none";
   });
 
-
-  const toggleBtn = document.getElementById("panel-toggle-btn")!;
-  const panel = document.getElementById("info-panel")!;
-  // Toggle panel open/close
-  toggleBtn.addEventListener("click", () => {
-    if (panel.classList.contains("hidden")){
-      panel.classList.remove("hidden");
-    }
-    else{
-      panel.classList.add("hidden");
-    }
+  // Listen for theme changes
+  const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement;
+  const body = document.body;
+  themeSelector.addEventListener('change', () => {
+    body.setAttribute('data-theme', themeSelector.value);
   });
 
-  // Tab switching logic
-  const tabButtons = document.querySelectorAll(".tab-button");
-  const tabContents = document.querySelectorAll(".tab-content");
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const tab = btn.getAttribute("data-tab");
-
-      // Toggle active tab button
-      tabButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      // Toggle visible content
-      tabContents.forEach(content => {
-        if (content.id === `${tab}-tab`) {
-          content.classList.remove("hidden");
-        } else {
-          content.classList.add("hidden");
-        }
-      });
-    });
+  // Toggle settings panel open/close
+  const settingsToggle = document.getElementById('settings-toggle')!;
+  const settingsPanel = document.getElementById('settings-panel')!;
+  settingsToggle.addEventListener('click', () => {
+    settingsPanel.classList.toggle('closed');
   });
 }
 

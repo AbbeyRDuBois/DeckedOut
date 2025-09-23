@@ -1,4 +1,5 @@
-<!-- Shared UI Elements like room id and leave button -->
+<!-- Contains Shared UI Elements like room id and leave button -->
+
 <div class="top-bar">
     <div class="room-info">
       <div class="room-id" id="bar-id"></div>
@@ -16,15 +17,15 @@
   <button class="leave-room">Leave</button>
 </div>
 
-<div id="panel-toggle-btn" title="Game Info">☰</div>
-<div id="info-panel" class="hidden">
-  <div class="tabs">
-    <button class="tab-button" data-tab="info" id="info">Game Info</button>
-    <button class="tab-button" data-tab="settings" id="settings">Settings</button>
-  </div>
-
-  <div class="tab-content" id="info-tab"></div>
-  <div class="tab-content hidden" id="settings-tab">What settings are there for Cribbage?</div>
+<button id="settings-toggle" aria-label="Toggle settings panel" title="Settings">⚙️</button>
+<div id="settings-panel" class="settings-panel closed">
+  <h2>Settings</h2>
+  <label for="theme-selector">Select Theme:</label>
+  <select id="theme-selector">
+    <option value="dark">Dark</option>
+    <option value="light">Light</option>
+    <option value="navy">Navy</option>
+  </select>
 </div>
 
 <div class="opponents-contaner" id="opponents"></div>
