@@ -12,7 +12,7 @@ import { BaseGame } from "./base-game";
 
     const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
     unplayedCards.forEach((card: Card) => {
-        handContainer.appendChild(card.createCard(true, true, game.cardClick));
+        handContainer.appendChild(card.createCard({startsFlipped: true, clickable: true, onClick: game.cardClick}));
     });
   }
 
@@ -48,7 +48,8 @@ import { BaseGame } from "./base-game";
         cardRow.classList.add('card-row');
 
         opponent.hand.forEach(card => {
-          const cardDiv = card.createCard(false);
+          //TODO: Fix the hardcoded values
+          const cardDiv = card.createCard({width: 60, height:80});
           cardDiv.classList.add('opp-card');
           cardRow.appendChild(cardDiv);
         });

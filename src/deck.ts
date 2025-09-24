@@ -8,6 +8,22 @@ const SUITS = [
     { name: 'Spades', symbol: '♠', color: 'black' },
 ];
 
+type CardOptions = {
+  width?: number;
+  height?: number;
+  startsFlipped?: boolean;
+  clickable?: boolean;
+  onClick?: (card: Card, cardDiv: HTMLDivElement) => void;
+};
+
+// Original card dimensions in the spritesheet
+const ORIGINAL_CARD_WIDTH = 100;
+const ORIGINAL_CARD_HEIGHT = 150;
+
+// Spritesheet full size (hardcoded based on your values)
+const SPRITESHEET_WIDTH = 1300;
+const SPRITESHEET_HEIGHT = 750;
+
 export class Card {
     id: number;
     value: string;
@@ -39,20 +55,18 @@ export class Card {
         }
     }
 
-    createCard(player: boolean, clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement { 
-        // Original card dimensions in the spritesheet
-        const ORIGINAL_CARD_WIDTH = 100;
-        const ORIGINAL_CARD_HEIGHT = 150;
+    createCard(options: CardOptions = {}): HTMLDivElement { 
+        const {
+            width = 100,
+            height = 150,
+            startsFlipped = false, //This tells if it starts out flipped or not
+            clickable = false,
+            onClick
+        } = options;
 
-        // Spritesheet full size (hardcoded based on your values)
-        const SPRITESHEET_WIDTH = 1300;
-        const SPRITESHEET_HEIGHT = 750;
-
-        var cardWidth = player ? 100 : 60;
-        var cardHeight = player ? 150: 80;
-        //This rescales the spritesheet to fit the cards. TODO: Make this cleaner with less set values
-        const scaleX = cardWidth / ORIGINAL_CARD_WIDTH;
-        const scaleY = cardHeight / ORIGINAL_CARD_HEIGHT;
+        //This rescales the spritesheet to fit the cards
+        const scaleX = width / ORIGINAL_CARD_WIDTH;
+        const scaleY = height / ORIGINAL_CARD_HEIGHT;
 
         // Calculate background size (scale whole spritesheet)
         const bgWidth = SPRITESHEET_WIDTH * scaleX;
@@ -66,7 +80,7 @@ export class Card {
         var bgPosY = -row * scaleY;
 
         const cardDiv = document.createElement('div');
-        cardDiv.className = 'card' + (player || this.isFlipped ? '' : ' flipped');
+        cardDiv.className = 'card' + (startsFlipped || this.isFlipped ? '' : ' flipped');
         cardDiv.setAttribute("card-id", this.id.toString());
 
         //This is the hinge that will flip the card. Face/Back elements will exist inside of this.
@@ -80,7 +94,9 @@ export class Card {
 
         const back = document.createElement('div');
         back.className = 'card-back';
-        //Recalculate to card back position
+
+        //Recalculate to card back position 
+        //TODO: Right now card back location is hardcoded. Fix this
         bgPosX = -2 * ORIGINAL_CARD_WIDTH * scaleX;
         bgPosY = -4 * ORIGINAL_CARD_HEIGHT * scaleY;
         back.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
