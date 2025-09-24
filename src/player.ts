@@ -30,7 +30,7 @@ export class Player {
         let player = new Player(data.id, data.name);
 
         player.hand = Array.isArray(data.hand)
-            ? data.hand.map((c: any) => new Card(c.id, c.value, c.suit))
+            ? data.hand.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped))
             : [];
 
         player.isTurn = data.isTurn;
@@ -38,7 +38,7 @@ export class Player {
         player.score = data.score;
 
         player.playedCards = Array.isArray(data.playedCards)
-            ? data.playedCards.map((c: any) => new Card(c.id, c.value, c.suit))
+            ? data.playedCards.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped))
             : [];
         
         player.team = data.team;
