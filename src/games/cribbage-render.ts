@@ -17,7 +17,7 @@ import { Cribbage } from "./cribbage";
 export function renderFlipped(game: Cribbage){
     const flippedDiv = document.getElementById("flipped")!;
     flippedDiv.innerHTML = '';
-    flippedDiv.appendChild(game.getFlipped().createCard());
+    flippedDiv.appendChild(game.getFlipped().createCard(true));
 }
 
 export function renderWinner(game: Cribbage, winner: Team){

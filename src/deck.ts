@@ -12,11 +12,13 @@ export class Card {
     id: number;
     value: string;
     suit: string;
+    isFlipped: boolean;
 
-    constructor(id: number, value = "", suit = "") {
+    constructor(id: number, value = "", suit = "", isFlipped = false) {
         this.value = value;
         this.suit = suit;
         this.id = id;
+        this.isFlipped = isFlipped;
     }
 
     toHTML(): string {
@@ -33,23 +35,60 @@ export class Card {
             case 'J': return counting ? 10 : 11;
             case 'Q': return counting ? 10 : 12;
             case 'K': return counting ? 10 : 13;
-            case 'JK': return -1;
-            case "": return 3; //Assuming Card Back here
             default: return parseInt(this.value);
         }
     }
 
-    createCard(clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement { 
-        var cardWidth = 100;
-        var cardHeight = 150;
-        //Get positions in spritesheet
-        const col = (this.toInt() - 1) * cardWidth;
-        const row = this.getRow() * cardHeight;
+    createCard(player: boolean, clickable = false, onClick?: (card: Card, cardDiv: HTMLDivElement) => void): HTMLDivElement { 
+        // Original card dimensions in the spritesheet
+        const ORIGINAL_CARD_WIDTH = 100;
+        const ORIGINAL_CARD_HEIGHT = 150;
+
+        // Spritesheet full size (hardcoded based on your values)
+        const SPRITESHEET_WIDTH = 1300;
+        const SPRITESHEET_HEIGHT = 750;
+
+        var cardWidth = player ? 100 : 60;
+        var cardHeight = player ? 150: 80;
+        //This rescales the spritesheet to fit the cards. TODO: Make this cleaner with less set values
+        const scaleX = cardWidth / ORIGINAL_CARD_WIDTH;
+        const scaleY = cardHeight / ORIGINAL_CARD_HEIGHT;
+
+        // Calculate background size (scale whole spritesheet)
+        const bgWidth = SPRITESHEET_WIDTH * scaleX;
+        const bgHeight = SPRITESHEET_HEIGHT * scaleY;
+
+        //Get positions in spritesheet (need to use actual card size (100 x 150))
+        const col = (this.toInt() - 1) * ORIGINAL_CARD_WIDTH;
+        const row = this.getRow() * ORIGINAL_CARD_HEIGHT;
+
+        var bgPosX = -col * scaleX;
+        var bgPosY = -row * scaleY;
 
         const cardDiv = document.createElement('div');
-        cardDiv.className = 'card';
+        cardDiv.className = 'card' + (player || this.isFlipped ? '' : ' flipped');
         cardDiv.setAttribute("card-id", this.id.toString());
-        cardDiv.style.backgroundPosition = `-${col}px -${row}px`;
+
+        //This is the hinge that will flip the card. Face/Back elements will exist inside of this.
+        const hinge = document.createElement('div');
+        hinge.className = 'card-hinge';
+        
+        const face = document.createElement('div');
+        face.className = 'card-face';
+        face.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+        face.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+
+        const back = document.createElement('div');
+        back.className = 'card-back';
+        //Recalculate to card back position
+        bgPosX = -2 * ORIGINAL_CARD_WIDTH * scaleX;
+        bgPosY = -4 * ORIGINAL_CARD_HEIGHT * scaleY;
+        back.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+        back.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+
+        hinge.appendChild(face);
+        hinge.appendChild(back);
+        cardDiv.appendChild(hinge);
 
         // Attach the passed in handler
         if (clickable && onClick){
@@ -78,10 +117,12 @@ export class Card {
             id: this.id,
             value: this.value,
             suit: this.suit,
+            isFlipped: this.isFlipped
         };
     }
+
     static fromPlainObject(data: DocumentData): Card{
-        return new Card(data.id, data.value, data.suit);
+        return new Card(data.id, data.value, data.suit, data.isFlipped);
     }
 }
 
@@ -122,7 +163,7 @@ export class Deck{
 
     static fromPlainObject(data: DocumentData): Deck{
         return new Deck(Array.isArray(data)
-            ? data.map((c: any) => new Card(c.id, c.value, c.suit))
+            ? data.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped))
             : []);
     }
 }

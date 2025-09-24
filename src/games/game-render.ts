@@ -12,7 +12,7 @@ import { BaseGame } from "./base-game";
 
     const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
     unplayedCards.forEach((card: Card) => {
-        handContainer.appendChild(card.createCard(true, game.cardClick));
+        handContainer.appendChild(card.createCard(true, true, game.cardClick));
     });
   }
 
@@ -37,11 +37,6 @@ import { BaseGame } from "./base-game";
     const opponentContainer = document.getElementById('opponents')!;
     opponentContainer.innerHTML = ''; // clears old content
     opponents.forEach(opponent => {
-        const cardBack = (new Card(1, "","")).createCard();
-        cardBack.innerHTML = `${(opponent.hand?.length - opponent.playedCards.length) || 0}`;
-        cardBack.className = ''; 
-        cardBack.classList.add('card-back');
-
         const opponentDiv = document.createElement('div');
         opponentDiv.classList.add('opponent');
 
@@ -49,26 +44,17 @@ import { BaseGame } from "./base-game";
         opponentName.classList.add('opponent-name');
         opponentName.textContent = opponent.name;
 
-        const handInfo = document.createElement('div');
-        handInfo.classList.add('hand-info');
+        const cardRow = document.createElement('div');
+        cardRow.classList.add('card-row');
 
-        handInfo.appendChild(cardBack);
-        var oppCard;
-        if (opponent.lastPlayed) {
-          oppCard = opponent.lastPlayed.createCard();
-        }
-        else{
-          oppCard = (new Card(1, "","")).createCard();
-        }
+        opponent.hand.forEach(card => {
+          const cardDiv = card.createCard(false);
+          cardDiv.classList.add('opp-card');
+          cardRow.appendChild(cardDiv);
+        });
 
-        oppCard.className = ''; 
-        oppCard.innerHTML = opponent.lastPlayed == null ? "" : opponent.lastPlayed.toHTML();
-        oppCard.classList.add('opp-played');
-
-        handInfo.appendChild(oppCard);
-        
         opponentDiv.appendChild(opponentName);
-        opponentDiv.appendChild(handInfo);
+        opponentDiv.appendChild(cardRow);
         opponentContainer.appendChild(opponentDiv);
     });
 }
