@@ -509,6 +509,7 @@ body {
   cursor: pointer;
   border-radius: 15px;
   position: relative;
+  perspective: 1000px; /* needed for 3D effect */
 }
 .card:hover {
   border: 2px solid #2196f3;
@@ -561,7 +562,8 @@ body {
   gap: 12px;
 }
 .card-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, auto); /* 4 cards per row */
   justify-content: center;
   gap: 10px;
 }
