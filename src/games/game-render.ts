@@ -49,7 +49,7 @@ import { BaseGame } from "./base-game";
 
         opponent.hand.forEach(card => {
           //TODO: Fix the hardcoded values
-          const cardDiv = card.createCard({width: 60, height:80});
+          const cardDiv = card.createCard({width: 40, height:60});
           cardDiv.classList.add('opp-card');
           cardRow.appendChild(cardDiv);
         });
