@@ -565,8 +565,8 @@ body {
   justify-content: center;
   gap: 10px;
 }
-
 .opp-card {
+  pointer-events: none;  /* disables all interaction */
   width: 60px;
   height: 80px;
   background-color: #f8f8f8;
@@ -577,10 +577,6 @@ body {
   align-items: center;
   border-radius: 13px;
   background-repeat: no-repeat;
-}
-.opp-card:hover {
-  border: 2px solid #2196f3;
-  transform: translateY(-2px); /* card lift effect */
 }
 .opponent-name{
   display: flex;
@@ -597,6 +593,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
+  height: 160px;
   padding: 8px 16px;
   display: flex;
   flex-direction: column;
@@ -604,17 +601,6 @@ body {
   gap: 8px;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
   background: var(--mg-color);
-}
-.card.played {
-  pointer-events: none;  /* disables all interaction */
-  cursor: none;
-  position: fixed;
-  bottom: 120px; /* Where the played card lays on the screen */
-  left: 90%;
-  transform: translateX(-50%);
-  z-index: 10;
-  background-image: url('card_art/Cats_Deck.png');
-  background-repeat: no-repeat;
 }
 #hand {
   display: flex;
@@ -636,6 +622,16 @@ body {
   cursor: default;                /* change cursor to normal */
   transform: none !important;     /* prevent hover lifting */
   border: 2px solid transparent;  /* remove hover border effect */
+}
+#played-container {
+  pointer-events: none;
+  position: relative; /* key for absolute positioning of children */
+  bottom: -230px;        /* set above bottom-section height */
+  height: 160px;       /* card container height */
+  left: 50%;
+  display: inline-flex;       /* Wraps the card*/
+  overflow: visible;  /* or hidden */
+  z-index: 1000;       /* ensure above other content */
 }
 
 /**********************************************************************************************************************************************

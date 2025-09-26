@@ -64,7 +64,7 @@ export class Cribbage extends BaseGame {
       this.activateHand();
     }
     else if (this.roundState == RoundState.Throwing && player.hand.length > this.hand_size){
-      document.getElementById("played")!.innerHTML = '';
+      document.getElementById("played-container")!.innerHTML = '';
       this.activateHand();
     }
     else{
@@ -189,7 +189,7 @@ export class Cribbage extends BaseGame {
 
   async cardClick(card: Card, cardDiv: HTMLDivElement) {
     const handContainer = document.getElementById("hand")!;
-    const playedContainer = document.getElementById("played")!;
+    const playedContainer = document.getElementById("played-container")!;
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
 
     if (handContainer.classList.contains('hand-disabled')) return; //Returns if hand is disabled
@@ -248,15 +248,10 @@ export class Cribbage extends BaseGame {
 
     card.isFlipped = true; //Flips the card for the other players to see
 
-    handContainer.removeChild(cardDiv);
+    this.playCard(handContainer, playedContainer, cardDiv, card);
     this.peggingTotal += card.toInt(true);
-    playedContainer.innerHTML = '';
 
-    cardDiv.classList.add('played');
-    cardDiv.replaceWith(cardDiv.cloneNode(true));
-    playedContainer.appendChild(cardDiv);
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
-    player.playedCards.push(card);
     this.peggingCards.push(card)
     let points = this.calculatePeggingPoints(card);
     this.findTeamByPlayer(player)!.score += points;

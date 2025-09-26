@@ -20,7 +20,7 @@ type CardOptions = {
 const ORIGINAL_CARD_WIDTH = 100;
 const ORIGINAL_CARD_HEIGHT = 150;
 
-// Spritesheet full size (hardcoded based on your values)
+// Spritesheet full size
 const SPRITESHEET_WIDTH = 1300;
 const SPRITESHEET_HEIGHT = 750;
 
