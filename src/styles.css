@@ -497,6 +497,55 @@ body {
   background-color: var(--fg-color);
   border-radius: 6px;
 }
+/**************************************************************************************************************************************
+*
+* General Card Section
+*
+***************************************************************************************************************************************/
+.card {
+  width: 100px;
+  height: 150px;
+  transition: border 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  border-radius: 15px;
+  position: relative;
+  perspective: 1000px; /* needed for 3D effect */
+}
+.card:hover {
+  border: 2px solid #2196f3;
+  transform: translateY(-2px); /* card lift effect */
+}
+.card-hinge {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.card.flipped .card-hinge {
+  transform: rotateY(180deg);
+}
+
+.card-face, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  background-image: url('card_art/Cats_Deck.png');
+}
+
+/* Back side rotated, hidden by default */
+.card-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+.card-face {
+  z-index: 2; /* above back */
+}
+
 
 /**************************************************************************************************************************************
 *
@@ -512,35 +561,22 @@ body {
   justify-content: center;
   gap: 12px;
 }
-.opp-played {
-  width: 60px;
-  height: 80px;
-  background-color: #f8f8f8;
-  border: 2px solid transparent;
-  transition: border 0.3s ease, transform 0.2s ease;
-  display: flex;
+.card-row {
+  display: grid;
+  grid-template-columns: repeat(4, auto); /* 4 cards per row */
   justify-content: center;
-  align-items: center;
-  border-radius: 6px;
-  background-image: url('card_art/Cats_Deck.png');
-  background-size: 60% 53.33%; /* This scales the image down to fit the card's dimensions */
-  background-repeat: no-repeat;
-  background-position: center; /* Center the image within the card */
+  gap: 10px;
 }
-.card-back{
+.opp-card {
+  pointer-events: none;  /* disables all interaction */
   width: 40px;
-  height: 50px;
-  background-color: #f8f8f8;
-  border: 2px solid transparent;
+  height: 60px;
   transition: border 0.3s ease, transform 0.2s ease;
   display: flex;
-  align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  background-image: url('card_art/Cats_Deck.png');
-  background-size: 40% 33.33%; /* This scales the image down to fit the card's dimensions */
+  align-items: center;
+  border-radius: 13px;
   background-repeat: no-repeat;
-  background-position: center; /* Center the image within the card */
 }
 .opponent-name{
   display: flex;
@@ -557,6 +593,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
+  height: 160px;
   padding: 8px 16px;
   display: flex;
   flex-direction: column;
@@ -565,18 +602,6 @@ body {
   box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
   background: var(--mg-color);
 }
-.card.played {
-  pointer-events: none;  /* disables all interaction */
-  cursor: none;
-  position: fixed;
-  bottom: 120px; /* Where the played card lays on the screen */
-  left: 90%;
-  transform: translateX(-50%);
-  z-index: 10;
-  background-image: url('card_art/Cats_Deck.png');
-  background-repeat: no-repeat;
-  background-position: center; /* Center the image within the card */
-}
 #hand {
   display: flex;
   flex-direction: row;   /* horizontal layout */
@@ -584,20 +609,6 @@ body {
   justify-content: center;
   padding: 3px;
   overflow-x: auto;
-}
-.card {
-  width: 100px;
-  height: 150px;
-  transition: border 0.3s ease, transform 0.2s ease;
-  cursor: pointer;
-  border-radius: 15px;
-  background-image: url('card_art/Cats_Deck.png');
-  background-size: 1300px 750px; /* Total size of the sprite sheet (columns * cardWidth, rows * cardHeight) */
-  background-repeat: no-repeat;
-}
-.card:hover {
-  border: 2px solid #2196f3;
-  transform: translateY(-2px); /* card lift effect */
 }
 .hand-info{
   display: flex;
@@ -611,6 +622,16 @@ body {
   cursor: default;                /* change cursor to normal */
   transform: none !important;     /* prevent hover lifting */
   border: 2px solid transparent;  /* remove hover border effect */
+}
+#played-container {
+  pointer-events: none;
+  position: relative; /* key for absolute positioning of children */
+  bottom: -230px;        /* set above bottom-section height */
+  height: 160px;       /* card container height */
+  left: 50%;
+  display: inline-flex;       /* Wraps the card*/
+  overflow: visible;  /* or hidden */
+  z-index: 1000;       /* ensure above other content */
 }
 
 /**********************************************************************************************************************************************

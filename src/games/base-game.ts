@@ -17,6 +17,7 @@ export abstract class BaseGame {
   protected currentPlayer: Player = new Player("", "");
   protected isTurn: boolean = false;
   protected logs: string[] = [];
+  protected playedOffset: number = -65; //How much the cards cover the past played
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
@@ -144,5 +145,34 @@ export abstract class BaseGame {
       ${team.players.map(player => `&nbsp;&nbsp;&nbsp;&nbsp;${player.name}: ${player.score}<br>`).join("")}
       <br>
     `).join("");
+  }
+
+  playCard(handContainer: HTMLElement, playedContainer: HTMLElement, cardDiv: HTMLDivElement, card: Card) {
+    handContainer.removeChild(cardDiv);
+    cardDiv.classList.add('played');
+    
+    playedContainer.appendChild(cardDiv);
+    const cards = Array.from(playedContainer.children) as HTMLElement[];
+
+    cards.forEach((card, i) => {
+      card.style.left = `${i * this.playedOffset}px`;     // stagger left by offset
+      card.style.zIndex = `${i}`;                // earlier cards behind
+    });
+
+    // Now **bring the last card to front:**
+    if (cards.length > 0) {
+      cards[cards.length - 1].style.zIndex = `${cards.length}`;  // highest z-index for last card
+    }
+    const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
+    player.playedCards.push(card);
+
+    //Animation for entry into the played container
+    cardDiv.style.opacity = '0';
+    cardDiv.style.transform = 'translateY(-20px)';
+    setTimeout(() => {
+      cardDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease, left 0.3s ease';
+      cardDiv.style.opacity = '1';
+      cardDiv.style.transform = 'translateY(0)';
+    }, 10);
   }
 }
