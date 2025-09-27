@@ -423,6 +423,39 @@ body {
 #random-btn:hover {
   background-color: var(--gn-btn-hv);
 }
+/***************************************
+*
+* Indicators
+*
+***************************************/
+.turn-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: gold;
+  margin-left: 10px;
+  margin-bottom: 5px;
+  transition: opacity 0.3s ease;
+  display:none;
+}
+.turn-indicator.active {
+  display: inline-block;
+}
+
+.local-turn-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: gold;
+  position: absolute;
+  right: 10%;
+  bottom: 25%;
+  z-index: 1000;
+  display: none;
+}
+.local-turn-indicator.active {
+  display: inline-block;
+}
 
 /***************************************
 *

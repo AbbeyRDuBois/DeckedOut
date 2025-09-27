@@ -3,7 +3,7 @@ import { BaseGame } from "./base-game";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
-import { renderHand, renderScoreboard, renderOpponents, renderLogs} from "./game-render"
+import { renderHand, renderScoreboard, renderOpponents, renderLogs, renderTurnIndicators} from "./game-render"
 import { renderFlipped, renderGameInfo, renderWinner } from "./cribbage-render";
 
 
@@ -143,6 +143,7 @@ export class Cribbage extends BaseGame {
     renderFlipped(this);
     renderGameInfo(this);
     renderLogs(this);
+    renderTurnIndicators(this);
   }
 
   setupListener() {
@@ -357,6 +358,7 @@ export class Cribbage extends BaseGame {
       this.crib_owner = this.currentPlayer.name;
       this.addLog(`${this.crib_owner} is the new crib owner.`);
     }
+    renderTurnIndicators(this);
   }
 
 

@@ -53,8 +53,19 @@ import { BaseGame } from "./base-game";
           cardDiv.classList.add('opp-card');
           cardRow.appendChild(cardDiv);
         });
+        
+        const turnIndicator = document.createElement('div');
+        turnIndicator.classList.add('turn-indicator');
+        turnIndicator.id = "turn-indicator-" + opponent.id;
 
-        opponentDiv.appendChild(opponentName);
+        const oppInfo = document.createElement('div');
+        oppInfo.style.display = 'flex';
+        oppInfo.style.justifyContent = 'center';
+
+        oppInfo.appendChild(opponentName);
+        oppInfo.appendChild(turnIndicator);
+
+        opponentDiv.appendChild(oppInfo);
         opponentDiv.appendChild(cardRow);
         opponentContainer.appendChild(opponentDiv);
     });
@@ -72,4 +83,20 @@ export function renderLogs(game: BaseGame){
 
   // Auto-scroll to bottom
   logBox.scrollTop = logBox.scrollHeight;
+}
+
+export function renderTurnIndicators(game: BaseGame) {
+  game.getPlayers().forEach(player => {
+    const indicatorId = player.id === localStorage.getItem('playerId')
+      ? "local-turn-indicator"
+      : `turn-indicator-${player.id}`;
+
+    const indicator = document.getElementById(indicatorId)!;
+    if(player.id === game.getCurrentPlayer().id){
+      indicator.classList.add("active");
+    }
+    else{
+      indicator.classList.remove("active"); 
+    }
+  });
 }

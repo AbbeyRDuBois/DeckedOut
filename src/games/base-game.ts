@@ -4,6 +4,7 @@ import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { db } from "../authentication";
 import { Team } from "../team";
+import { renderTurnIndicators } from "./game-render";
 
 export abstract class BaseGame {
   protected deck: Deck;
@@ -131,6 +132,7 @@ export abstract class BaseGame {
     else{
       this.isTurn = false;
     }
+    renderTurnIndicators(this);
   }
 
   findTeamByPlayer(player: Player): Team {
