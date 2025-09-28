@@ -72,6 +72,7 @@ export class Card {
         face.className = 'card-face';
         face.style.backgroundPosition = `${col}px ${row}px`;
         face.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+        face.style.backgroundImage = spriteSheet.getImage();
 
         const back = document.createElement('div');
         back.className = 'card-back';
@@ -80,6 +81,7 @@ export class Card {
         var {col, row} = spriteSheet.getCardLocation(spriteSheet.back_col, spriteSheet.back_row, width, height);
         back.style.backgroundPosition = `${col}px ${row}px`;
         back.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+        back.style.backgroundImage = spriteSheet.getImage();
 
         hinge.appendChild(face);
         hinge.appendChild(back);

@@ -4,7 +4,7 @@ import { Player } from "../player";
 import { db } from "../authentication";
 import { Team } from "../team";
 import { renderIndicators } from "./game-render";
-import { SpriteSheet } from "../spritesheets";
+import { CatSheet, SpriteSheet } from "../spritesheets";
 
 export abstract class BaseGame {
   protected deck: Deck;

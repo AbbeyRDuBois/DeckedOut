@@ -585,7 +585,6 @@ body {
   height: 100%;
   backface-visibility: hidden;
   border-radius: 8px;
-  background-image: url('card_art/Cats_Deck.png');
 }
 
 /* Back side rotated, hidden by default */

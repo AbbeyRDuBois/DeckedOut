@@ -41,6 +41,10 @@ module.exports = {
         test: /\.css$/i,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i, //Packaging the png files (and any other art files)
+        type: 'asset/resource',
+      },
     ],
   },
   // Output configuration
