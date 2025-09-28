@@ -3,7 +3,7 @@ import { Cribbage } from "./cribbage";
 
 export function renderPeggingTotal(game: Cribbage){
   const peggingTotal = document.getElementById('peggingTotal')!;
-  peggingTotal.innerHTML = `${game.getPeggingTotal()}`; // clears old content
+  peggingTotal.innerHTML = `${game.getPeggingTotal()}`;
 }
 
 export function renderFlipped(game: Cribbage){

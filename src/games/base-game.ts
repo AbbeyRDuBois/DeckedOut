@@ -1,4 +1,3 @@
-// game.ts
 import { doc, DocumentData } from "firebase/firestore";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
@@ -170,14 +169,10 @@ export abstract class BaseGame {
     const cards = Array.from(playedContainer.children) as HTMLElement[];
 
     cards.forEach((card, i) => {
-      card.style.left = `${i * this.playedOffset}px`;     // stagger left by offset
-      card.style.zIndex = `${i}`;                // earlier cards behind
+      card.style.left = `${i * this.playedOffset}px`; //Offsets the cards
+      card.style.zIndex = `${i}`; //Layers the cards with the earlier ones being farther back and later being upfront
     });
 
-    // Now **bring the last card to front:**
-    if (cards.length > 0) {
-      cards[cards.length - 1].style.zIndex = `${cards.length}`;  // highest z-index for last card
-    }
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
     player.playedCards.push(card);
 

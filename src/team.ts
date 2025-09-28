@@ -1,5 +1,4 @@
 import { DocumentData } from "firebase/firestore";
-import { Player } from "./player";
 import { BaseGame } from "./games/base-game";
 
 export class Team {

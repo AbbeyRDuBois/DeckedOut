@@ -96,7 +96,7 @@ export class Card {
         back.className = 'card-back';
 
         //Recalculate to card back position 
-        //TODO: Right now card back location is hardcoded. Fix this
+        //TODO: Right now card back location is hardcoded. Fix this to make room for other spritesheets
         bgPosX = -2 * ORIGINAL_CARD_WIDTH * scaleX;
         bgPosY = -4 * ORIGINAL_CARD_HEIGHT * scaleY;
         back.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;

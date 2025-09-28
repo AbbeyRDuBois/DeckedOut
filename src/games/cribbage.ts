@@ -19,7 +19,7 @@ export class Cribbage extends BaseGame {
   protected hand_size: number = 4; //Number of cards in a hand after throwing to crib
   protected flipped: Card = new Card(0);
   protected crib: Card[] = [];
-  protected isTurn: boolean = true; //Is it players turn to play card
+  protected isTurn: boolean = true;
   protected crib_owner: Player = new Player("0", "");
   protected roundState: string = ""; //Holds what phase the game is in currently
   protected peggingCards: Card[] = []; //Holds sequence of cards played in pegging round
@@ -120,6 +120,11 @@ export class Cribbage extends BaseGame {
 
       player.playedCards = [];
     })
+
+    //Add a card to crib if 3 players
+    if (this.players.length == 3){
+      this.crib.push(this.deck.getCard()!);
+    }
   }
 
   render(): void {
@@ -168,6 +173,7 @@ export class Cribbage extends BaseGame {
         this.isTurn = true;
       }
 
+      //Rerenders stuff to put the updates on everyones computer
       this.render();
     });
   }
@@ -383,7 +389,7 @@ export class Cribbage extends BaseGame {
   }
 
   createIndicators(oppId: string): HTMLDivElement[]{
-    const indicators = super.createIndicators(oppId);
+    const indicators = super.createIndicators(oppId); //Use all the logic from base game createIndicators + some
 
     const cribIndicator = document.createElement('div');
     cribIndicator.classList.add('indicator');
@@ -509,7 +515,6 @@ export class Cribbage extends BaseGame {
       points += this.find15s(hand);
       points += this.findPairs(hand);
       points += this.findRuns(hand);
-      points += this.findFlush(hand);
       
       this.findTeamByPlayer(player)!.score += points;
       player.score += points;
@@ -526,7 +531,7 @@ export class Cribbage extends BaseGame {
     let hand = [...this.crib];
 
     //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
-    points += this.findFlush(hand);
+    points += this.findFlush(hand, true);
     points += this.findNobs(hand);
 
     hand.push(this.flipped);
@@ -535,7 +540,6 @@ export class Cribbage extends BaseGame {
     points += this.find15s(hand);
     points += this.findPairs(hand);
     points += this.findRuns(hand);
-    points += this.findFlush(hand);
 
     const player = this.players.find(player => player.name == this.crib_owner.name)!;
     this.findTeamByPlayer(player)!.score += points;

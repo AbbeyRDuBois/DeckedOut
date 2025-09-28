@@ -19,14 +19,13 @@ export function renderHand(game: BaseGame) {
 
 export function renderScoreboard(game: BaseGame) {
   const container = document.getElementById("scoreboard")!;
-  container.innerHTML = ""; // Clear existing content
+  container.innerHTML = "";
 
   game.getTeams().forEach(team => {
-    // Create team container
+    // Team Container
     const teamDiv = document.createElement("div");
     teamDiv.className = "team";
 
-    // Team header (name + score)
     const teamHeader = document.createElement("div");
     teamHeader.className = "team-header";
     teamHeader.innerHTML = `
@@ -58,7 +57,7 @@ export function renderScoreboard(game: BaseGame) {
   export function renderOpponents(game: BaseGame) {
     const opponents = game.getPlayers().filter(p => p.id !== localStorage.getItem('playerId'));
     const opponentContainer = document.getElementById('opponents')!;
-    opponentContainer.innerHTML = ''; // clears old content
+    opponentContainer.innerHTML = '';
     opponents.forEach(opponent => {
         const opponentDiv = document.createElement('div');
         opponentDiv.classList.add('opponent');
@@ -71,7 +70,7 @@ export function renderScoreboard(game: BaseGame) {
         cardRow.classList.add('card-row');
 
         opponent.hand.forEach(card => {
-          //TODO: Fix the hardcoded values
+          //TODO: Fix the hardcoded values?
           const cardDiv = card.createCard({width: 40, height:60});
           cardDiv.classList.add('opp-card');
           cardRow.appendChild(cardDiv);
