@@ -1,4 +1,5 @@
 import { Card } from "../deck";
+import { Player } from "../player";
 import { BaseGame } from "./base-game";
 
   export function renderHand(game: BaseGame) {
@@ -53,17 +54,15 @@ import { BaseGame } from "./base-game";
           cardDiv.classList.add('opp-card');
           cardRow.appendChild(cardDiv);
         });
-        
-        const turnIndicator = document.createElement('div');
-        turnIndicator.classList.add('turn-indicator');
-        turnIndicator.id = "turn-indicator-" + opponent.id;
 
         const oppInfo = document.createElement('div');
         oppInfo.style.display = 'flex';
         oppInfo.style.justifyContent = 'center';
 
         oppInfo.appendChild(opponentName);
-        oppInfo.appendChild(turnIndicator);
+        game.createIndicators(opponent.id).forEach(indicator => {
+          oppInfo.appendChild(indicator);
+        });
 
         opponentDiv.appendChild(oppInfo);
         opponentDiv.appendChild(cardRow);
@@ -85,18 +84,31 @@ export function renderLogs(game: BaseGame){
   logBox.scrollTop = logBox.scrollHeight;
 }
 
-export function renderTurnIndicators(game: BaseGame) {
-  game.getPlayers().forEach(player => {
-    const indicatorId = player.id === localStorage.getItem('playerId')
-      ? "local-turn-indicator"
-      : `turn-indicator-${player.id}`;
+type IndicatorConfig = {
+  name: string;
+  isActive: (player: Player) => boolean;
+  indicatorId?: string;
+};
 
-    const indicator = document.getElementById(indicatorId)!;
-    if(player.id === game.getCurrentPlayer().id){
-      indicator.classList.add("active");
-    }
-    else{
-      indicator.classList.remove("active"); 
-    }
+export function renderIndicators(
+  game: BaseGame,
+  indicators: IndicatorConfig[],
+) {
+  game.getPlayers().forEach(player => {
+    indicators.forEach(({ name, isActive, indicatorId }) => {
+      const defaultId =
+        player.id === localStorage.getItem('playerId')
+          ? `local-${name}-indicator`
+          : `${name}-indicator-${player.id}`;
+
+      const indicator = document.getElementById(indicatorId ? indicatorId : defaultId);
+      if (!indicator) return;
+
+      if (isActive(player)) {
+        indicator.classList.add("active");
+      } else {
+        indicator.classList.remove("active");
+      }
+    });
   });
 }

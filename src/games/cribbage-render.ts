@@ -8,7 +8,7 @@ import { Cribbage } from "./cribbage";
     const div = document.createElement('div');
     div.innerHTML=`
       <div class="current-player"> Current Player: ${game.getCurrentPlayer().name}</div>
-      <div class="current-owner">Crib Owner: ${game.getCribOwner()}</div>
+      <div class="current-owner">Crib Owner: ${game.getCribOwner().name}</div>
       <div class="pegging-total">Pegging Total: ${game.getPeggingTotal()}</div>
     `;
     currents.appendChild(div);

@@ -428,35 +428,53 @@ body {
 * Indicators
 *
 ***************************************/
-.turn-indicator {
+.indicator {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: gold;
   margin-left: 10px;
   margin-bottom: 5px;
   transition: opacity 0.3s ease;
-  display:none;
+  display: none;
+  justify-content: center;
+  align-items: center;
 }
-.turn-indicator.active {
-  display: inline-block;
+.indicator.active {
+  display: flex;
+}
+.indicator[data-type="turn"] {
+  background: gold;
+  color: black
+}
+.indicator[data-type="crib"] {
+  background: purple;
+  color: white;
 }
 
-.local-turn-indicator {
+.local-indicator {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: gold;
   position: absolute;
-  right: 10%;
   bottom: 25%;
   z-index: 1000;
   display: none;
+  justify-content: center;
+  align-items: center;
 }
-.local-turn-indicator.active {
-  display: inline-block;
+.local-indicator.active {
+  display: flex;
 }
-
+.local-indicator[data-type="crib"] {
+  right: 5%;
+  background: purple;
+  color: white;
+}
+.local-indicator[data-type="turn"] {
+  right: 10%;
+  background: gold;
+  color:black;
+}
 /***************************************
 *
 * Logs
