@@ -5,7 +5,7 @@ Website created using HTML/CSS/TS that allows multiplayer card games like Cribba
 To deploy site for self:
     Do npm run build
     Do firebase deploy
-    ctr f5 to do a hard reload to ensure changes make it to website
+    ctr R or f5 to do a hard reload to ensure changes make it to website
 
 How to create a custom theme:
     1. Add in a new body[data-theme='Your Theme'] with your desired colors to styles.css.
