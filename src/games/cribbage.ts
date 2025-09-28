@@ -492,8 +492,8 @@ export class Cribbage extends BaseGame {
   countHands(){
     const currIndex = this.players.findIndex(player => player.name == this.crib_owner.name)!;
 
-    //Have to count the hands in order
-    for(let i = 0; i <= this.players.length && !this.ended; i++){
+    //Have to count the hands in order starting from the person after the crib owner
+    for(let i = 1; i <= this.players.length && !this.ended; i++){
       let player = this.players[(currIndex + i) % this.players.length];
 
       let points = 0;
