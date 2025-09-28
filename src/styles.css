@@ -180,7 +180,7 @@ body {
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 1000;
+  z-index: 4;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .room-info {
@@ -210,6 +210,53 @@ body {
 }
 .leave-room:hover {
   background-color: var(--rd-btn-hv)
+}
+
+/***************************************
+*
+* Settings
+*
+***************************************/
+#settings-panel {
+  position: absolute;
+  justify-content: center;
+  padding: 10px;
+  right: 95px;
+  top: 10px;
+  align-items: center;
+  border-radius: 10px;
+  box-shadow: 0 0 5px #000;
+  background-color: var(--mg-color);
+}
+
+.settings-panel.closed {
+  display: none;
+}
+
+.settings-panel h2{
+  text-align: center;
+  border-bottom: 2px solid var(--bg-color);
+}
+
+#settings-toggle { 
+  width: 30px;
+  height: 30px;
+  right: 1px;
+  margin-left: auto;
+  margin-right: 10px;
+  background: var(--bl-btn);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 10px;
+  z-index: 5; 
+}
+
+#theme-selector{
+  background-color: var(--fg-color);
+  border-radius: 6px;
 }
 
 /***************************************
@@ -464,7 +511,7 @@ body {
   border-radius: 50%;
   position: absolute;
   bottom: 25%;
-  z-index: 1000;
+  z-index: 5;
   display: none;
   justify-content: center;
   align-items: center;
@@ -507,54 +554,6 @@ body {
   padding-bottom: 4px;
 }
 
-/***************************************
-*
-* Settings
-*
-***************************************/
-#settings-panel {
-  position: absolute;
-  justify-content: center;
-  top: 11%;
-  right: 2%;
-  padding: 10px;
-  transform: translateY(-30%);
-  align-items: center;
-  border-radius: 10px;
-  box-shadow: 0 0 5px #000;
-  background-color: var(--mg-color);
-}
-
-.settings-panel.closed {
-  display: none;
-}
-
-.settings-panel h2{
-  text-align: center;
-  border-bottom: 2px solid var(--bg-color);
-}
-
-#settings-toggle {  
-  position: fixed;
-  margin-right: auto;
-  top: 6%;
-  right: 1%;
-  width: 30px;
-  height: 30px;
-  background: var(--bl-btn);
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 10px;
-  z-index: 5; 
-}
-
-#theme-selector{
-  background-color: var(--fg-color);
-  border-radius: 6px;
-}
 /**************************************************************************************************************************************
 *
 * General Card Section
@@ -689,7 +688,7 @@ body {
   left: 50%;
   display: inline-flex;       /* Wraps the card*/
   overflow: visible;  /* or hidden */
-  z-index: 1000;       /* ensure above other content */
+  z-index: 4;       /* ensure above other content */
 }
 
 /**********************************************************************************************************************************************
