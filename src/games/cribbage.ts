@@ -125,7 +125,7 @@ export class Cribbage extends BaseGame {
   render(): void {
     //Render the winner popup if someone won
     if (this.ended){
-      let winner: Team = new Team("", []);
+      let winner: Team = new Team("","", []);
 
       for (const team of this.teams) {
         if (team.score >= this.point_goal) {

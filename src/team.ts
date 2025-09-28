@@ -6,8 +6,10 @@ export class Team {
     name: string;
     players: Player[];
     score: number = 0;
+    id: string;
 
-    constructor(name: string, players: Player[], score: number = 0){
+    constructor(id: string, name: string, players: Player[], score: number = 0){
+        this.id = id;
         this.name = name;
         this.players = players;
         this.score = score;
@@ -15,6 +17,7 @@ export class Team {
     
     toPlainObject() {
         return {
+            id: this.id,
             name: this.name,
             score: this.score,
             players: this.players.map(player => player.toPlainObject())
@@ -26,7 +29,7 @@ export class Team {
             ? data.players.map((p: any) => new Player(p.id, p.name))
             : [];
 
-        let team = new Team(data.name, players, data.score);
+        let team = new Team(data.id, data.name, players, data.score);
 
         return team;
     }

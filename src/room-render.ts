@@ -109,7 +109,7 @@ function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDi
 
   addBtn.onclick = () => {
     if (teams.length < players.length) {
-      teams.push(new Team(`Team ${teams.length + 1}`, []));
+      teams.push(new Team(`${teams.length + 1}`, `Team ${teams.length + 1}`, []));
       updateDoc(roomRef, {
         teams: teams.map(team => team.toPlainObject())
       })
@@ -195,7 +195,7 @@ function randomizeTeams(players: Player[], teams: Team[], teamSize: number) {
 
   for (let i = 0; i < shuffled.length; i += teamSize) {
     const slice = shuffled.slice(i, i + teamSize);
-    newTeams.push(new Team(`Team ${teamIndex + 1}`, slice));
+    newTeams.push(new Team(`${teamIndex + 1}`, `Team ${teamIndex + 1}`, slice));
     teamIndex++;
   }
 
