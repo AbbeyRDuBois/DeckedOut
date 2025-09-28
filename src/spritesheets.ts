@@ -11,7 +11,7 @@ import pokeQS from "./SpriteSheets/PokemonQ_Shiny_Deck.png";
 export class SpriteSheet {
     sheet_width = 1300;
     sheet_height = 750;
-    card_width = 100;
+    card_width = 90;
     card_height = 150;
     image = `url(${classicSheet})`;
     back_row = 4;
@@ -60,24 +60,26 @@ export class SpriteSheet {
 
 export class CatSheet extends SpriteSheet {
     image = `url(${catSheet})`;
+    card_width = 100;
     gap = 0;
 }
 
 export class PokemonSheet extends SpriteSheet {
     image = `url(${poke1})`;
     sheet_height = 695;
+    card_height = 139;
     pokemonMap: Record<string, {normal: string, shiny: string}> = {
         Pokemon1: {
-            normal: poke1,
-            shiny: poke1S
+            normal: `url(${poke1})`,
+            shiny: `url(${poke1S})`
         },
         Pokemon2: {
-            normal: poke2,
-            shiny: poke2S
+            normal: `url(${poke2})`,
+            shiny: `url(${poke2S})`
         },
         PokemonQ: {
-            normal: pokeQ,
-            shiny: pokeQS
+            normal: `url(${pokeQ})`,
+            shiny: `url(${pokeQS})`
         }
     };
 

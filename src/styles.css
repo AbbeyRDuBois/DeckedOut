@@ -220,6 +220,8 @@ body {
 #settings-panel {
   position: absolute;
   justify-content: center;
+  display: flex;
+  flex-direction: column;
   padding: 10px;
   right: 95px;
   top: 10px;
@@ -229,7 +231,7 @@ body {
   background-color: var(--mg-color);
 }
 
-.settings-panel.closed {
+#settings-panel.closed {
   display: none;
 }
 
@@ -254,7 +256,7 @@ body {
   z-index: 5; 
 }
 
-#theme-selector{
+.theme-selector{
   background-color: var(--fg-color);
   border-radius: 6px;
 }
@@ -603,7 +605,7 @@ body {
 *
 ***************************************************************************************************************************************/
 #opponents {
-  margin-top: 20px;
+  margin-top: 45px;
   min-height: 80px;
   padding: 0 16px;
   display: flex;

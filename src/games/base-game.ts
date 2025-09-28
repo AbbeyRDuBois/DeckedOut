@@ -4,7 +4,7 @@ import { Player } from "../player";
 import { db } from "../authentication";
 import { Team } from "../team";
 import { renderIndicators } from "./game-render";
-import { CatSheet, SpriteSheet } from "../spritesheets";
+import { CatSheet, PokemonSheet, SpriteSheet } from "../spritesheets";
 
 export abstract class BaseGame {
   protected deck: Deck;
@@ -36,6 +36,23 @@ export abstract class BaseGame {
 
   getSpriteSheet(): SpriteSheet{
     return this.spriteSheet;
+  }
+  
+  setSpriteSheet(sheet: string) {
+    switch(sheet){
+      case "Classic":
+        this.spriteSheet = new SpriteSheet();
+        break;
+      case "Cats":
+        this.spriteSheet = new CatSheet();
+        break;
+      case "Pokemon":
+        this.spriteSheet = new PokemonSheet();
+        this.spriteSheet.setImage(); //Have to do this to rando the cards you get
+        break;
+      default:
+        this.spriteSheet = new SpriteSheet();
+    }
   }
 
   setPlayers(players: Player[]) {
