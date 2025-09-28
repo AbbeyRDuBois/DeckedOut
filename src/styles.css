@@ -482,10 +482,10 @@ body {
 ***************************************/
 .logs {
   position: absolute;
-  top: 0;
+  top: 35px;
   left: 0;
   width: 20%;
-  height: 76%;
+  height: 71%;
   background-color: var(--fg-color);
   color: var(--text-color);
   padding: 8px;
@@ -702,14 +702,28 @@ body {
   cursor: default;               
 }
 
-/*Game Info*/
-#game-info {
+/*Pegging*/
+#peggingContainer {
   position: absolute; 
-  top: 45%;         /* Center it vertically */
-  left: 60%;          
+  top: 38%;         /* Center it vertically */
+  left: 65%;          
   transform: translateY(-50%);
   padding: 10px;
   pointer-events: none;    
   filter: grayscale(100%);    
-  cursor: default;               
+  cursor: default;     
+  justify-content: center;
+  align-items: center;
+  display:flex;          
 }
+#pegging{
+  font-size: 20px;
+}
+#peggingTotal {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 40px;
+}
+

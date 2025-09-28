@@ -4,7 +4,7 @@ import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
 import { renderHand, renderScoreboard, renderOpponents, renderLogs, renderIndicators} from "./game-render"
-import { renderFlipped, renderGameInfo, renderWinner } from "./cribbage-render";
+import { renderFlipped, renderPeggingTotal, renderWinner } from "./cribbage-render";
 
 
 enum RoundState {
@@ -141,7 +141,7 @@ export class Cribbage extends BaseGame {
     renderOpponents(this);
     renderScoreboard(this);
     renderFlipped(this);
-    renderGameInfo(this);
+    renderPeggingTotal(this);
     renderLogs(this);
     renderIndicators(this, [
       {

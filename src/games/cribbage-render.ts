@@ -1,18 +1,10 @@
 import { Team } from "../team";
 import { Cribbage } from "./cribbage";
 
-  export function renderGameInfo(game: Cribbage){
-    const currents = document.getElementById('currents')!;
-    currents.innerHTML = ''; // clears old content
-
-    const div = document.createElement('div');
-    div.innerHTML=`
-      <div class="current-player"> Current Player: ${game.getCurrentPlayer().name}</div>
-      <div class="current-owner">Crib Owner: ${game.getCribOwner().name}</div>
-      <div class="pegging-total">Pegging Total: ${game.getPeggingTotal()}</div>
-    `;
-    currents.appendChild(div);
-  }
+export function renderPeggingTotal(game: Cribbage){
+  const peggingTotal = document.getElementById('peggingTotal')!;
+  peggingTotal.innerHTML = `${game.getPeggingTotal()}`; // clears old content
+}
 
 export function renderFlipped(game: Cribbage){
     const flippedDiv = document.getElementById("flipped")!;
