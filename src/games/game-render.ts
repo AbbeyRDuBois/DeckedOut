@@ -2,41 +2,62 @@ import { Card } from "../deck";
 import { Player } from "../player";
 import { BaseGame } from "./base-game";
 
-  export function renderHand(game: BaseGame) {
-    const currentId = localStorage.getItem("playerId");
-    const player = game.getPlayers().find(player => player.id === currentId)!;
-    const handContainer = document.getElementById('hand')!;
+export function renderHand(game: BaseGame) {
+  const currentId = localStorage.getItem("playerId");
+  const player = game.getPlayers().find(player => player.id === currentId)!;
+  const handContainer = document.getElementById('hand')!;
 
-    game.setHandState(player);
+  game.setHandState(player);
 
-    handContainer.innerHTML = '';
+  handContainer.innerHTML = '';
 
-    const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
-    unplayedCards.forEach((card: Card) => {
-        handContainer.appendChild(card.createCard({startsFlipped: true, clickable: true, onClick: game.cardClick}));
-    });
-  }
+  const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
+  unplayedCards.forEach((card: Card) => {
+      handContainer.appendChild(card.createCard({startsFlipped: true, clickable: true, onClick: game.cardClick}));
+  });
+}
 
-  export function renderScoreboard(game: BaseGame) {
-    const scoreboard = document.getElementById('scoreboard')!;
-    scoreboard.innerHTML = ''; // clears old content
+export function renderScoreboard(game: BaseGame) {
+  const container = document.getElementById("scoreboard")!;
+  container.innerHTML = "";
 
-    //For each team now update scoreboard
-    game.getTeams().forEach(team => { 
-      const div = document.createElement('div');
-      div.classList.add('team');
-      div.innerHTML=`
-        <div class="team-name">${team.name}</div>
-        <div class="team-score">${team.score}</div>
+  game.getTeams().forEach(team => {
+    // Team Container
+    const teamDiv = document.createElement("div");
+    teamDiv.className = "team";
+
+    const teamHeader = document.createElement("div");
+    teamHeader.className = "team-header";
+    teamHeader.innerHTML = `
+      <span class="team-name">${team.name}:  </span>
+      <span class="team-score" id="team-score">${team.score}</span>
+    `;
+    teamDiv.appendChild(teamHeader);
+
+    // Players list
+    const playersDiv = document.createElement("div");
+    playersDiv.className = "players";
+
+    team.playerIds.forEach(id => {
+      const player = game.getPlayerById(id)!;
+      const playerDiv = document.createElement("div");
+      playerDiv.className = "player";
+      playerDiv.innerHTML = `
+        <span class="player-name">${player.name}</span>
+        <span class="player-score" id="player-score">${player.score}</span>
       `;
-      scoreboard.appendChild(div);
-    })
-  }
+      playersDiv.appendChild(playerDiv);
+    });
+
+    teamDiv.appendChild(playersDiv);
+    container.appendChild(teamDiv);
+  });
+}
 
   export function renderOpponents(game: BaseGame) {
     const opponents = game.getPlayers().filter(p => p.id !== localStorage.getItem('playerId'));
     const opponentContainer = document.getElementById('opponents')!;
-    opponentContainer.innerHTML = ''; // clears old content
+    opponentContainer.innerHTML = '';
     opponents.forEach(opponent => {
         const opponentDiv = document.createElement('div');
         opponentDiv.classList.add('opponent');
@@ -49,7 +70,7 @@ import { BaseGame } from "./base-game";
         cardRow.classList.add('card-row');
 
         opponent.hand.forEach(card => {
-          //TODO: Fix the hardcoded values
+          //TODO: Fix the hardcoded values?
           const cardDiv = card.createCard({width: 40, height:60});
           cardDiv.classList.add('opp-card');
           cardRow.appendChild(cardDiv);

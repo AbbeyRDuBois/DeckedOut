@@ -1,15 +1,14 @@
 import { DocumentData } from "firebase/firestore";
-import { Player } from "./player";
 import { BaseGame } from "./games/base-game";
 
 export class Team {
     name: string;
-    players: Player[];
+    playerIds: string[];
     score: number = 0;
 
-    constructor(name: string, players: Player[], score: number = 0){
+    constructor(name: string, ids: string[], score: number = 0){
         this.name = name;
-        this.players = players;
+        this.playerIds = ids;
         this.score = score;
     }
     
@@ -17,25 +16,21 @@ export class Team {
         return {
             name: this.name,
             score: this.score,
-            players: this.players.map(player => player.toPlainObject())
+            playerIds: this.playerIds
         };
     }
 
     static fromPlainObject(data: DocumentData): Team {
-        let players = Array.isArray(data.players)
-            ? data.players.map((p: any) => new Player(p.id, p.name))
-            : [];
-
-        let team = new Team(data.name, players, data.score);
+        let team = new Team(data.name, data.playerIds, data.score);
 
         return team;
     }
 
     removePlayer(playerId: string, game: BaseGame): void {
-        this.players.splice(this.players.findIndex(p => p.id === playerId), 1); // Remove the player
+        this.playerIds.splice(this.playerIds.findIndex(id => id === playerId), 1); // Remove the player
 
         // If the team is now empty, remove the team from the list
-        if (this.players.length === 0) {
+        if (this.playerIds.length === 0) {
             game.getTeams().splice(game.getTeams().findIndex(team => team.name = this.name), 1);
         }
     }

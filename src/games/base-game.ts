@@ -1,4 +1,3 @@
-// game.ts
 import { doc, DocumentData } from "firebase/firestore";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
@@ -45,6 +44,10 @@ export abstract class BaseGame {
     return this.minPlayers;
   }
 
+  getPlayerById(id: string): Player | undefined{
+    return this.players.find(player => player.id === id);
+  }
+
   getStarted() {
     return this.started;
   }
@@ -61,19 +64,21 @@ export abstract class BaseGame {
   }
 
   getPlayerOrder(){
-    this.players = [];
-    const maxPlayers = Math.max(...this.teams.map(team => team.players.length));
+    const newOrder = [];
+    const maxPlayers = Math.max(...this.teams.map(team => team.playerIds.length));
     //Want to start out with random team
     const rand = Math.floor(Math.random() * this.teams.length);
 
     for(let playerIndex = 0; playerIndex < maxPlayers; playerIndex++){
       for(let teamIndex = 0; teamIndex < this.teams.length; teamIndex++){
         const index = (teamIndex + rand) % this.teams.length;
-        if (playerIndex < this.teams[index].players.length){
-          this.players.push(this.teams[index].players[playerIndex]);
+        if (playerIndex < this.teams[index].playerIds.length){
+          const player = this.getPlayerById(this.teams[index].playerIds[playerIndex])!;
+          newOrder.push(player);
         }
       }
     }
+    this.players = newOrder;
   }
 
   getCurrentPlayer(){
@@ -95,7 +100,7 @@ export abstract class BaseGame {
   getPlayerTeam(playerId: string): Team | null{
     for (let i = 0; i < this.teams.length; i++) {
         const team = this.teams[i];
-        if (team.players.findIndex(p => p.id === playerId) !== -1) {
+        if (team.playerIds.findIndex(id => id === playerId) !== -1) {
           return team;
         }
     }
@@ -152,16 +157,8 @@ export abstract class BaseGame {
 
   findTeamByPlayer(player: Player): Team {
     return this.teams.find(team =>
-        team.players.some(p => p.id === player.id)
+        team.playerIds.some(id => id === player.id)
     )!;
-  }
-
-  getInfo(): string {
-    return  this.teams.map(team => `
-      Team: ${team.name} Score: ${team.score}<br>
-      ${team.players.map(player => `&nbsp;&nbsp;&nbsp;&nbsp;${player.name}: ${player.score}<br>`).join("")}
-      <br>
-    `).join("");
   }
 
   playCard(handContainer: HTMLElement, playedContainer: HTMLElement, cardDiv: HTMLDivElement, card: Card) {
@@ -172,14 +169,10 @@ export abstract class BaseGame {
     const cards = Array.from(playedContainer.children) as HTMLElement[];
 
     cards.forEach((card, i) => {
-      card.style.left = `${i * this.playedOffset}px`;     // stagger left by offset
-      card.style.zIndex = `${i}`;                // earlier cards behind
+      card.style.left = `${i * this.playedOffset}px`; //Offsets the cards
+      card.style.zIndex = `${i}`; //Layers the cards with the earlier ones being farther back and later being upfront
     });
 
-    // Now **bring the last card to front:**
-    if (cards.length > 0) {
-      cards[cards.length - 1].style.zIndex = `${cards.length}`;  // highest z-index for last card
-    }
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
     player.playedCards.push(card);
 

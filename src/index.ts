@@ -30,7 +30,7 @@ async function createRoom(gameType: string) {
     hostId: playerId,
     gameType, 
     players: [player.toPlainObject()],
-    teams: [(new Team(player.name, [player])).toPlainObject()],
+    teams: [(new Team(player.name, [player.id])).toPlainObject()],
     started: false
   })).id;
 }
@@ -68,7 +68,7 @@ async function joinRoom(roomId: string, player: string) {
   //Updates the Game room to add player to the list
   await updateDoc(roomRef, {
     players: arrayUnion(newPlayer.toPlainObject()),
-    teams: arrayUnion((new Team(player, [newPlayer])).toPlainObject())
+    teams: arrayUnion((new Team(player, [newPlayer.id])).toPlainObject())
   });
   window.location.href = `${roomSnap.gameType}.html?roomId=${roomId}&game=${roomSnap.gameType}`;
 }
