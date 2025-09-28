@@ -520,12 +520,12 @@ body {
   display: flex;
 }
 .local-indicator[data-type="crib"] {
-  right: 5%;
+  left: 25%;
   background: purple;
   color: white;
 }
 .local-indicator[data-type="turn"] {
-  right: 10%;
+  left: 21%;
   background: gold;
   color:black;
 }
