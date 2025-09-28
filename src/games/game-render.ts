@@ -13,7 +13,7 @@ export function renderHand(game: BaseGame) {
 
   const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
   unplayedCards.forEach((card: Card) => {
-      handContainer.appendChild(card.createCard({startsFlipped: true, clickable: true, onClick: game.cardClick}));
+      handContainer.appendChild(card.createCard(game.getSpriteSheet(), {startsFlipped: true, clickable: true, onClick: game.cardClick}));
   });
 }
 
@@ -71,7 +71,7 @@ export function renderScoreboard(game: BaseGame) {
 
         opponent.hand.forEach(card => {
           //TODO: Fix the hardcoded values?
-          const cardDiv = card.createCard({width: 40, height:60});
+          const cardDiv = card.createCard(game.getSpriteSheet(), {width: 40, height:60});
           cardDiv.classList.add('opp-card');
           cardRow.appendChild(cardDiv);
         });

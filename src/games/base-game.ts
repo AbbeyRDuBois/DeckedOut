@@ -4,6 +4,7 @@ import { Player } from "../player";
 import { db } from "../authentication";
 import { Team } from "../team";
 import { renderIndicators } from "./game-render";
+import { SpriteSheet } from "../spritesheets";
 
 export abstract class BaseGame {
   protected deck: Deck;
@@ -18,6 +19,7 @@ export abstract class BaseGame {
   protected isTurn: boolean = false;
   protected logs: string[] = [];
   protected playedOffset: number = -65; //How much the cards cover the past played
+  protected spriteSheet: SpriteSheet = new SpriteSheet();
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
@@ -31,6 +33,10 @@ export abstract class BaseGame {
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
   abstract cardClick(card: Card, cardDiv: HTMLDivElement): void;
+
+  getSpriteSheet(): SpriteSheet{
+    return this.spriteSheet;
+  }
 
   setPlayers(players: Player[]) {
     this.players = players;
