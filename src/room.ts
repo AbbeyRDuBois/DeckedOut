@@ -58,6 +58,7 @@ async function initRoom() {
       players = roomData.players.map((player: any) => Player.fromPlainObject(player));
       teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
       game.setTeams(teams);
+      game.setPlayers(players);
       handlePopup();
     }
   });
@@ -85,10 +86,9 @@ async function loadSharedUI(containerId = "room-template") {
 function handlePopup(){
   const started = roomData.started;
   if (!started) {
-  document.getElementById("waiting-overlay")!.style.display = "flex";
-  updatePlayerList();
-  renderGameOptions(gameType, gameMap, teams, players, roomRef);
-
+    document.getElementById("waiting-overlay")!.style.display = "flex";
+    updatePlayerList();
+    renderGameOptions(gameType, gameMap, game, roomRef);
   } else {
     document.getElementById("waiting-overlay")!.style.display = "none";
     game.guestSetup(roomData);

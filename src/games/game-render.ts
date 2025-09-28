@@ -30,8 +30,8 @@ export function renderScoreboard(game: BaseGame) {
     const teamHeader = document.createElement("div");
     teamHeader.className = "team-header";
     teamHeader.innerHTML = `
-      <span class="team-name">${team.name}</span>
-      <span class="team-score" id="team-score-${team.id}">${team.score}</span>
+      <span class="team-name">${team.name}:  </span>
+      <span class="team-score" id="team-score">${team.score}</span>
     `;
     teamDiv.appendChild(teamHeader);
 
@@ -39,12 +39,13 @@ export function renderScoreboard(game: BaseGame) {
     const playersDiv = document.createElement("div");
     playersDiv.className = "players";
 
-    team.players.forEach(player => {
+    team.playerIds.forEach(id => {
+      const player = game.getPlayerById(id)!;
       const playerDiv = document.createElement("div");
       playerDiv.className = "player";
       playerDiv.innerHTML = `
         <span class="player-name">${player.name}</span>
-        <span class="player-score" id="player-score-${player.id}">${player.score}</span>
+        <span class="player-score" id="player-score">${player.score}</span>
       `;
       playersDiv.appendChild(playerDiv);
     });

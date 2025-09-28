@@ -1,18 +1,19 @@
 import { updateDoc } from "firebase/firestore";
 import { Team } from "./team";
 import { Player } from "./player";
+import { BaseGame } from "./games/base-game";
 
-export function renderGameOptions(gameType: String, gameMap: Record<string, any>, teams: Team[], players: Player[], roomRef: any){
+export function renderGameOptions(gameType: String, gameMap: Record<string, any>, game: BaseGame, roomRef: any){
   switch(gameType){
     case gameMap.cribbage:
-      renderTeamSelector(teams, players, roomRef);
+      renderTeamSelector(game, roomRef);
       break;
     default:
-      renderTeamSelector(teams, players, roomRef);
+      renderTeamSelector(game, roomRef);
   }
 }
 
-function renderTeamSelector(teams: Team[], players: Player[], roomRef: any){
+function renderTeamSelector(game: BaseGame, roomRef: any){
   const buttons = document.getElementById('popup-btns')!;
   const popup = document.getElementById("waiting-popup")!;
   let teamsContainer = document.getElementById("teams");
@@ -27,7 +28,7 @@ function renderTeamSelector(teams: Team[], players: Player[], roomRef: any){
   const columnsWrapper = document.createElement("div");
   columnsWrapper.id = "team-column-wrapper";
 
-  teams.forEach((team, teamIndex) => {
+  game.getTeams().forEach((team, teamIndex) => {
     const column = document.createElement("div");
     column.className = "team-column";
 
@@ -41,15 +42,16 @@ function renderTeamSelector(teams: Team[], players: Player[], roomRef: any){
       if (newName != team.name && newName != ""){
         team.name = newName;
         updateDoc(roomRef, {
-          teams: teams.map(team => team.toPlainObject())
+          teams: game.getTeams().map(team => team.toPlainObject())
         });
       }
     });
     column.appendChild(teamNameInput);
 
     //Players
-    team.players.forEach(player => {
-      column.appendChild(createPlayerElmt(player, teamIndex, teams, roomRef));
+    team.playerIds.forEach(id => {
+      const player = game.getPlayerById(id)!;
+      column.appendChild(createPlayerElmt(player, teamIndex, game.getTeams(), roomRef));
     });
 
     columnsWrapper.appendChild(column);
@@ -58,10 +60,10 @@ function renderTeamSelector(teams: Team[], players: Player[], roomRef: any){
   teamsContainer.appendChild(columnsWrapper);
 
   //Add/Delete Team Buttons
-  teamsContainer.appendChild(createAddDelCol(teams, players, roomRef));
+  teamsContainer.appendChild(createAddDelCol(game.getTeams(), game.getPlayers(), roomRef));
 
   //Random assignment controls
-  teamsContainer.appendChild(createRandTeamElmts(players, teams, roomRef));
+  teamsContainer.appendChild(createRandTeamElmts(game.getPlayers(), game.getTeams(), roomRef));
 
   popup.insertBefore(teamsContainer, buttons);
 }
@@ -109,7 +111,7 @@ function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDi
 
   addBtn.onclick = () => {
     if (teams.length < players.length) {
-      teams.push(new Team(`${teams.length + 1}`, `Team ${teams.length + 1}`, []));
+      teams.push(new Team(`Team ${teams.length + 1}`, []));
       updateDoc(roomRef, {
         teams: teams.map(team => team.toPlainObject())
       })
@@ -125,8 +127,8 @@ function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDi
       const removed = teams.pop();
       // Push players from removed team back into remaining teams
       if (removed) {
-        removed.players.forEach((p, i) => {
-          teams[i % teams.length].players.push(p);
+        removed.playerIds.forEach((id, i) => {
+          teams[i % teams.length].playerIds.push(id);
         });
       }
       updateDoc(roomRef, {
@@ -180,8 +182,8 @@ function createPlayerElmt(player: Player, teamIndex: number, teams: Team[], room
 }
 
 function movePlayer(player: Player, fromIndex: number, toIndex: number, teams: Team[]) {
-  teams[fromIndex].players = teams[fromIndex].players.filter(p => p.id !== player.id);
-  teams[toIndex].players.push(player);
+  teams[fromIndex].playerIds = teams[fromIndex].playerIds.filter(id => id !== player.id);
+  teams[toIndex].playerIds.push(player.id);
 }
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -195,7 +197,7 @@ function randomizeTeams(players: Player[], teams: Team[], teamSize: number) {
 
   for (let i = 0; i < shuffled.length; i += teamSize) {
     const slice = shuffled.slice(i, i + teamSize);
-    newTeams.push(new Team(`${teamIndex + 1}`, `Team ${teamIndex + 1}`, slice));
+    newTeams.push(new Team(`Team ${teamIndex + 1}`, slice.map(player => player.id)));
     teamIndex++;
   }
 
