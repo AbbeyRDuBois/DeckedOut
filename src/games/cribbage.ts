@@ -363,9 +363,9 @@ export class Cribbage extends BaseGame {
     }
     else{
       const index = this.players.findIndex(player => player.name === this.crib_owner.name);
-      //Just get the next player in the array
-      this.currentPlayer = this.players[(index + 1) % this.players.length];
-      this.crib_owner = this.players[(index + 2) % this.players.length];
+      //Next player becomes crib owner
+      this.crib_owner = this.players[(index + 1) % this.players.length];
+      this.currentPlayer = this.players[(index + 2) % this.players.length];
       this.addLog(`${this.crib_owner.name} is the new crib owner.`);
     }
 
