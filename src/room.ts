@@ -158,6 +158,13 @@ async function createListeners(){
     body.setAttribute('data-theme', themeSelector.value);
   });
 
+  // Listen for theme changes
+  const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement;
+  cardThemeSelector.addEventListener('change', () => {
+    game.setSpriteSheet(cardThemeSelector.value);
+    game.render();
+  });
+
   // Toggle settings panel open/close
   const settingsToggle = document.getElementById('settings-toggle')!;
   const settingsPanel = document.getElementById('settings-panel')!;

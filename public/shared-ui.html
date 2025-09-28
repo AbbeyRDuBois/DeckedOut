@@ -18,26 +18,20 @@
   <div id="settings-panel" class="settings-panel closed">
     <h2>Settings</h2>
     <label for="theme-selector">Select Theme:</label>
-    <select id="theme-selector">
+    <select id="theme-selector" class="theme-selector">
       <option value="dark">Dark</option>
       <option value="light">Light</option>
       <option value="navy">Navy</option>
     </select>
+    <label for="card-theme-selector">Select Card Theme:</label>
+    <select class="theme-selector" id="card-theme-selector" >
+      <option value="Classic">Classic</option>
+      <option value="Cats">Cats</option>
+      <option value="Pokemon">Pokemon</option>
+    </select>
   </div>
   <button class="leave-room">Leave</button>
 </div>
-
-<button id="settings-toggle" aria-label="Toggle settings panel" title="Settings">⚙️</button>
-<div id="settings-panel" class="settings-panel closed">
-  <h2>Settings</h2>
-  <label for="theme-selector">Select Theme:</label>
-  <select id="theme-selector">
-    <option value="dark">Dark</option>
-    <option value="light">Light</option>
-    <option value="navy">Navy</option>
-  </select>
-</div>
-
 <div class="opponents-container" id="opponents"></div>
 <div id="played-container" class="played-container"></div>
 <div id="bottom-section">

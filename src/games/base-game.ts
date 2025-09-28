@@ -4,6 +4,7 @@ import { Player } from "../player";
 import { db } from "../authentication";
 import { Team } from "../team";
 import { renderIndicators } from "./game-render";
+import { CatSheet, PokemonSheet, SpriteSheet } from "../spritesheets";
 
 export abstract class BaseGame {
   protected deck: Deck;
@@ -18,6 +19,7 @@ export abstract class BaseGame {
   protected isTurn: boolean = false;
   protected logs: string[] = [];
   protected playedOffset: number = -65; //How much the cards cover the past played
+  protected spriteSheet: SpriteSheet = new SpriteSheet();
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
@@ -31,6 +33,27 @@ export abstract class BaseGame {
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
   abstract cardClick(card: Card, cardDiv: HTMLDivElement): void;
+
+  getSpriteSheet(): SpriteSheet{
+    return this.spriteSheet;
+  }
+  
+  setSpriteSheet(sheet: string) {
+    switch(sheet){
+      case "Classic":
+        this.spriteSheet = new SpriteSheet();
+        break;
+      case "Cats":
+        this.spriteSheet = new CatSheet();
+        break;
+      case "Pokemon":
+        this.spriteSheet = new PokemonSheet();
+        this.spriteSheet.setImage(); //Have to do this to rando the cards you get
+        break;
+      default:
+        this.spriteSheet = new SpriteSheet();
+    }
+  }
 
   setPlayers(players: Player[]) {
     this.players = players;

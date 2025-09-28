@@ -1,7 +1,8 @@
 import { DocumentData } from "firebase/firestore";
+import { SpriteSheet } from "./spritesheets";
 
 const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-const SUITS = [
+export const SUITS = [
     { name: 'Clubs', symbol: '♣', color: 'black' },
     { name: 'Diamonds', symbol: '♦', color: 'darkred' },
     { name: 'Hearts', symbol: '♥', color: 'darkred' },
@@ -15,14 +16,6 @@ type CardOptions = {
   clickable?: boolean;
   onClick?: (card: Card, cardDiv: HTMLDivElement) => void;
 };
-
-// Original card dimensions in the spritesheet
-const ORIGINAL_CARD_WIDTH = 100;
-const ORIGINAL_CARD_HEIGHT = 150;
-
-// Spritesheet full size
-const SPRITESHEET_WIDTH = 1300;
-const SPRITESHEET_HEIGHT = 750;
 
 export class Card {
     id: number;
@@ -55,7 +48,7 @@ export class Card {
         }
     }
 
-    createCard(options: CardOptions = {}): HTMLDivElement { 
+    createCard(spriteSheet: SpriteSheet, options: CardOptions = {}): HTMLDivElement { 
         const {
             width = 100,
             height = 150,
@@ -64,20 +57,8 @@ export class Card {
             onClick
         } = options;
 
-        //This rescales the spritesheet to fit the cards
-        const scaleX = width / ORIGINAL_CARD_WIDTH;
-        const scaleY = height / ORIGINAL_CARD_HEIGHT;
-
-        // Calculate background size (scale whole spritesheet)
-        const bgWidth = SPRITESHEET_WIDTH * scaleX;
-        const bgHeight = SPRITESHEET_HEIGHT * scaleY;
-
-        //Get positions in spritesheet (need to use actual card size (100 x 150))
-        const col = (this.toInt() - 1) * ORIGINAL_CARD_WIDTH;
-        const row = this.getRow() * ORIGINAL_CARD_HEIGHT;
-
-        var bgPosX = -col * scaleX;
-        var bgPosY = -row * scaleY;
+        const {bgWidth, bgHeight} = spriteSheet.getBackgroundSize(width, height);
+        var {col, row} = spriteSheet.getCardLocation(this.toInt(), spriteSheet.getRow(this.suit), width, height);
 
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card' + (startsFlipped || this.isFlipped ? '' : ' flipped');
@@ -89,18 +70,18 @@ export class Card {
         
         const face = document.createElement('div');
         face.className = 'card-face';
-        face.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+        face.style.backgroundPosition = `${col}px ${row}px`;
         face.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+        face.style.backgroundImage = spriteSheet.getImage();
 
         const back = document.createElement('div');
         back.className = 'card-back';
 
         //Recalculate to card back position 
-        //TODO: Right now card back location is hardcoded. Fix this to make room for other spritesheets
-        bgPosX = -2 * ORIGINAL_CARD_WIDTH * scaleX;
-        bgPosY = -4 * ORIGINAL_CARD_HEIGHT * scaleY;
-        back.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+        var {col, row} = spriteSheet.getCardLocation(spriteSheet.back_col, spriteSheet.back_row, width, height);
+        back.style.backgroundPosition = `${col}px ${row}px`;
         back.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
+        back.style.backgroundImage = spriteSheet.getImage();
 
         hinge.appendChild(face);
         hinge.appendChild(back);
