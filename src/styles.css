@@ -610,7 +610,7 @@ body {
 *
 ***************************************************************************************************************************************/
 #opponents {
-  margin-top: 60px;
+  margin-top: 20px;
   min-height: 80px;
   padding: 0 16px;
   display: flex;
@@ -683,7 +683,7 @@ body {
 #played-container {
   pointer-events: none;
   position: relative; /* key for absolute positioning of children */
-  bottom: -230px;        /* set above bottom-section height */
+  bottom: -240px;        /* set above bottom-section height */
   height: 160px;       /* card container height */
   left: 50%;
   display: inline-flex;       /* Wraps the card*/
