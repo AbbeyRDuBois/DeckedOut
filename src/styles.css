@@ -423,7 +423,58 @@ body {
 #random-btn:hover {
   background-color: var(--gn-btn-hv);
 }
+/***************************************
+*
+* Indicators
+*
+***************************************/
+.indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-left: 10px;
+  margin-bottom: 5px;
+  transition: opacity 0.3s ease;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.indicator.active {
+  display: flex;
+}
+.indicator[data-type="turn"] {
+  background: gold;
+  color: black
+}
+.indicator[data-type="crib"] {
+  background: purple;
+  color: white;
+}
 
+.local-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 25%;
+  z-index: 1000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.local-indicator.active {
+  display: flex;
+}
+.local-indicator[data-type="crib"] {
+  right: 5%;
+  background: purple;
+  color: white;
+}
+.local-indicator[data-type="turn"] {
+  right: 10%;
+  background: gold;
+  color:black;
+}
 /***************************************
 *
 * Logs

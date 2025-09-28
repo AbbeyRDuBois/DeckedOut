@@ -1,4 +1,5 @@
 import { Card } from "../deck";
+import { Player } from "../player";
 import { BaseGame } from "./base-game";
 
   export function renderHand(game: BaseGame) {
@@ -54,7 +55,16 @@ import { BaseGame } from "./base-game";
           cardRow.appendChild(cardDiv);
         });
 
-        opponentDiv.appendChild(opponentName);
+        const oppInfo = document.createElement('div');
+        oppInfo.style.display = 'flex';
+        oppInfo.style.justifyContent = 'center';
+
+        oppInfo.appendChild(opponentName);
+        game.createIndicators(opponent.id).forEach(indicator => {
+          oppInfo.appendChild(indicator);
+        });
+
+        opponentDiv.appendChild(oppInfo);
         opponentDiv.appendChild(cardRow);
         opponentContainer.appendChild(opponentDiv);
     });
@@ -72,4 +82,33 @@ export function renderLogs(game: BaseGame){
 
   // Auto-scroll to bottom
   logBox.scrollTop = logBox.scrollHeight;
+}
+
+type IndicatorConfig = {
+  name: string;
+  isActive: (player: Player) => boolean;
+  indicatorId?: string;
+};
+
+export function renderIndicators(
+  game: BaseGame,
+  indicators: IndicatorConfig[],
+) {
+  game.getPlayers().forEach(player => {
+    indicators.forEach(({ name, isActive, indicatorId }) => {
+      const defaultId =
+        player.id === localStorage.getItem('playerId')
+          ? `local-${name}-indicator`
+          : `${name}-indicator-${player.id}`;
+
+      const indicator = document.getElementById(indicatorId ? indicatorId : defaultId);
+      if (!indicator) return;
+
+      if (isActive(player)) {
+        indicator.classList.add("active");
+      } else {
+        indicator.classList.remove("active");
+      }
+    });
+  });
 }

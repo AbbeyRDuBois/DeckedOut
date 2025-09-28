@@ -3,9 +3,9 @@ const glob = require('glob');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-// Auto-detect all entries based on src/*.ts
+//Auto-detect all entries based on src/*.ts
 const entry = {};
-glob.sync('./src/**/*.ts').forEach(file => {
+glob.sync('./src/**/!(*.d).ts').forEach(file => {
   const name = path.relative('./src/', file).replace(/\\/g, '/').replace(/\.ts$/,'');
   entry[name] = path.resolve(file);
 });
@@ -35,7 +35,7 @@ module.exports = {
       {
         test: /\.ts$/, //Loading ts files
         use: 'ts-loader',
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /\.d\.ts$/]
       },
       {
         test: /\.css$/i,

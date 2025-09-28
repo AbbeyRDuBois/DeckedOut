@@ -1,0 +1,1 @@
+declare module '*.css'; // Declaring that the css file is safe to remove any unnecessary errors that the .ts files throw

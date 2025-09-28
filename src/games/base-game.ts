@@ -4,6 +4,7 @@ import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { db } from "../authentication";
 import { Team } from "../team";
+import { renderIndicators } from "./game-render";
 
 export abstract class BaseGame {
   protected deck: Deck;
@@ -131,6 +132,22 @@ export abstract class BaseGame {
     else{
       this.isTurn = false;
     }
+    renderIndicators(this, [
+      {
+        name: 'turn',
+        isActive: (player) => player.id === this.getCurrentPlayer().id
+      }
+    ]);
+  }
+
+  createIndicators(oppId: string): HTMLDivElement[]{
+      const turnIndicator = document.createElement('div');
+      turnIndicator.classList.add('indicator');
+      turnIndicator.dataset.type = 'turn';
+      turnIndicator.innerHTML= "T";
+      turnIndicator.id = "turn-indicator-" + oppId;
+
+      return [turnIndicator];
   }
 
   findTeamByPlayer(player: Player): Team {
