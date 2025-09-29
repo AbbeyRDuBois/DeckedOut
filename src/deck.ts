@@ -4,8 +4,8 @@ import { SpriteSheet } from "./spritesheets";
 const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 export const SUITS = [
     { name: 'Clubs', symbol: '♣', color: 'black' },
-    { name: 'Diamonds', symbol: '♦', color: 'darkred' },
-    { name: 'Hearts', symbol: '♥', color: 'darkred' },
+    { name: 'Diamonds', symbol: '♦', color: 'crimson' },
+    { name: 'Hearts', symbol: '♥', color: 'crimson' },
     { name: 'Spades', symbol: '♠', color: 'black' },
 ];
 
@@ -33,7 +33,7 @@ export class Card {
     toHTML(): string {
         if (this.suit != ""){
             var suit = SUITS.filter(suit => suit.name == this.suit)[0];
-            return `<span style="color: ${suit.color};">${this.value}${suit.symbol}</span>`;
+            return `${this.value}<span style="color: ${suit.color};">${suit.symbol}</span>`;
         }
         return "";
     }

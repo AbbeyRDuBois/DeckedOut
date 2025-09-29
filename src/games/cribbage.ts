@@ -435,7 +435,6 @@ export class Cribbage extends BaseGame {
       this.deal();
       this.setFlipped();
       this.roundState = RoundState.Throwing;
-      this.flipped = new Card(0);
       this.nextPlayer();
       this.peggingTotal = 0;
       this.peggingCards = [];
@@ -657,11 +656,11 @@ export class Cribbage extends BaseGame {
 
     //If only one suit was found in the set you have a flush
     if (new Set(suits).size === 1) {
-      //check to see if flipped matches to return extra point (dont if crib)
+      //Check to see if flipped matches to return extra point (dont if crib)
       return this.flipped.suit == suits[0] && !crib ? cards.length + 1 : cards.length;
     }
     return 0;
-  } 
+  }
 
   findNobs(cards: Card[]): number{
     const hasNobs = cards.some(card => card.value == 'J' && this.flipped.suit == card.suit)
