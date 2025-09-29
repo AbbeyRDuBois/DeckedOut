@@ -19,9 +19,9 @@
 }
 
 body[data-theme='light'] {
-  --bg-color: #ffffff;
-  --mg-color: #f7fffd;
-  --fg-color: #e6eaec;
+  --bg-color: azure;
+  --mg-color: floralWhite;
+  --fg-color: papayaWhip;
   --text-color: black;
   --bl-btn:#005fff;
   --bl-btn-hv: #0033CC;
@@ -29,6 +29,19 @@ body[data-theme='light'] {
   --rd-btn-hv:darkred;
   --gn-btn:#01b401;
   --gn-btn-hv:#009400;
+}
+
+body[data-theme='teal'] {
+  --bg-color: teal;
+  --mg-color: azure;
+  --fg-color: honeyDew;
+  --text-color: black;
+  --bl-btn:dodgerBlue;
+  --bl-btn-hv: MediumBlue;
+  --rd-btn:tomato;
+  --rd-btn-hv:crimson;
+  --gn-btn:mediumSeaGreen;
+  --gn-btn-hv:forestGreen;
 }
 
 body[data-theme='navy'] {
