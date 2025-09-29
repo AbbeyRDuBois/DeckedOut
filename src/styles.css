@@ -41,7 +41,7 @@ body[data-theme='teal'] {
   --rd-btn:tomato;
   --rd-btn-hv:crimson;
   --gn-btn:mediumSeaGreen;
-  --gn-btn-hv:forestGreen;
+  --gn-btn-hv:seaGreen;
 }
 
 body[data-theme='navy'] {
