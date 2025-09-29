@@ -5,7 +5,7 @@
   *********************************************************************************************************************************************/
 
   /*Default Theme (dark)*/
-  :root {
+:root {
   --bg-color: #1c1c1c;
   --mg-color: #4a4a4a;
   --fg-color: #6d6d6d;
@@ -19,9 +19,9 @@
 }
 
 body[data-theme='light'] {
-  --bg-color: azure;
-  --mg-color: floralWhite;
-  --fg-color: papayaWhip;
+  --bg-color: ivory;
+  --mg-color: mistyRose;
+  --fg-color: floralWhite;
   --text-color: black;
   --bl-btn:#005fff;
   --bl-btn-hv: #0033CC;
@@ -31,11 +31,11 @@ body[data-theme='light'] {
   --gn-btn-hv:#009400;
 }
 
-body[data-theme='teal'] {
-  --bg-color: teal;
-  --mg-color: azure;
-  --fg-color: honeyDew;
-  --text-color: black;
+body[data-theme='sea'] {
+  --bg-color: lightSeaGreen;
+  --mg-color: darkSlateGrey;
+  --fg-color: teal;
+  --text-color: white;
   --bl-btn:dodgerBlue;
   --bl-btn-hv: MediumBlue;
   --rd-btn:tomato;
@@ -45,7 +45,7 @@ body[data-theme='teal'] {
 }
 
 body[data-theme='navy'] {
-    --bg-color: #19232c;
+  --bg-color: #19232c;
   --mg-color: #22303c;
   --fg-color: #344a5d;
   --text-color: #a9a9a9;
@@ -243,16 +243,13 @@ body {
   box-shadow: 0 0 5px #000;
   background-color: var(--mg-color);
 }
-
 #settings-panel.closed {
   display: none;
 }
-
 .settings-panel h2{
   text-align: center;
   border-bottom: 2px solid var(--bg-color);
 }
-
 #settings-toggle { 
   width: 30px;
   height: 30px;
@@ -268,10 +265,11 @@ body {
   border-radius: 10px;
   z-index: 5; 
 }
-
 .theme-selector{
   background-color: var(--fg-color);
-  border-radius: 6px;
+  color: var(--text-color);
+  /*border-radius: 6px;*/
+  margin-bottom: 10px;
 }
 
 /***************************************
@@ -283,7 +281,7 @@ body {
   position: absolute;
   top: 35px;
   right: 0;
-  height: 71%;
+  height: calc(100vh - 160px - 56px); /*Used to make side meet bottom box*/
   max-width:15%;
   background-color: var(--fg-color);
   color: var(--text-color);
@@ -291,7 +289,6 @@ body {
   box-sizing: border-box;
   border-right: 2px solid var(--mg-color);
 }
-
 .team-header {
   display: flex;
   justify-content: space-between;
@@ -514,13 +511,12 @@ body {
   background: purple;
   color: white;
 }
-
 .local-indicator {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   position: absolute;
-  bottom: 25%;
+  bottom: 200px;
   z-index: 5;
   display: none;
   justify-content: center;
@@ -549,7 +545,7 @@ body {
   top: 35px;
   left: 0;
   width: 20%;
-  height: 71%;
+  height: calc(100vh - 160px - 56px); /*Used to make side meet bottom box*/
   background-color: var(--fg-color);
   color: var(--text-color);
   padding: 8px;
@@ -589,11 +585,9 @@ body {
   transform-style: preserve-3d;
   position: relative;
 }
-
 .card.flipped .card-hinge {
   transform: rotateY(180deg);
 }
-
 .card-face, .card-back {
   position: absolute;
   width: 100%;
@@ -607,7 +601,6 @@ body {
   transform: rotateY(180deg);
   z-index: 1;
 }
-
 .card-face {
   z-index: 2;
 }
@@ -711,7 +704,6 @@ body {
   pointer-events: none;   
   cursor: default;               
 }
-
 #peggingContainer {
   position: absolute; 
   top: 38%;
