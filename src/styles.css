@@ -19,9 +19,9 @@
 }
 
 body[data-theme='light'] {
-  --bg-color: ivory;
-  --mg-color: mistyRose;
-  --fg-color: floralWhite;
+  --bg-color: whiteSmoke;
+  --mg-color: ivory;
+  --fg-color: white;
   --text-color: black;
   --bl-btn:#005fff;
   --bl-btn-hv: #0033CC;
@@ -31,7 +31,20 @@ body[data-theme='light'] {
   --gn-btn-hv:#009400;
 }
 
-body[data-theme='sea'] {
+body[data-theme='pink_rose'] {
+  --bg-color: ivory;
+  --mg-color: mistyRose;
+  --fg-color: floralWhite;
+  --text-color: black;
+  --bl-btn:dodgerBlue;
+  --bl-btn-hv: MediumBlue;
+  --rd-btn:tomato;
+  --rd-btn-hv:crimson;
+  --gn-btn:mediumSeaGreen;
+  --gn-btn-hv:seaGreen;
+}
+
+body[data-theme='ocean'] {
   --bg-color: lightSeaGreen;
   --mg-color: darkSlateGrey;
   --fg-color: teal;
