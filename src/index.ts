@@ -4,8 +4,8 @@ Game selection hosting and joining
 */
 
 import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { db } from "./authentication";
-import { v4 } from 'uuid';
+import { db, signInWithGoogle } from "./authentication";
+import { stringify, v4 } from 'uuid';
 import './styles.css'
 import { Player } from "./player";
 import { Team } from "./team";
@@ -113,5 +113,18 @@ document.getElementById("joinBtn")!.addEventListener('click', async () => {
     return;
   }
 
+  if (player.length > 15){
+    alert('Please enter a shorter player name and try again.');
+    return;
+  }
+
   await joinRoom(roomId, player);
+});
+
+//Sign in (Chrome throws some errors, but they don't mean anything)
+document.getElementById("signInBtn")!.addEventListener('click', async () => {
+  var result = await signInWithGoogle()
+  var [email, name] = result;
+  console.log("Name: ", name);
+  (document.getElementById("username") as HTMLInputElement).value = String(name);
 });

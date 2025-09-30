@@ -15,10 +15,13 @@ Related to a [Discord bot](https://github.com/321pie/Card_Bot) that performs a s
 
 2. Open a new terminal and run the following commands:
 ```
-npm install firebase
+npm install firebase@^10.0.0 firebaseui
 ```
 ```
 npm install -g firebase-tools
+```
+```
+npm install firebaseui --save
 ```
  
 > **NOTE**: If scripts are disabled on your system, you can run the following command in your terminal to enable them:
