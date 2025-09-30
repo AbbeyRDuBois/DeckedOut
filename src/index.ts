@@ -125,6 +125,5 @@ document.getElementById("joinBtn")!.addEventListener('click', async () => {
 document.getElementById("signInBtn")!.addEventListener('click', async () => {
   var result = await signInWithGoogle()
   var [email, name] = result;
-  console.log("Name: ", name);
   (document.getElementById("username") as HTMLInputElement).value = String(name);
 });
