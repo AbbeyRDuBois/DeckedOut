@@ -126,4 +126,17 @@ document.getElementById("signInBtn")!.addEventListener('click', async () => {
   var result = await signInWithGoogle()
   var [email, name] = result;
   (document.getElementById("username") as HTMLInputElement).value = String(name);
+  document.getElementById("signInBtn")!.style.display = "none" //Removes button once signed in
+});
+
+//Options menu for Cribbage
+document.getElementById("cribbageBtn")!.addEventListener('click', async () => {
+  const cribbagePopup = document.getElementById("cribbage-overlay")!;
+  cribbagePopup.style.display = "flex";
+});
+
+//Cancel options menu for Cribbage
+document.getElementById("cancelCribbageRoom")!.addEventListener('click', async () => {
+  const cribbagePopup = document.getElementById("cribbage-overlay")!;
+  cribbagePopup.style.display = "none";
 });

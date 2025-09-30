@@ -101,26 +101,43 @@ body {
   align-items: center;
   gap: 20px;
 }
-.username-input{
+#signInBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  gap: 10px;
+  background-color: var(--rd-btn);
+  padding: 10px 16px;
+  border: none;
+  color: var(--text-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+#signInBtn:hover {
+  background-color: var(--rd-btn-hv)
+}
+/* #username-input{
   text-align: center;
   display:flex;
   flex-direction: row;
   gap: 10px;
 }
-.username-input label {
+#username-input label {
   text-align: center;
   display: block;
   padding: 5px;
   font-weight: bold;
 }
-.username-input input {
+#username-input input {
   width: 200px;
   padding: 5px;
   border-radius: 6px;
   border: 1px solid var(--fg-color);
   background-color: var(--fg-color);
   color: var(--text-color);
-}
+} */
 .sections {
   display: flex;
   flex-direction: column;
@@ -189,6 +206,66 @@ body {
 }
 .join-btn:hover {
   background-color: var(--gn-btn-hv);
+}
+.menu-input{
+  text-align: center;
+  display:flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.menu-input label {
+  text-align: center;
+  display: block;
+  padding: 5px;
+  font-weight: bold;
+}
+.menu-input input {
+  width: 200px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid var(--fg-color);
+  background-color: var(--fg-color);
+  color: var(--text-color);
+}
+.cribbage-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: var(--bl-btn);
+  color: var(--text-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.cribbage-btn:hover{
+  background-color: var(--bl-btn-hv);
+}
+.menu-selector{
+  background-color: var(--fg-color);
+  color: var(--text-color);
+  /*border-radius: 6px;*/
+  margin-bottom: 10px;
+}
+.cancel-room-btn {
+  padding: 10px 16px;
+  border: none;
+  background-color: var(--rd-btn);
+  color: var(--text-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+.cancel-room-btn:hover{
+  background-color: var(--rd-btn-hv);
+}
+.options-menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 equal columns */
+  gap: 10px;
+}
+#finalize {
+  margin-top: 15px;
 }
 
 /********************************************************************************************************************************************
@@ -349,7 +426,8 @@ body {
   border-radius: 10px;
   text-align: center;
   width: 90%;
-  max-width: 400px;
+  max-width: 1000px;
+  max-height: 1000px;
   min-height: 300px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   animation: 0.3s ease-in-out;

@@ -19,6 +19,12 @@ export function renderWinner(game: Cribbage, winner: Team){
     const winners = document.getElementById("winners")!;
     winners.innerHTML = `Winner: ${winner.name}!`;
 
+    const points = document.createElement("h2");
+    for(const team of game.getTeams()){
+      points.innerHTML += `${team.name}: ${team.score}</br>`
+    }
+    winners.appendChild(points);
+
     const skunked = game.getTeams().filter(team => team.name != winner.name && team.score <= game.getSkunkLength());
 
     //Create a list of skunked teams/players to shame them
