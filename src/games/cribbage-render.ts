@@ -36,6 +36,7 @@ export function renderWinner(game: Cribbage, winner: Team){
     }
 }
 
+//Call to render the card-select popup for when a joker is available in cribbage
 export function renderJokerPopup(game: Cribbage) {
   document.getElementById("joker-overlay")!.style.display = "flex";
   const card_grid = document.getElementById("card-btns")
@@ -60,6 +61,7 @@ export function renderJokerPopup(game: Cribbage) {
   }
 }
 
+//Automatically called on the card that is selected by the player with a joker
 function jokerCardClicked(card: Card, cardDiv: HTMLDivElement): void{
   document.getElementById("joker-overlay")!.style.display = "none";
 
