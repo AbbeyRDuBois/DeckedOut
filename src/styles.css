@@ -432,6 +432,7 @@ body {
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   animation: 0.3s ease-in-out;
   justify-content: center;
+  /*overflow: auto;*/
 }
 #waiting-popup .room-info {
   position: absolute;
@@ -574,6 +575,12 @@ body {
 }
 #random-btn:hover {
   background-color: var(--gn-btn-hv);
+}
+
+/*Winner Popup*/
+#winners {
+  font-size: large;
+  color: var(--gn-btn);
 }
 /***************************************
 *
@@ -818,4 +825,10 @@ body {
   transform: translateX(-50%);
   font-size: 40px;
 }
-
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr); /* 13 equal columns */
+  gap: 2px;
+  overflow: scroll;
+  max-width: 100%;
+}

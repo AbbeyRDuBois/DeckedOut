@@ -9,7 +9,7 @@ export const SUITS = [
     { name: 'Spades', symbol: '♠', color: 'black' },
 ];
 
-type CardOptions = {
+export type CardOptions = {
   width?: number;
   height?: number;
   startsFlipped?: boolean;
@@ -152,6 +152,12 @@ export class Deck{
 
         let card = Math.floor(Math.random() * this.deck.length);
         return this.deck.splice(card, 1)[0];
+    }
+
+    getOrderedCard(){
+        if(this.deck.length === 0) return;
+
+        return this.deck.shift(); //Always return first element
     }
 
     toPlainObject(){

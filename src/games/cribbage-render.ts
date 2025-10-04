@@ -1,3 +1,4 @@
+import { Deck, Card, CardOptions } from "../deck";
 import { Team } from "../team";
 import { Cribbage } from "./cribbage";
 
@@ -33,4 +34,35 @@ export function renderWinner(game: Cribbage, winner: Team){
     skunkH2.innerHTML = `Skunked: ${skunked.map(team => team.name).join(", ")}`;
     winners.appendChild(skunkH2);
     }
+}
+
+export function renderJokerPopup(game: Cribbage) {
+  document.getElementById("joker-overlay")!.style.display = "flex";
+  const card_grid = document.getElementById("card-btns")
+
+  const my_deck:Deck = new Deck
+  let card = my_deck.getOrderedCard()
+  const options:CardOptions = {
+    startsFlipped: true,
+    clickable: true,
+    onClick: jokerCardClicked,
+  }
+
+  while(card){
+    const card_button = document.createElement("button");
+    card_button.className = "card_btn"
+
+    card_button.appendChild(card.createCard(game.getSpriteSheet(), options)) //Add card image to button
+    card_grid?.appendChild(card_button) //Add button to grid
+
+    //Get new card
+    card = my_deck.getOrderedCard()
+  }
+}
+
+function jokerCardClicked(card: Card, cardDiv: HTMLDivElement): void{
+  document.getElementById("joker-overlay")!.style.display = "none";
+
+  //TODO: Do something on return
+  console.log("Card clicked!") //TODO: Delete this probably lol
 }

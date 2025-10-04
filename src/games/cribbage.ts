@@ -4,7 +4,7 @@ import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
 import { renderHand, renderScoreboard, renderOpponents, renderLogs, renderIndicators} from "./game-render"
-import { renderFlipped, renderPeggingTotal, renderWinner } from "./cribbage-render";
+import { renderJokerPopup, renderFlipped, renderPeggingTotal, renderWinner } from "./cribbage-render";
 
 
 enum RoundState {
