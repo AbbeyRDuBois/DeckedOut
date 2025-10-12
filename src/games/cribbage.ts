@@ -1,6 +1,6 @@
 import { arrayUnion, DocumentData, onSnapshot, updateDoc } from "firebase/firestore";
 import { BaseGame } from "./base-game";
-import { Card, Deck } from "../deck";
+import { Card, Deck, JokerDeck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
 import { renderHand, renderScoreboard, renderOpponents, renderLogs, renderIndicators} from "./game-render"
@@ -25,6 +25,8 @@ export class Cribbage extends BaseGame {
   protected peggingCards: Card[] = []; //Holds sequence of cards played in pegging round
   protected peggingTotal: number = 0; //Sum of current pegging round
   protected ended: boolean = false;
+  protected gameMode: string = "Standard";
+  protected deckMode: string = "Standard";
 
   constructor( deck: Deck, players: Player[], roomId: string){
     super(deck, players, roomId);
@@ -87,7 +89,7 @@ export class Cribbage extends BaseGame {
     this.roundState = RoundState.Throwing;
 
     //This call is pretty big cause it's inital setup
-    this.updateDBState({
+    await this.updateDBState({
       players: this.players.map(player => player.toPlainObject()),
       teams: this.teams.map(team => team.toPlainObject()),
       flipped: this.flipped.toPlainObject(),
@@ -117,13 +119,18 @@ export class Cribbage extends BaseGame {
       for(let i = 0; i < cardNum; i++){
         player.hand.push(this.deck.getCard()!);
       }
-
+      player.hand.push(this.deck.deck.splice(53, 1)[0])
       player.playedCards = [];
     })
 
     //Add a card to crib if 3 players
     if (this.players.length == 3){
       this.crib.push(this.deck.getCard()!);
+    }
+
+    const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
+    if (player.hand?.find(card => card.value === "JK") != null){
+      renderJokerPopup(this);
     }
   }
 
@@ -186,18 +193,23 @@ export class Cribbage extends BaseGame {
   }
 
   updateLocalState(data: DocumentData): void {
-    this.players = data.players.map((player: any) =>Player.fromPlainObject(player));
-    this.teams = data.teams.map((team: any) => Team.fromPlainObject(team));
+    this.players = data.players?.map((player: any) =>Player.fromPlainObject(player));
+    this.teams = data.teams?.map((team: any) => Team.fromPlainObject(team));
     this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
     this.crib_owner = Player.fromPlainObject(data.crib_owner);
-    this.crib = data.crib.map((c: any) => new Card(c.id, c.value, c.suit));
+    this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit));
     this.deck = Deck.fromPlainObject(data.deck);
     this.roundState = data.roundState;
-    this.peggingCards = data.peggingCards.map((c: any) => new Card(c.id, c.value, c.suit));
+    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit));
     this.peggingTotal = data.peggingTotal;
     this.flipped = Card.fromPlainObject(data.flipped);
     this.ended = data.ended;
     this.logs = data.logs;
+    this.point_goal = data.point_goal;
+    this.skunk_length = data.skunk_length;
+    this.hand_size = data.hand_size;
+    this.gameMode = data.gameMode;
+    this.deckMode = data.deckMode;
   }
 
   async updateDBState(changes: { [key: string]: any}){
@@ -402,6 +414,73 @@ export class Cribbage extends BaseGame {
     return indicators;
   }
 
+  createModeSelector(): HTMLDivElement | null {
+    const modes = document.createElement('div');
+    const stanDeckOpt = this.createSelectorOption("Standard");
+    const jokerOpt = this.createSelectorOption("Joker");
+    const stanModeOpt = this.createSelectorOption("Standard");
+    const megaOpt = this.createSelectorOption("Mega");
+    const deckSelector = document.createElement('select');
+    deckSelector.classList.add("deckSelector");
+    deckSelector.classList.add("menu-selector");
+    deckSelector.options.add(stanDeckOpt);
+    deckSelector.options.add(jokerOpt);
+    deckSelector.value = this.deckMode;
+
+    deckSelector.addEventListener("change", async (event) => {
+      const target = event.target as HTMLSelectElement;
+      if(target.value == "Standard"){
+        this.deck = new Deck();
+      }
+      else{
+        this.deck = new JokerDeck();
+      }
+
+      this.deckMode = target.value != "" ? target.value: "Standard";
+      await this.updateDBState({deck: this.deck.toPlainObject(), deckMode: this.deckMode});
+    });
+
+    const modeSelector = document.createElement('select');
+    modeSelector.classList.add("modeSelector");
+    modeSelector.classList.add("menu-selector");
+    modeSelector.options.add(stanModeOpt);
+    modeSelector.options.add(megaOpt);
+    modeSelector.value = this.gameMode;
+
+    modeSelector.addEventListener("change", async (event) => {
+      const target = event.target as HTMLSelectElement;
+      if(target.value == "Standard"){
+        this.point_goal = 121;
+        this.skunk_length = 90;
+        this.hand_size = 4;
+      }
+      else{
+        this.point_goal = 241
+        this.skunk_length = 180;
+        this.hand_size = 8;
+      }
+
+      this.gameMode = target.value != "" ? target.value: "Standard";
+      await this.updateDBState({
+        point_goal: this.point_goal,
+        skunk_length: this.skunk_length,
+        hand_size: this.hand_size,
+        gameMode: this.gameMode
+      })
+    });
+
+    modes.appendChild(deckSelector);
+    modes.appendChild(modeSelector);
+    return modes;
+  }
+
+  createSelectorOption(name: string): HTMLOptionElement{
+    const opt = document.createElement('option');
+    opt.innerHTML= name;
+    opt.value= name;
+
+    return opt;
+  }
 
   //Returns true when entire pegging round is done. False if just resetting loop
   endRound(index: number){

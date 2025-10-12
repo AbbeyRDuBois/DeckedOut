@@ -44,6 +44,7 @@ export class Card {
             case 'J': return counting ? 10 : 11;
             case 'Q': return counting ? 10 : 12;
             case 'K': return counting ? 10 : 13;
+            case 'JK': return this.suit == "Red" ? 1 : 2;
             default: return parseInt(this.value);
         }
     }
@@ -119,6 +120,9 @@ export class Card {
     }
 
     static fromPlainObject(data: DocumentData): Card{
+        if (data == null){
+            return new Card(0, "", "", false);
+        }
         return new Card(data.id, data.value, data.suit, data.isFlipped);
     }
 }
@@ -168,5 +172,13 @@ export class Deck{
         return new Deck(Array.isArray(data)
             ? data.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped))
             : []);
+    }
+}
+
+export class JokerDeck extends Deck{
+    resetDeck(){
+        super.resetDeck();
+        this.deck.push(new Card(this.deck.length, 'JK', 'Red'))
+        this.deck.push(new Card(this.deck.length, 'JK', 'Black'))
     }
 }

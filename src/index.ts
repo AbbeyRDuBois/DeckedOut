@@ -5,7 +5,7 @@ Game selection hosting and joining
 
 import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db, signInWithGoogle } from "./authentication";
-import { stringify, v4 } from 'uuid';
+import { v4 } from 'uuid';
 import './styles.css'
 import { Player } from "./player";
 import { Team } from "./team";
@@ -127,16 +127,4 @@ document.getElementById("signInBtn")!.addEventListener('click', async () => {
   var [email, name] = result;
   (document.getElementById("username") as HTMLInputElement).value = String(name);
   document.getElementById("signInBtn")!.style.display = "none" //Removes button once signed in
-});
-
-//Options menu for Cribbage
-document.getElementById("cribbageBtn")!.addEventListener('click', async () => {
-  const cribbagePopup = document.getElementById("cribbage-overlay")!;
-  cribbagePopup.style.display = "flex";
-});
-
-//Cancel options menu for Cribbage
-document.getElementById("cancelCribbageRoom")!.addEventListener('click', async () => {
-  const cribbagePopup = document.getElementById("cribbage-overlay")!;
-  cribbagePopup.style.display = "none";
 });

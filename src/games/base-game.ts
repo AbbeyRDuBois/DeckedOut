@@ -54,6 +54,7 @@ export abstract class BaseGame {
         this.spriteSheet = new SpriteSheet();
     }
   }
+  updateLocalState(roomData: any){}
 
   setPlayers(players: Player[]) {
     this.players = players;
@@ -176,6 +177,10 @@ export abstract class BaseGame {
       turnIndicator.id = "turn-indicator-" + oppId;
 
       return [turnIndicator];
+  }
+
+  createModeSelector(): HTMLDivElement | null {
+    return null
   }
 
   findTeamByPlayer(player: Player): Team {

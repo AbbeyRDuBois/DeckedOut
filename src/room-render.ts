@@ -3,10 +3,11 @@ import { Team } from "./team";
 import { Player } from "./player";
 import { BaseGame } from "./games/base-game";
 
-export function renderGameOptions(gameType: String, gameMap: Record<string, any>, game: BaseGame, roomRef: any){
+export function renderGameOptions(gameType: String, game: BaseGame, roomRef: any){
   switch(gameType){
-    case gameMap.cribbage:
+    case 'cribbage':
       renderTeamSelector(game, roomRef);
+      renderModeSelector(game)
       break;
     default:
       renderTeamSelector(game, roomRef);
@@ -14,8 +15,8 @@ export function renderGameOptions(gameType: String, gameMap: Record<string, any>
 }
 
 function renderTeamSelector(game: BaseGame, roomRef: any){
-  const buttons = document.getElementById('popup-btns')!;
-  const popup = document.getElementById("waiting-popup")!;
+  const innerContainer = document.getElementById("inner-container")!;
+  innerContainer.innerHTML = '';
   let teamsContainer = document.getElementById("teams");
 
   if (teamsContainer == null){
@@ -65,7 +66,25 @@ function renderTeamSelector(game: BaseGame, roomRef: any){
   //Random assignment controls
   teamsContainer.appendChild(createRandTeamElmts(game.getPlayers(), game.getTeams(), roomRef));
 
-  popup.insertBefore(teamsContainer, buttons);
+  innerContainer.appendChild(teamsContainer);
+}
+
+function renderModeSelector(game: BaseGame){
+  const innerContainer = document.getElementById("inner-container")!;
+  const teamsContainer = document.getElementById("teams");
+
+  if (teamsContainer != null){
+    const divideLine = document.createElement('div');
+    divideLine.classList.add("divide-line");
+    innerContainer.appendChild(divideLine)
+  }
+
+  const modeSelector = document.createElement('div');
+  modeSelector.classList.add("mode-selector");
+
+  modeSelector.appendChild(game.createModeSelector()!);
+
+  innerContainer.appendChild(modeSelector);
 }
 
 function createRandTeamElmts(players: Player[], teams: Team[], roomRef: any): HTMLDivElement{

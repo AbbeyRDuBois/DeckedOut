@@ -27,6 +27,10 @@ export class Player {
     }
 
     static fromPlainObject(data: DocumentData): Player {
+        if (data == null){
+           return new Player("", "");
+        }
+        
         let player = new Player(data.id, data.name);
 
         player.hand = Array.isArray(data.hand)
