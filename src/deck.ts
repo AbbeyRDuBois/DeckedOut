@@ -158,12 +158,6 @@ export class Deck{
         return this.deck.splice(card, 1)[0];
     }
 
-    getOrderedCard(){
-        if(this.deck.length === 0) return;
-
-        return this.deck.shift(); //Always return first element
-    }
-
     toPlainObject(){
         return this.deck.map(card => card.toPlainObject());
     }

@@ -18,10 +18,10 @@ export class Player {
         return {
             id: this.id,
             name: this.name,
-            hand: this.hand.map(card => card.toPlainObject()),
+            hand: this.hand?.map(card => card?.toPlainObject()),
             isTurn: this.isTurn,
             score: this.score,
-            playedCards: this.playedCards?.map(card => card.toPlainObject()),
+            playedCards: this.playedCards?.map(card => card?.toPlainObject()),
             team: this.team
         };
     }
@@ -30,7 +30,7 @@ export class Player {
         if (data == null){
            return new Player("", "");
         }
-        
+
         let player = new Player(data.id, data.name);
 
         player.hand = Array.isArray(data.hand)

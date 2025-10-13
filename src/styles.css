@@ -743,7 +743,7 @@ body {
   justify-content: center;
   gap: 10px;
 }
-.opp-card {
+.small-card {
   pointer-events: none;  /* disables all interaction */
   width: 40px;
   height: 60px;
@@ -849,6 +849,26 @@ body {
   display: grid;
   grid-template-columns: repeat(13, 1fr); /* 13 equal columns */
   gap: 2px;
-  overflow: scroll;
   max-width: 100%;
+}
+
+.joker-card-btn {
+  width: 40px;
+  height: 60px;
+  transition: border 0.3s ease, transform 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 13px;
+  background-repeat: no-repeat;
+}
+
+#joker-popup.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  max-width:55%;
+  transform: translate(-50%, -50%);
+  padding: 5px;
+  border-radius: 10px;
 }

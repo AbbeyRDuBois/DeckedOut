@@ -39,32 +39,23 @@ export function renderWinner(game: Cribbage, winner: Team){
 //Call to render the card-select popup for when a joker is available in cribbage
 export function renderJokerPopup(game: Cribbage) {
   document.getElementById("joker-overlay")!.style.display = "flex";
-  const card_grid = document.getElementById("card-btns")
+  const card_grid = document.getElementById("card-btns")!;
+  card_grid.innerHTML = "";
 
-  const my_deck:Deck = new Deck
-  let card = my_deck.getOrderedCard()
+  const newDeck = new Deck()
   const options:CardOptions = {
     startsFlipped: true,
     clickable: true,
-    onClick: jokerCardClicked,
+    height: 60,
+    width: 40,
+    onClick: game.jokerCardClick,
   }
 
-  while(card){
-    const card_button = document.createElement("button");
-    card_button.className = "card_btn"
-
-    card_button.appendChild(card.createCard(game.getSpriteSheet(), options)) //Add card image to button
-    card_grid?.appendChild(card_button) //Add button to grid
-
-    //Get new card
-    card = my_deck.getOrderedCard()
-  }
-}
-
-//Automatically called on the card that is selected by the player with a joker
-function jokerCardClicked(card: Card, cardDiv: HTMLDivElement): void{
-  document.getElementById("joker-overlay")!.style.display = "none";
-
-  //TODO: Do something on return
-  console.log("Card clicked!") //TODO: Delete this probably lol
+  newDeck.deck.forEach(card => {
+    const cardDiv = card.createCard(game.getSpriteSheet(), options);
+    cardDiv.classList.add('small-card');
+    cardDiv.style.pointerEvents = "all";
+    cardDiv.style.transform = "0";
+    card_grid.appendChild(cardDiv) //Add button to grid
+  });
 }

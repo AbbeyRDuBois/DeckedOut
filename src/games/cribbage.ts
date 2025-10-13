@@ -27,12 +27,14 @@ export class Cribbage extends BaseGame {
   protected ended: boolean = false;
   protected gameMode: string = "Standard";
   protected deckMode: string = "Standard";
+  protected justUpdated: boolean = false;
 
   constructor( deck: Deck, players: Player[], roomId: string){
     super(deck, players, roomId);
     this.maxPlayers = 8;
 
     this.cardClick = this.cardClick.bind(this); //Binds this function to game so that games variables can still be used in the onClick
+    this.jokerCardClick = this.jokerCardClick.bind(this);
   }
 
   /***********************************************************************************************************************************************
@@ -90,16 +92,16 @@ export class Cribbage extends BaseGame {
 
     //This call is pretty big cause it's inital setup
     await this.updateDBState({
-      players: this.players.map(player => player.toPlainObject()),
+      players: this.createPlayerMap(),
       teams: this.teams.map(team => team.toPlainObject()),
       flipped: this.flipped.toPlainObject(),
-      crib: arrayUnion(...this.crib.map(card => card.toPlainObject())),
+      crib: arrayUnion(...this.crib?.map(card => card.toPlainObject())),
       crib_owner: this.crib_owner.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       deck: this.deck.toPlainObject(),
       started: true,
       roundState: this.roundState,
-      peggingCards: arrayUnion(...this.peggingCards.map(card => card.toPlainObject())),
+      peggingCards: arrayUnion(...this.peggingCards?.map(card => card.toPlainObject())),
       peggingTotal: this.peggingTotal,
       ended: this.ended,
       logs: this.logs
@@ -111,26 +113,20 @@ export class Cribbage extends BaseGame {
   }
 
   async deal(): Promise<void> {
-    //Deal 6 cards if 2 players, 5 if more
-    const cardNum = this.players.length > 2 ? 5 : 6;
+    //Deal +2 cards if 2 players, +1 if more
+    const cardNum = this.players.length > 2 ? this.hand_size + 1 : this.hand_size + 2;
 
     this.players.forEach(player => {
       player.hand = [];
       for(let i = 0; i < cardNum; i++){
         player.hand.push(this.deck.getCard()!);
       }
-      player.hand.push(this.deck.deck.splice(53, 1)[0])
       player.playedCards = [];
     })
 
     //Add a card to crib if 3 players
     if (this.players.length == 3){
       this.crib.push(this.deck.getCard()!);
-    }
-
-    const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
-    if (player.hand?.find(card => card.value === "JK") != null){
-      renderJokerPopup(this);
     }
   }
 
@@ -166,13 +162,22 @@ export class Cribbage extends BaseGame {
       },
 
     ]);
+    const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
+    if (player.hand?.find(card => card.value == "JK") != null){
+      renderJokerPopup(this);
+    }
   }
 
   setupListener() {
     //Game specific room listener
     onSnapshot(this.roomRef, (docSnap: any) => {
+      if (this.justUpdated) {
+        console.log("Skipping snapshot due to recent local update");
+        return;
+      }
       const roomData = docSnap.data() as DocumentData;
       this.updateLocalState(roomData);
+      console.log("Local State Updated:", this.players.map(p => p.hand));
       //Enables your hand if it's your turn
       if (this.roundState == RoundState.Pegging && this.currentPlayer.id === localStorage.getItem('playerId')){
         const handContainer = document.getElementById("hand")!;
@@ -193,27 +198,67 @@ export class Cribbage extends BaseGame {
   }
 
   updateLocalState(data: DocumentData): void {
-    this.players = data.players?.map((player: any) =>Player.fromPlainObject(player));
-    this.teams = data.teams?.map((team: any) => Team.fromPlainObject(team));
+    this.players = []; // Clear first
+    for (const [id, player] of Object.entries(data.players)) {
+      this.players.push(Player.fromPlainObject(player as DocumentData));
+    }
+    this.teams = data.teams?.map((team: any) => Team.fromPlainObject(team)) ?? [];
     this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
     this.crib_owner = Player.fromPlainObject(data.crib_owner);
-    this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit));
+    this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? [];
     this.deck = Deck.fromPlainObject(data.deck);
-    this.roundState = data.roundState;
-    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit));
-    this.peggingTotal = data.peggingTotal;
+    this.roundState = data.roundState ?? RoundState.Throwing;
+    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? [];
+    this.peggingTotal = data.peggingTotal ?? 0;
     this.flipped = Card.fromPlainObject(data.flipped);
-    this.ended = data.ended;
-    this.logs = data.logs;
-    this.point_goal = data.point_goal;
-    this.skunk_length = data.skunk_length;
-    this.hand_size = data.hand_size;
-    this.gameMode = data.gameMode;
-    this.deckMode = data.deckMode;
+    this.ended = data.ended ?? false;
+    this.logs = data.logs ?? [];
+    this.point_goal = data.point_goal ?? 121;
+    this.skunk_length = data.skunk_length ?? 90;
+    this.hand_size = data.hand_size ?? 4;
+    this.gameMode = data.gameMode ?? "Standard";
+    this.deckMode = data.deckMode ?? "Standard";
+  }
+
+  createPlayerMap(): Record<string, any> {
+    const playerMap: Record<string, any> = {};
+    this.players.forEach((player) => {
+      playerMap[player.id] = player.toPlainObject();
+    });
+
+    return playerMap;
   }
 
   async updateDBState(changes: { [key: string]: any}){
+    this.justUpdated = true;
     await updateDoc(this.roomRef, changes);
+
+    setTimeout(() => {
+      this.justUpdated = false; // after 100ms, allow listener again
+    }, 100);
+  }
+
+  //Automatically called on the card that is selected by the player with a joker
+  async jokerCardClick(card: Card, cardDiv: HTMLDivElement): Promise<void> {
+    document.getElementById("joker-overlay")!.style.display = "none";
+
+    const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
+
+    //get rid of joker from hand
+    player.hand.splice(player.hand.findIndex(card => card.value == "JK"), 1);
+
+    //Add new card to hand
+    card.isFlipped = true;
+    player.hand.push(card);
+
+    //Update hand for everyone
+    console.log("Before DB update:", player.hand);
+    await this.updateDBState({
+      [`players.${player.id}`]: player.toPlainObject(),
+    });
+    console.log("After DB update:", player.hand);
+
+    this.render();
   }
 
   async cardClick(card: Card, cardDiv: HTMLDivElement) {
@@ -246,7 +291,7 @@ export class Cribbage extends BaseGame {
       }
 
       let changes: Record<string, any> = {
-        players: this.players.map(p => p.toPlainObject()),
+        players: this.createPlayerMap(),
         teams: this.teams.map(team => team.toPlainObject()),
         crib: this.crib.map(c => c.toPlainObject()),
         logs: this.logs
@@ -295,7 +340,7 @@ export class Cribbage extends BaseGame {
 
     if(this.ended){
       await this.updateDBState({
-        players: this.players.map(p => p.toPlainObject()),
+        players: this.createPlayerMap(),
         teams: this.teams.map(team => team.toPlainObject()),
         ended: true,
         logs: this.logs
@@ -308,7 +353,7 @@ export class Cribbage extends BaseGame {
     //Doing this twice as nextPlayer could have updated the player counts after end round
     if(this.ended){
       await this.updateDBState({
-        players: this.players.map(p => p.toPlainObject()),
+        players: this.createPlayerMap(),
         teams: this.teams.map(team => team.toPlainObject()),
         ended: true,
         logs: this.logs
@@ -317,7 +362,7 @@ export class Cribbage extends BaseGame {
     }
 
     let changes: Record<string, any> = {
-      players: this.players.map(p => p.toPlainObject()),
+      players: this.createPlayerMap(),
       teams: this.teams.map(team => team.toPlainObject()),
       currentPlayer: this.currentPlayer.toPlainObject(),
       peggingCards: this.peggingCards.map(card => card.toPlainObject()),
