@@ -55,10 +55,10 @@ async function initRoom() {
     }
     roomData = docSnap.data();
     if (sharedUILoaded && !game.getStarted()) {
-      players = roomData.players.map((player: any) => Player.fromPlainObject(player));
-      teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
-      game.setTeams(teams);
-      game.setPlayers(players);
+      game.updateLocalState(roomData)
+
+      players = game.getPlayers();
+      teams = game.getTeams();
       handlePopup();
     }
   });
@@ -88,7 +88,7 @@ function handlePopup(){
   if (!started) {
     document.getElementById("waiting-overlay")!.style.display = "flex";
     updatePlayerList();
-    renderGameOptions(gameType, gameMap, game, roomRef);
+    renderGameOptions(gameType, game, roomRef);
   } else {
     document.getElementById("waiting-overlay")!.style.display = "none";
     game.guestSetup(roomData);

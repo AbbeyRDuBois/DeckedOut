@@ -21,6 +21,10 @@ export class Team {
     }
 
     static fromPlainObject(data: DocumentData): Team {
+        if (data == null){
+            return new Team("", []);
+        }
+        
         let team = new Team(data.name, data.playerIds, data.score);
 
         return team;

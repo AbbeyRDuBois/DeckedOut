@@ -72,7 +72,7 @@ export function renderScoreboard(game: BaseGame) {
         opponent.hand.forEach(card => {
           //TODO: Fix the hardcoded values?
           const cardDiv = card.createCard(game.getSpriteSheet(), {width: 40, height:60});
-          cardDiv.classList.add('opp-card');
+          cardDiv.classList.add('small-card');
           cardRow.appendChild(cardDiv);
         });
 
