@@ -96,17 +96,18 @@ export class Cribbage extends BaseGame {
     this.deal();
     this.setFlipped();
     this.roundState = RoundState.Throwing;
+    this.started = true;
 
     //This call is pretty big cause it's inital setup
     await this.db.update ({
       players: this.createPlayerMap(),
       teams: this.teams.map(team => team.toPlainObject()),
-      flipped: this.flipped.toPlainObject(),
+      flipped: this.flipped?.toPlainObject(),
       crib: arrayUnion(...this.crib?.map(card => card.toPlainObject())),
       crib_owner: this.crib_owner.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       deck: this.deck.toPlainObject(),
-      started: true,
+      started: this.started,
       roundState: this.roundState,
       peggingCards: arrayUnion(...this.peggingCards?.map(card => card.toPlainObject())),
       peggingTotal: this.peggingTotal,

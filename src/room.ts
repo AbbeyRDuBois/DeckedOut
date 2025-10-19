@@ -32,7 +32,6 @@ export class Room {
   gameType: string;
   db!: Database;
   game!: BaseGame;
-  roomData!: DocumentData;
   sharedUILoaded: boolean = false;
 
   constructor(gameType: string, roomId: string) {
@@ -53,15 +52,15 @@ export class Room {
 
     this.db.setRoom(this);
 
-    this.roomData = await this.db.pullState();
-    if (!this.roomData) {
+    var roomData = await this.db.pullState();
+    if (!roomData) {
       alert("Room not found.");
       return;
     }
 
     // Game setup
-    const players = this.roomData.players.map((p: any) => Player.fromPlainObject(p));
-    const teams = this.roomData.teams.map((t: any) => Team.fromPlainObject(t));
+    const players = roomData.players.map((p: any) => Player.fromPlainObject(p));
+    const teams = roomData.teams.map((t: any) => Team.fromPlainObject(t));
     this.game = new gameMap[this.gameType](new Deck(), players, this.roomId);
     this.game.setPlayers(players);
     this.game.setTeams(teams);
@@ -94,15 +93,16 @@ export class Room {
     return this.sharedUILoaded;
   }
 
-  handlePopup() {
-    const started = this.roomData.started;
+  async handlePopup() {
+    var roomData = await this.db.pullState();
+    const started = roomData.started;
     if (!started) {
       document.getElementById("waiting-overlay")!.style.display = "flex";
       this.updatePlayerList();
       renderGameOptions(this.gameType, this.game);
     } else {
       document.getElementById("waiting-overlay")!.style.display = "none";
-      this.game.guestSetup(this.roomData);
+      this.game.guestSetup(roomData);
     }
   }
 
@@ -118,7 +118,7 @@ export class Room {
 
   async exitRoom() {
     const playerId = localStorage.getItem("playerId")!;
-    const hostId = this.roomData.hostId;
+    const hostId = (await this.db.pullState()).hostId;
 
     if (this.game.getStarted() || playerId === hostId) {
       await this.db.delete();
