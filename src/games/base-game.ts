@@ -1,17 +1,15 @@
-import { doc, DocumentData } from "firebase/firestore";
+import { DocumentData } from "firebase/firestore";
 import { Card, Deck } from "../deck";
 import { Player } from "../player";
-import { db } from "../authentication";
 import { Team } from "../team";
 import { renderIndicators } from "./game-render";
 import { CatSheet, PokemonSheet, SpriteSheet } from "../spritesheets";
+import { Database, getDBInstance } from "../databases";
 
 export abstract class BaseGame {
   protected deck: Deck;
   protected players: Player[];
-  protected teams: Team[] = [];
-  protected roomId: string;
-  protected roomRef: any;
+  protected teams: Team[] = []
   protected maxPlayers: number = 6;
   protected minPlayers: number = 2;
   protected started: boolean = false;
@@ -20,12 +18,12 @@ export abstract class BaseGame {
   protected logs: string[] = [];
   protected playedOffset: number = -65; //How much the cards cover the past played
   protected spriteSheet: SpriteSheet = new SpriteSheet();
+  protected db: Database
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
     this.players = players;
-    this.roomId = roomId;
-    this.roomRef = doc(db, "rooms", roomId);
+    this.db = getDBInstance();
   }
 
   abstract start(): void;
@@ -55,6 +53,10 @@ export abstract class BaseGame {
     }
   }
   updateLocalState(roomData: any){}
+
+  getDB(): Database{
+    return this.db;
+  }
 
   setPlayers(players: Player[]) {
     this.players = players;

@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { EmailAuthProvider, getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCeSKFFsJR5F_dkrKLMRA1w9QZuxOTg3Dg",
@@ -12,8 +11,7 @@ const firebaseConfig = {
   appId: "1:964204828145:web:bb37413d4cb8e4d3e3e050"
 };
 
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // Sign in with Google
@@ -33,4 +31,4 @@ window.addEventListener('error', (event) => {
   console.error('Uncaught Error:', event.error);
 });
 
-export { db, auth };
+export { app, auth };

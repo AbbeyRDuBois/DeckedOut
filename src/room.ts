@@ -1,186 +1,192 @@
+// Room.ts
 import { Cribbage } from './games/cribbage';
 import { BaseGame } from './games/base-game';
 import { Deck } from './deck';
-import { deleteDoc, doc, DocumentData, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { DocumentData } from 'firebase/firestore';
 import { Player } from './player';
-import { db } from './authentication';
-import './styles.css'
 import { Team } from './team';
 import { renderGameOptions } from './room-render';
+import { CribbageDatabase, Database, setDBInstance } from './databases';
+import './styles.css';
 
 const urlParams = new URLSearchParams(window.location.search);
 const roomId = urlParams.get('roomId')!;
 const gameType = urlParams.get('game')!;
 
-let roomData: DocumentData;
-let roomRef:any;
-let game: BaseGame;
-let players: Player[];
-let sharedUILoaded = false;
-let teams: Team[];
+//Loads the room functions
+window.onload = async () => {
+  const room = new Room(gameType, roomId);
+  await room.init();
+};
 
 const gameMap: Record<string, any> = {
-    'cribbage': Cribbage,
+  'cribbage': Cribbage,
 };
 
-async function getRoomData(roomRef: any): Promise<DocumentData>{
-    return (await getDoc(roomRef))?.data()!;
-}
+const DBMap: Record<string, any> = {
+  'cribbage': CribbageDatabase,
+};
 
-async function initRoom() {
-  if (!roomId || !gameType || !gameMap[gameType]){
-    alert("Invalid room or game");
-    return window.location.href = "index.html";
+export class Room {
+  roomId: string;
+  gameType: string;
+  db!: Database;
+  game!: BaseGame;
+  roomData!: DocumentData;
+  sharedUILoaded: boolean = false;
+
+  constructor(gameType: string, roomId: string) {
+    this.roomId = roomId;
+    this.gameType = gameType;
   }
-  roomRef = doc(db, "rooms", roomId);
-  roomData = (await getDoc(roomRef)).data()!;
-  if (!roomData) {
-    alert("Room not found.");
-    return;
-  }
 
-  players = roomData.players.map((player: any) => Player.fromPlainObject(player));
-  teams = roomData.teams.map((team: any) => Team.fromPlainObject(team));
-  game = new gameMap[gameType]!(new Deck(), players, roomId);
-  game.setTeams(teams);
-
-  await updateDoc(roomRef, {
-    maxPlayers: game.getMaxPlayers()
-  })
-
-  onSnapshot(roomRef, async (docSnap: any) => {
-    if (!docSnap.exists()) {
-      alert("Room deleted or closed.");
+  async init() {
+    if (!this.roomId || !this.gameType || !gameMap[this.gameType]) {
+      alert("Invalid room or game");
       return window.location.href = "index.html";
     }
-    roomData = docSnap.data();
-    if (sharedUILoaded && !game.getStarted()) {
-      game.updateLocalState(roomData)
 
-      players = game.getPlayers();
-      teams = game.getTeams();
-      handlePopup();
-    }
-  });
+    // Initialize database
+    this.db = new DBMap[this.gameType]();
+    await this.db.join("rooms", this.roomId);
+    setDBInstance(this.db);
 
-  await loadSharedUI();
-  sharedUILoaded = true;
+    this.db.setRoom(this);
 
-  document.querySelectorAll('.room-id').forEach(info => {
-    info.innerHTML = `<div>Room ID: ${roomId}</div>`;
-  });
-
-  handlePopup();
-
-  createListeners();
-};
-
-async function loadSharedUI(containerId = "room-template") {
-  const container = document.getElementById(containerId)!;
-  const html = await fetch("shared-ui.html").then(res => res.text());
-  container.innerHTML = html;
-
-  await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
-}
-
-function handlePopup(){
-  const started = roomData.started;
-  if (!started) {
-    document.getElementById("waiting-overlay")!.style.display = "flex";
-    updatePlayerList();
-    renderGameOptions(gameType, game, roomRef);
-  } else {
-    document.getElementById("waiting-overlay")!.style.display = "none";
-    game.guestSetup(roomData);
-  }
-}
-
-async function exitRoom(playerId: string, players: any, hostId: string) {
-  
-  if(game.getStarted()){
-    await deleteDoc(roomRef);
-  }
-  else{
-    if (playerId === hostId) {
-        await deleteDoc(roomRef);
-    } else {
-        players = players.filter((player: any) => player.id !== playerId);
-        game.getPlayerTeam(playerId)?.removePlayer(playerId, game);
-
-        await updateDoc(roomRef, {
-          players: players.map((player: any) => player.toPlainObject()),
-          teams: teams.map((team: any) => team.toPlainObject())
-        });
-        return window.location.href = "index.html";
-    }
-  }
-}
-
-async function createListeners(){
-  const roomData = await getRoomData(roomRef);
-
-  document.querySelectorAll('.copy-icon').forEach(copy => {
-    copy.addEventListener("click", async () => {
-      try{
-        await navigator.clipboard.writeText(roomId);
-      } catch(e){
-        console.error("unable to copy to clipboard: ", e);
-      }
-    });
-  });
-
-  document.getElementById("copy-room-id")?.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(roomId);
-  });
-
-  //leave buttons
-  document.querySelectorAll('.leave-room').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      exitRoom(localStorage.getItem("playerId")!, players, roomData.hostId);
-    });
-  });
-
-  //start
-  const start = document.getElementById("start-game");
-  start?.addEventListener('click', async () => {
-    if (game.getMinPlayers() > players.length){
-      alert(`Need ${game.getMinPlayers()} to play the game.`);
+    this.roomData = await this.db.pullState();
+    if (!this.roomData) {
+      alert("Room not found.");
       return;
     }
-    game.start();
-    document.getElementById("waiting-overlay")!.style.display = "none";
-  });
 
-  // Listen for theme changes
-  const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement;
-  const body = document.body;
-  themeSelector.addEventListener('change', () => {
-    body.setAttribute('data-theme', themeSelector.value);
-  });
+    // Game setup
+    const players = this.roomData.players.map((p: any) => Player.fromPlainObject(p));
+    const teams = this.roomData.teams.map((t: any) => Team.fromPlainObject(t));
+    this.game = new gameMap[this.gameType](new Deck(), players, this.roomId);
+    this.game.setPlayers(players);
+    this.game.setTeams(teams);
+    this.db.setGame(this.game);
 
-  // Listen for theme changes
-  const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement;
-  cardThemeSelector.addEventListener('change', () => {
-    game.setSpriteSheet(cardThemeSelector.value);
-    game.render();
-  });
+    // Start game/room listeners
+    this.db.listenForUpdates();
+    await this.db.update({ maxPlayers: this.game.getMaxPlayers() });
 
-  // Toggle settings panel open/close
-  const settingsToggle = document.getElementById('settings-toggle')!;
-  const settingsPanel = document.getElementById('settings-panel')!;
-  settingsToggle.addEventListener('click', () => {
-    settingsPanel.classList.toggle('closed');
-  });
-}
+    // Load shared UI
+    await this.loadSharedUI();
+    this.sharedUILoaded = true;
 
-function updatePlayerList() {
+    document.querySelectorAll('.room-id').forEach(info => {
+      info.innerHTML = `<div>Room ID: ${this.roomId}</div>`;
+    });
+
+    this.handlePopup();
+    this.createListeners();
+  }
+
+  async loadSharedUI(containerId = "room-template") {
+    const container = document.getElementById(containerId)!;
+    const html = await fetch("shared-ui.html").then(res => res.text());
+    container.innerHTML = html;
+    await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
+  }
+
+  getUILoaded(){
+    return this.sharedUILoaded;
+  }
+
+  handlePopup() {
+    const started = this.roomData.started;
+    if (!started) {
+      document.getElementById("waiting-overlay")!.style.display = "flex";
+      this.updatePlayerList();
+      renderGameOptions(this.gameType, this.game);
+    } else {
+      document.getElementById("waiting-overlay")!.style.display = "none";
+      this.game.guestSetup(this.roomData);
+    }
+  }
+
+  updatePlayerList() {
     const list = document.getElementById('waiting-list')!;
     list.innerHTML = `
       <div class="waiting-list-container">
         <h3 class="waiting-title">Players in room:</h3>
-        ${players.map(player => `<div class="player-name">${player.name}</div>`).join('')}
+        ${this.game.getPlayers().map(p => `<div class="player-name">${p.name}</div>`).join('')}
       </div>
     `;
-}
+  }
 
-window.onload = initRoom;
+  async exitRoom() {
+    const playerId = localStorage.getItem("playerId")!;
+    const hostId = this.roomData.hostId;
+
+    if (this.game.getStarted() || playerId === hostId) {
+      await this.db.delete();
+    } else {
+      this.game.setPlayers(this.game.getPlayers().filter(p => p.id !== playerId));
+      this.game.getPlayerTeam(playerId)?.removePlayer(playerId, this.game);
+
+      await this.db.update({
+        players: this.game.getPlayers().map(p => p.toPlainObject()),
+        teams: this.game.getTeams().map(t => t.toPlainObject())
+      });
+
+      window.location.href = "index.html";
+    }
+  }
+
+  async createListeners() {
+    const roomData = await this.db.pullState();
+
+    // Copy room ID
+    document.querySelectorAll('.copy-icon').forEach(copy => {
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(this.roomId);
+        } catch (e) {
+          console.error("Clipboard error:", e);
+        }
+      });
+    });
+
+    document.getElementById("copy-room-id")?.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(this.roomId);
+    });
+
+    // Leave room
+    document.querySelectorAll('.leave-room').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await this.exitRoom();
+      });
+    });
+
+    // Start game
+    document.getElementById("start-game")?.addEventListener('click', async () => {
+      if (this.game.getMinPlayers() > this.game.getPlayers().length) {
+        alert(`Need ${this.game.getMinPlayers()} to play the game.`);
+        return;
+      }
+      this.game.start();
+      document.getElementById("waiting-overlay")!.style.display = "none";
+    });
+
+    // Theme changes
+    const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement;
+    themeSelector?.addEventListener('change', () => {
+      document.body.setAttribute('data-theme', themeSelector.value);
+    });
+
+    const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement;
+    cardThemeSelector?.addEventListener('change', () => {
+      this.game.setSpriteSheet(cardThemeSelector.value);
+      this.game.render();
+    });
+
+    // Settings panel toggle
+    const toggle = document.getElementById('settings-toggle')!;
+    const panel = document.getElementById('settings-panel')!;
+    toggle?.addEventListener('click', () => {
+      panel.classList.toggle('closed');
+    });
+  }
+}

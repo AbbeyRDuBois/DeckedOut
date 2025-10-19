@@ -1,4 +1,4 @@
-import { arrayUnion, DocumentData, onSnapshot, updateDoc } from "firebase/firestore";
+import { arrayUnion, DocumentData } from "firebase/firestore";
 import { BaseGame } from "./base-game";
 import { Card, Deck, JokerDeck } from "../deck";
 import { Player } from "../player";
@@ -27,7 +27,6 @@ export class Cribbage extends BaseGame {
   protected ended: boolean = false;
   protected gameMode: string = "Standard";
   protected deckMode: string = "Standard";
-  protected justUpdated: boolean = false;
 
   constructor( deck: Deck, players: Player[], roomId: string){
     super(deck, players, roomId);
@@ -62,6 +61,14 @@ export class Cribbage extends BaseGame {
     return this.skunk_length;
   }
 
+  getRoundState(): string {
+    return this.roundState;
+  }
+
+  setIsTurn(turn: boolean){
+    this.isTurn = turn;
+  }
+
   setHandState(player: Player){
       //If they still have cards to throw or if it's their turn in pegging activate hand, else deactivate
     if (this.roundState == RoundState.Pegging && this.currentPlayer.name == player.name){
@@ -91,7 +98,7 @@ export class Cribbage extends BaseGame {
     this.roundState = RoundState.Throwing;
 
     //This call is pretty big cause it's inital setup
-    await this.updateDBState({
+    await this.db.update ({
       players: this.createPlayerMap(),
       teams: this.teams.map(team => team.toPlainObject()),
       flipped: this.flipped.toPlainObject(),
@@ -108,7 +115,6 @@ export class Cribbage extends BaseGame {
     });
 
     this.render();
-    this.setupListener();
     this.started = true;
   }
 
@@ -168,32 +174,9 @@ export class Cribbage extends BaseGame {
     }
   }
 
-  setupListener() {
-    //Game specific room listener
-    onSnapshot(this.roomRef, (docSnap: any) => {
-      if (this.justUpdated) {
-        console.log("Skipping snapshot due to recent local update");
-        return;
-      }
-      const roomData = docSnap.data() as DocumentData;
-      this.updateLocalState(roomData);
-      console.log("Local State Updated:", this.players.map(p => p.hand));
-      //Enables your hand if it's your turn
-      if (this.roundState == RoundState.Pegging && this.currentPlayer.id === localStorage.getItem('playerId')){
-        const handContainer = document.getElementById("hand")!;
-        handContainer.classList.remove('hand-disabled');
-        this.isTurn = true;
-      }
-
-      //Rerenders stuff to put the updates on everyones computer
-      this.render();
-    });
-  }
-
   guestSetup(data: DocumentData): void {
     this.updateLocalState(data);
     this.render();
-    this.setupListener();
     this.setStarted(true);
   }
 
@@ -229,15 +212,6 @@ export class Cribbage extends BaseGame {
     return playerMap;
   }
 
-  async updateDBState(changes: { [key: string]: any}){
-    this.justUpdated = true;
-    await updateDoc(this.roomRef, changes);
-
-    setTimeout(() => {
-      this.justUpdated = false; // after 100ms, allow listener again
-    }, 100);
-  }
-
   //Automatically called on the card that is selected by the player with a joker
   async jokerCardClick(card: Card, cardDiv: HTMLDivElement): Promise<void> {
     document.getElementById("joker-overlay")!.style.display = "none";
@@ -251,12 +225,7 @@ export class Cribbage extends BaseGame {
     card.isFlipped = true;
     player.hand.push(card);
 
-    //Update hand for everyone
-    console.log("Before DB update:", player.hand);
-    await this.updateDBState({
-      [`players.${player.id}`]: player.toPlainObject(),
-    });
-    console.log("After DB update:", player.hand);
+    await this.db.update({[`players.${player.id}`]: player.toPlainObject()});
 
     this.render();
   }
@@ -314,7 +283,7 @@ export class Cribbage extends BaseGame {
 
         changes.flipped = this.flipped.toPlainObject();
       }
-      await this.updateDBState(changes);
+      await this.db.update(changes);
   }
 
   async clickPegging(handContainer: HTMLElement, playedContainer: HTMLElement, cardDiv: HTMLDivElement, card: Card){
@@ -339,7 +308,7 @@ export class Cribbage extends BaseGame {
     this.checkIfWon(player);
 
     if(this.ended){
-      await this.updateDBState({
+      await this.db.update({
         players: this.createPlayerMap(),
         teams: this.teams.map(team => team.toPlainObject()),
         ended: true,
@@ -352,7 +321,7 @@ export class Cribbage extends BaseGame {
 
     //Doing this twice as nextPlayer could have updated the player counts after end round
     if(this.ended){
-      await this.updateDBState({
+      await this.db.update({
         players: this.createPlayerMap(),
         teams: this.teams.map(team => team.toPlainObject()),
         ended: true,
@@ -384,7 +353,7 @@ export class Cribbage extends BaseGame {
     }
 
     //Updates last played and pegging arrays for all players
-    await this.updateDBState(changes);
+    await this.db.update(changes);
   }
 
   checkIfWon(player: Player){
@@ -482,7 +451,7 @@ export class Cribbage extends BaseGame {
       }
 
       this.deckMode = target.value != "" ? target.value: "Standard";
-      await this.updateDBState({deck: this.deck.toPlainObject(), deckMode: this.deckMode});
+      await this.db.update({deck: this.deck.toPlainObject(), deckMode: this.deckMode});
     });
 
     const modeSelector = document.createElement('select');
@@ -506,12 +475,12 @@ export class Cribbage extends BaseGame {
       }
 
       this.gameMode = target.value != "" ? target.value: "Standard";
-      await this.updateDBState({
+      await this.db.update({
         point_goal: this.point_goal,
         skunk_length: this.skunk_length,
         hand_size: this.hand_size,
         gameMode: this.gameMode
-      })
+      });
     });
 
     modes.appendChild(deckSelector);

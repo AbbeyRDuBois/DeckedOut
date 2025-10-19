@@ -2,13 +2,19 @@
 Entry point to application 
 Game selection hosting and joining
 */
-
-import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { db, signInWithGoogle } from "./authentication";
+import { arrayUnion } from "firebase/firestore";
+import { signInWithGoogle } from "./authentication";
 import { v4 } from 'uuid';
 import './styles.css'
 import { Player } from "./player";
 import { Team } from "./team";
+import { CribbageDatabase, Database, getDBInstance, setDBInstance } from "./databases";
+
+const DBMap: Record<string, any> = {
+    'cribbage': CribbageDatabase
+}
+
+let db: Database
 
 //Creates the room setting up user as the host
 async function createRoom(gameType: string) {
@@ -25,14 +31,18 @@ async function createRoom(gameType: string) {
   localStorage.setItem('username', host);
 
   const player = new Player(playerId, host);
-
-  return (await addDoc(collection(db, "rooms"), { 
+  
+  setDBInstance(await (new DBMap[gameType]!().init("rooms", {
     hostId: playerId,
     gameType, 
     players: [player.toPlainObject()],
     teams: [(new Team(player.name, [player.id])).toPlainObject()],
     started: false
-  })).id;
+  })));
+
+  db = getDBInstance();
+
+  return db.getRoomId()
 }
 
 //Allows other players to join a pre setup room. Requires them to pass in a roomId and username
@@ -44,33 +54,36 @@ async function joinRoom(roomId: string, player: string) {
   localStorage.setItem('playerId', playerId);
   localStorage.setItem('username', player);
 
-  const roomRef = doc(db, 'rooms', roomId);
-  const roomSnap = (await getDoc(roomRef))?.data()!;
+  //Have to connect and set the instance of the host created db
+  db = new Database();
+  await db.join("rooms", roomId);
+  setDBInstance(db); 
+  const roomData = await db.pullState();
 
-  if (roomSnap === null) {
+  if (roomData === null) {
     alert("Room does not exist");
     return;
   };
 
-  if (roomSnap.started){
+  if (roomData.started){
     alert("Game has already started. Can't join now.");
     return;
   }
-  const players = roomSnap.players.map((player: any) => Player.fromPlainObject(player));
+  const players = roomData.players.map((player: any) => Player.fromPlainObject(player));
 
-  if (roomSnap.maxPlayers == players.length){
+  if (roomData.maxPlayers == players.length){
     alert("Game is already full. Can't join now.");
     return;
   }
 
   const newPlayer = new Player(playerId, player);
 
-  //Updates the Game room to add player to the list
-  await updateDoc(roomRef, {
+  await db.update({
     players: arrayUnion(newPlayer.toPlainObject()),
     teams: arrayUnion((new Team(player, [newPlayer.id])).toPlainObject())
   });
-  window.location.href = `${roomSnap.gameType}.html?roomId=${roomId}&game=${roomSnap.gameType}`;
+
+  window.location.href = `${roomData.gameType}.html?roomId=${roomId}&game=${roomData.gameType}`;
 }
 
 // Select all buttons with the class "create-room-btn"
