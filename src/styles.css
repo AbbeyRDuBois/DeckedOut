@@ -416,6 +416,10 @@ body {
   justify-content: center;
   z-index: 9999;
 }
+.popup-overlay#joker_popup {
+  backdrop-filter: none;               /* Removes the blur */
+  background-color: transparent;       /* Removes the dark overlay */
+}
 .popup {
   position: relative;
   background: var(--bg-color);
@@ -739,7 +743,7 @@ body {
 }
 .card-row {
   display: grid;
-  grid-template-columns: repeat(4, auto); /* 4 cards per row */
+  grid-template-columns: repeat(5, auto); /* 5 cards per row */
   justify-content: center;
   gap: 10px;
 }

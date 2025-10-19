@@ -102,7 +102,7 @@ export class Room {
       renderGameOptions(this.gameType, this.game);
     } else {
       document.getElementById("waiting-overlay")!.style.display = "none";
-      this.game.guestSetup(roomData);
+      await this.game.guestSetup(roomData);
     }
   }
 

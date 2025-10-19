@@ -4,7 +4,7 @@ import { Card, Deck, JokerDeck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
 import { renderHand, renderScoreboard, renderOpponents, renderLogs, renderIndicators} from "./game-render"
-import { renderJokerPopup, renderFlipped, renderPeggingTotal, renderWinner } from "./cribbage-render";
+import { renderJokerPopup, renderFlipped, renderPeggingTotal, renderWinner, renderCribAsHand } from "./cribbage-render";
 
 
 enum RoundState {
@@ -27,6 +27,7 @@ export class Cribbage extends BaseGame {
   protected ended: boolean = false;
   protected gameMode: string = "Standard";
   protected deckMode: string = "Standard";
+  protected jokerChoice: any;
 
   constructor( deck: Deck, players: Player[], roomId: string){
     super(deck, players, roomId);
@@ -47,6 +48,10 @@ export class Cribbage extends BaseGame {
   
   getFlipped(): Card {
     return this.flipped;
+  }
+
+  getCrib(): Card[] {
+    return this.crib;
   }
 
   getCribOwner(): Player {
@@ -115,7 +120,7 @@ export class Cribbage extends BaseGame {
       logs: this.logs
     });
 
-    this.render();
+    await this.render();
     this.started = true;
   }
 
@@ -137,7 +142,7 @@ export class Cribbage extends BaseGame {
     }
   }
 
-  render(): void {
+  async render(): Promise<void> {
     //Render the winner popup if someone won
     if (this.ended){
       let winner: Team = new Team("", []);
@@ -169,15 +174,24 @@ export class Cribbage extends BaseGame {
       },
 
     ]);
+
+    //Check if player's hand has joker
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
-    if (player.hand?.find(card => card.value == "JK") != null){
-      renderJokerPopup(this);
+    if(player.hand?.find(card => card.value == "JK") != null){
+      await renderJokerPopup(this);
     }
+
+    //Check if flipped is joker (render for crib owner)
+    if (this.flipped.isFlipped && this.flipped.value == "JK" && this.crib_owner.id == player.id){
+      await renderJokerPopup(this);
+    }  
+
+    await this.waitForJokerSelection(false);
   }
 
-  guestSetup(data: DocumentData): void {
+  async guestSetup(data: DocumentData) {
     this.updateLocalState(data);
-    this.render();
+    await this.render();
     this.setStarted(true);
   }
 
@@ -213,22 +227,58 @@ export class Cribbage extends BaseGame {
     return playerMap;
   }
 
+  async waitForJokerSelection(crib = true): Promise<void> {
+  let data;
+
+  while (true) {
+    data = await this.db.pullState();
+
+    //Check for if crib has been set
+    if(crib && !data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)).some((card: any) => card.value === "JK")) break;
+
+    //Check for if flipped has been set
+    if(!crib && Card.fromPlainObject(data.flipped).value != "JK") break;
+
+    // Small delay before checking again
+    await new Promise(res => setTimeout(res, 300));
+  }
+}
+
   //Automatically called on the card that is selected by the player with a joker
   async jokerCardClick(card: Card, cardDiv: HTMLDivElement): Promise<void> {
     document.getElementById("joker-overlay")!.style.display = "none";
-
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
 
-    //get rid of joker from hand
-    player.hand.splice(player.hand.findIndex(card => card.value == "JK"), 1);
+    //If there's a joker in player hand
+    const playerJoker = player.hand.findIndex(card => card.value == "JK");
+    if (playerJoker != -1){
+      player.hand.splice(playerJoker, 1);
+      card.isFlipped = true;
+      player.hand.push(card);
+      await this.db.update({[`players.${player.id}`]: player.toPlainObject()});
+      await this.render();
+      return;
+    }
 
-    //Add new card to hand
-    card.isFlipped = true;
-    player.hand.push(card);
+    //If it's the flipped card that is joker take care of that
+    if (this.flipped.value == "JK" && this.flipped.isFlipped){
+      this.flipped = card;
+      this.flipped.isFlipped = true;
+      const changes = this.findNibs();
+      await this.db.update({...changes, flipped: this.flipped.toPlainObject()});
+      await this.render();
+      return;
+    }
 
-    await this.db.update({[`players.${player.id}`]: player.toPlainObject()});
-
-    this.render();
+    //If there is a joker in the crib
+    var cribJoker = this.crib.findIndex(card => card.value == "JK");
+    if (cribJoker != -1){
+      this.crib.splice(cribJoker, 1);
+      this.crib.push(card);
+      await this.db.update({crib: this.crib.map(c => c.toPlainObject())});
+      await this.render();
+      return;
+    }
   }
 
   async cardClick(card: Card, cardDiv: HTMLDivElement) {
@@ -239,11 +289,11 @@ export class Cribbage extends BaseGame {
     if (handContainer.classList.contains('hand-disabled')) return; //Returns if hand is disabled
 
     if (this.roundState == RoundState.Throwing){
-      this.clickThrowing(handContainer, cardDiv, card, player);
+      await this.clickThrowing(handContainer, cardDiv, card, player);
     }
     //RoundState is Pegging
     else{
-      this.clickPegging(handContainer, playedContainer, cardDiv, card);
+      await this.clickPegging(handContainer, playedContainer, cardDiv, card);
     }
   }
 
@@ -272,16 +322,10 @@ export class Cribbage extends BaseGame {
         changes.roundState = RoundState.Pegging;
         this.flipped.isFlipped = true;
 
-        //Check for Nibs
-        if (this.flipped.value == "J"){
-          const player = this.players.find(player => player.name == this.crib_owner.name)!;
-          this.findTeamByPlayer(player)!.score += 2;
-          player.score += 2;
-          changes.teams = this.teams.map(team => team.toPlainObject());
-          this.addLog(`${player.name} got Nibs! +2 points`);
-          changes.logs = this.logs;
-        }
-
+        changes = {
+          ...changes,
+          ...this.findNibs()
+        };
         changes.flipped = this.flipped.toPlainObject();
       }
       await this.db.update(changes);
@@ -318,7 +362,7 @@ export class Cribbage extends BaseGame {
       return;
     }
 
-    this.nextPlayer(true);
+    await this.nextPlayer(true);
 
     //Doing this twice as nextPlayer could have updated the player counts after end round
     if(this.ended){
@@ -366,7 +410,7 @@ export class Cribbage extends BaseGame {
     }
   }
 
-  nextPlayer(pegging = false): void {
+  async nextPlayer(pegging = false): Promise<void> {
     const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
     if(pegging){
       let found = false;
@@ -391,7 +435,7 @@ export class Cribbage extends BaseGame {
           this.addLog(`Nobody else could play! ${this.players[index].name} got the point.`);
         }
 
-        this.endRound(index);
+        await this.endRound(index);
       }
     }
     else{
@@ -498,7 +542,7 @@ export class Cribbage extends BaseGame {
   }
 
   //Returns true when entire pegging round is done. False if just resetting loop
-  endRound(index: number){
+  async endRound(index: number){
     //If a player still has cards to play
     if(this.players.some(player => player.hand.length - player.playedCards.length > 0)){
       let found = false;
@@ -520,7 +564,7 @@ export class Cribbage extends BaseGame {
     else{
       this.addLog(`Flipped Card: ${this.flipped.toHTML()}`);
       this.countHands();
-      this.countCrib();
+      await this.countCrib();
 
       //If a player got over the point goal don't need to deal with rest of it
       if (this.ended) return;
@@ -528,8 +572,9 @@ export class Cribbage extends BaseGame {
       this.deck.resetDeck();
       this.deal();
       this.setFlipped();
+
       this.roundState = RoundState.Throwing;
-      this.nextPlayer();
+      await this.nextPlayer();
       this.peggingTotal = 0;
       this.peggingCards = [];
     }
@@ -617,8 +662,25 @@ export class Cribbage extends BaseGame {
     }
   }
 
-  countCrib(){
+  async countCrib(){
     if (this.ended) return;
+
+    const localPlayer = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
+    let hasJoker = this.crib.findIndex(c => c.value == "JK") != -1;
+
+    //if There is joker(s) in crib render selection show crib for everyone
+    if (hasJoker){
+      renderCribAsHand(this);
+    }
+
+    //Let cribOwner choose joker(s)
+    while(hasJoker && localPlayer.id == this.crib_owner.id){
+      await renderJokerPopup(this);
+      hasJoker = this.crib.findIndex(c => c.value == "JK") != -1;
+    }
+
+    //All players wait until crib no longer has Jokers
+    await this.waitForJokerSelection();
 
     let points = 0;
     let hand = [...this.crib];
@@ -760,5 +822,19 @@ export class Cribbage extends BaseGame {
     const hasNobs = cards.some(card => card.value == 'J' && this.flipped.suit == card.suit)
 
     return hasNobs ? 1 : 0;
+  }
+
+  findNibs(): Record<string, any>{
+    let changes: Record<string, any> = {};
+    if (this.flipped.value == "J"){
+      const player = this.players.find(player => player.name == this.crib_owner.name)!;
+      this.findTeamByPlayer(player)!.score += 2;
+      player.score += 2;
+      changes.teams = this.teams.map(team => team.toPlainObject());
+      this.addLog(`${player.name} got Nibs! +2 points`);
+      changes.logs = this.logs;
+    }
+
+    return changes
   }
 }
