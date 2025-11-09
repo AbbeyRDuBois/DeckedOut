@@ -9,6 +9,24 @@ Related to a [Discord bot](https://github.com/321pie/Card_Bot) that performs a s
 
 2. In `shared-ui.html`, add in your theme option to the drop down. (Make sure the value matches the name you put for data-theme)
 
+## How to Create a Custom Card Theme
+
+1. Create The Sprite sheet
+    - Make sure each suit is in it's own line and ordered. Jokers/Card back are the last row.
+    - Order for the suits from top to bottom are Club, Diamond, Heart, Spade. (Use existing as reference)
+    - My method: Create cards in slides/ppt export it as png's then use [this](https://kuut.xyzspritesheet) to create the sprite sheet. (make sure it has transparent background)
+2. Add Sprite sheet class
+    1. Go to `spritesheets.ts`
+    2. import your image to the file
+    3. Create a new class extending SpriteSheet class
+        - Set the image member to your import value
+        - Set sheet-height to your sprite sheet height
+        - set card-width and card-height to what you made your card width/height to be
+        - Currently there is a gap auto set between the cards, adjust to your liking/set it to 0 if you don't need it
+        - If you have fancy options like pokemon with random deck chance, you can set special image select functionality if desired as well.
+3. In `shared-ui.html`, add in your theme option to the `card-theme-selector` drop down.
+4. In `base-game.ts`, add in your theme as a case in `setSpriteSheet()`. (Make sure your case matches the value you put in the selector)
+
 ## How To Deploy
 
 1. Download [npm](https://nodejs.org/en/download) and run through setup until completed.
