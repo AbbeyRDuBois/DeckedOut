@@ -1,20 +1,19 @@
-import { updateDoc } from "firebase/firestore";
 import { Team } from "./team";
 import { Player } from "./player";
 import { BaseGame } from "./games/base-game";
 
-export function renderGameOptions(gameType: String, game: BaseGame, roomRef: any){
+export function renderGameOptions(gameType: String, game: BaseGame){
   switch(gameType){
     case 'cribbage':
-      renderTeamSelector(game, roomRef);
+      renderTeamSelector(game);
       renderModeSelector(game)
       break;
     default:
-      renderTeamSelector(game, roomRef);
+      renderTeamSelector(game);
   }
 }
 
-function renderTeamSelector(game: BaseGame, roomRef: any){
+function renderTeamSelector(game: BaseGame){
   const innerContainer = document.getElementById("inner-container")!;
   innerContainer.innerHTML = '';
   let teamsContainer = document.getElementById("teams");
@@ -37,14 +36,12 @@ function renderTeamSelector(game: BaseGame, roomRef: any){
     teamNameInput.id = "team-name";
     teamNameInput.value = team.name;
     //Blur is where the user clicks off element
-    teamNameInput.addEventListener("blur", () => {
+    teamNameInput.addEventListener("blur", async () => {
       const newName = teamNameInput.value.trim();
 
       if (newName != team.name && newName != ""){
         team.name = newName;
-        updateDoc(roomRef, {
-          teams: game.getTeams().map(team => team.toPlainObject())
-        });
+        await game.getDB().update({teams: game.getTeams().map(team => team.toPlainObject())});
       }
     });
     column.appendChild(teamNameInput);
@@ -52,7 +49,7 @@ function renderTeamSelector(game: BaseGame, roomRef: any){
     //Players
     team.playerIds.forEach(id => {
       const player = game.getPlayerById(id)!;
-      column.appendChild(createPlayerElmt(player, teamIndex, game.getTeams(), roomRef));
+      column.appendChild(createPlayerElmt(player, teamIndex, game));
     });
 
     columnsWrapper.appendChild(column);
@@ -61,10 +58,10 @@ function renderTeamSelector(game: BaseGame, roomRef: any){
   teamsContainer.appendChild(columnsWrapper);
 
   //Add/Delete Team Buttons
-  teamsContainer.appendChild(createAddDelCol(game.getTeams(), game.getPlayers(), roomRef));
+  teamsContainer.appendChild(createAddDelCol(game));
 
   //Random assignment controls
-  teamsContainer.appendChild(createRandTeamElmts(game.getPlayers(), game.getTeams(), roomRef));
+  teamsContainer.appendChild(createRandTeamElmts(game));
 
   innerContainer.appendChild(teamsContainer);
 }
@@ -87,7 +84,9 @@ function renderModeSelector(game: BaseGame){
   innerContainer.appendChild(modeSelector);
 }
 
-function createRandTeamElmts(players: Player[], teams: Team[], roomRef: any): HTMLDivElement{
+function createRandTeamElmts(game: BaseGame): HTMLDivElement{
+  const players = game.getPlayers();
+  const teams = game.getTeams();
   const randomRow = document.createElement("div");
   randomRow.id = "random-teams"
 
@@ -106,11 +105,9 @@ function createRandTeamElmts(players: Player[], teams: Team[], roomRef: any): HT
   randomBtn.textContent = "Rando";
   randomBtn.id = "random-btn";
 
-  randomBtn.onclick = () => {
+  randomBtn.onclick = async () => {
     randomizeTeams(players, teams, parseInt(teamSizeInput.value));
-    updateDoc(roomRef, {
-      teams: teams.map(team => team.toPlainObject())
-    });
+    await game.getDB().update({teams: teams.map(team => team.toPlainObject())});
   };
 
   randomRow.appendChild(sizeLabel);
@@ -120,7 +117,9 @@ function createRandTeamElmts(players: Player[], teams: Team[], roomRef: any): HT
   return randomRow;
 }
 
-function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDivElement{
+function createAddDelCol(game: BaseGame): HTMLDivElement{
+  const players = game.getPlayers();
+  const teams = game.getTeams();
   const addDelContainer = document.createElement("div");
   addDelContainer.id = "add-del-container"
 
@@ -128,12 +127,10 @@ function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDi
   addBtn.textContent = "Add Team";
   addBtn.className = "add-del-btn";
 
-  addBtn.onclick = () => {
+  addBtn.onclick = async () => {
     if (teams.length < players.length) {
       teams.push(new Team(`Team ${teams.length + 1}`, []));
-      updateDoc(roomRef, {
-        teams: teams.map(team => team.toPlainObject())
-      })
+      await game.getDB().update({teams: teams.map(team => team.toPlainObject())});
     }
   };
 
@@ -141,7 +138,7 @@ function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDi
   delBtn.textContent = "Remove Team";
   delBtn.className = "add-del-btn";
 
-  delBtn.onclick = () => {
+  delBtn.onclick = async () => {
     if (teams.length > 1) {
       const removed = teams.pop();
       // Push players from removed team back into remaining teams
@@ -150,9 +147,7 @@ function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDi
           teams[i % teams.length].playerIds.push(id);
         });
       }
-      updateDoc(roomRef, {
-        teams: teams.map(team => team.toPlainObject())
-      });
+      await game.getDB().update({teams: teams.map(team => team.toPlainObject())});
     }
   };
 
@@ -162,7 +157,8 @@ function createAddDelCol(teams: Team[], players: Player[], roomRef: any): HTMLDi
   return addDelContainer;
 }
 
-function createPlayerElmt(player: Player, teamIndex: number, teams: Team[], roomRef: any): HTMLDivElement{
+function createPlayerElmt(player: Player, teamIndex: number, game: BaseGame): HTMLDivElement{
+  const teams = game.getTeams();
   const playerDiv = document.createElement("div");
   playerDiv.className = "team-player";
   const nameSpan = document.createElement("span");
@@ -173,11 +169,9 @@ function createPlayerElmt(player: Player, teamIndex: number, teams: Team[], room
     const leftBtn = document.createElement("button");
     leftBtn.className = "move-player";
     leftBtn.textContent = "←";
-    leftBtn.onclick = () => {
+    leftBtn.onclick = async () => {
       movePlayer(player, teamIndex, teamIndex - 1, teams);
-      updateDoc(roomRef, {
-        teams: teams.map(team => team.toPlainObject())
-      });
+      await game.getDB().update({teams: teams.map(team => team.toPlainObject())});
     };
     controls.appendChild(leftBtn);
   }
@@ -186,11 +180,9 @@ function createPlayerElmt(player: Player, teamIndex: number, teams: Team[], room
     const rightBtn = document.createElement("button");
     rightBtn.className = "move-player";
     rightBtn.textContent = "→";
-    rightBtn.onclick = () => {
+    rightBtn.onclick = async () => {
       movePlayer(player, teamIndex, teamIndex + 1, teams);
-      updateDoc(roomRef, {
-        teams: teams.map(team => team.toPlainObject())
-      })
+      await game.getDB().update({teams: teams.map(team => team.toPlainObject())});
     };
     controls.appendChild(rightBtn);
   }

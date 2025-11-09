@@ -1,4 +1,4 @@
-import { Deck, Card, CardOptions } from "../deck";
+import { Deck, CardOptions, Card } from "../deck";
 import { Team } from "../team";
 import { Cribbage } from "./cribbage";
 
@@ -37,25 +37,38 @@ export function renderWinner(game: Cribbage, winner: Team){
 }
 
 //Call to render the card-select popup for when a joker is available in cribbage
-export function renderJokerPopup(game: Cribbage) {
-  document.getElementById("joker-overlay")!.style.display = "flex";
-  const card_grid = document.getElementById("card-btns")!;
-  card_grid.innerHTML = "";
+export function renderJokerPopup(game: Cribbage): Promise<Card> {
+  return new Promise((resolve) => {
+    document.getElementById("joker-overlay")!.style.display = "flex";
+    const card_grid = document.getElementById("card-btns")!;
+    card_grid.innerHTML = "";
 
-  const newDeck = new Deck()
-  const options:CardOptions = {
-    startsFlipped: true,
-    clickable: true,
-    height: 60,
-    width: 40,
-    onClick: game.jokerCardClick,
-  }
+    const newDeck = new Deck()
+    const options:CardOptions = {
+      startsFlipped: true,
+      clickable: true,
+      height: 60,
+      width: 40,
+      onClick: async (card: Card, cardDiv: HTMLDivElement) => {
+          await game.jokerCardClick(card, cardDiv);
+          resolve(card); // Resolve the Promise once the joker has been chosen
+        }
+    }
 
-  newDeck.deck.forEach(card => {
-    const cardDiv = card.createCard(game.getSpriteSheet(), options);
-    cardDiv.classList.add('small-card');
-    cardDiv.style.pointerEvents = "all";
-    cardDiv.style.transform = "0";
-    card_grid.appendChild(cardDiv) //Add button to grid
+    newDeck.deck.forEach(card => {
+      const cardDiv = card.createCard(game.getSpriteSheet(), options);
+      cardDiv.classList.add('small-card');
+      cardDiv.style.pointerEvents = "all";
+      cardDiv.style.transform = "0";
+      card_grid.appendChild(cardDiv) //Add button to grid
+    });
+  });
+}
+
+export function renderCribAsHand(game: Cribbage){
+  const handContainer = document.getElementById("hand")!;
+  handContainer.innerHTML = "";
+  game.getCrib().forEach((card: Card) => {
+      handContainer.appendChild(card.createCard(game.getSpriteSheet(), {startsFlipped: true, clickable: false}));
   });
 }

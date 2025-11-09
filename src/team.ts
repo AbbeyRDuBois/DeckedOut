@@ -39,4 +39,12 @@ export class Team {
         }
     }
 
+    setPlayers(players: string[]){
+        this.playerIds = players;
+    }
+    
+    getPlayers(): string[] {
+        return this.playerIds;
+    }
+
 }
