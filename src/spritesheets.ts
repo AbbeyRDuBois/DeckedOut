@@ -66,8 +66,8 @@ export class CatSheet extends SpriteSheet {
 
 export class PokemonSheet extends SpriteSheet {
     image = `url(${poke1})`;
-    sheet_height = 695;
-    card_height = 139;
+    sheet_height = 1213;
+    card_height = 243;
     pokemonMap: Record<string, {normal: string, shiny: string}> = {
         Pokemon1: {
             normal: `url(${poke1})`,
