@@ -3,7 +3,7 @@ import { BaseGame } from "./base-game";
 import { Card, Deck, JokerDeck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
-import { renderHand, renderScoreboard, renderOpponents, renderLogs, renderIndicators} from "./game-render"
+import { renderHand, renderScoreboard, renderOpponents, renderLogs, renderIndicators, renderPlayed} from "./game-render"
 import { renderJokerPopup, renderFlipped, renderPeggingTotal, renderWinner, renderCribAsHand } from "./cribbage-render";
 
 
@@ -158,6 +158,7 @@ export class Cribbage extends BaseGame {
     }
 
     renderHand(this);
+    renderPlayed(this);
     renderOpponents(this);
     renderScoreboard(this);
     renderFlipped(this);
@@ -257,7 +258,8 @@ export class Cribbage extends BaseGame {
       player.hand.splice(playerJoker, 1);
       card.isFlipped = true;
       player.hand.push(card);
-      await this.db.update({[`players.${player.id}`]: player.toPlainObject()});
+      this.addLog(`${player.name} has turned the joker into ${card.toHTML()}`);
+      await this.db.update({[`players.${player.id}`]: player.toPlainObject(), logs: this.logs});
       await this.render();
       return;
     }
@@ -267,6 +269,8 @@ export class Cribbage extends BaseGame {
       this.flipped = card;
       this.flipped.isFlipped = true;
       const changes = this.findNibs();
+      this.addLog(`${player.name} has turned the joker into ${card.toHTML()}`);
+      changes.logs = this.logs;
       await this.db.update({...changes, flipped: this.flipped.toPlainObject()});
       await this.render();
       return;
@@ -277,7 +281,9 @@ export class Cribbage extends BaseGame {
     if (cribJoker != -1){
       this.crib.splice(cribJoker, 1);
       this.crib.push(card);
-      await this.db.update({crib: this.crib.map(c => c.toPlainObject())});
+      this.addLog(`${player.name} has turned the joker into ${card.toHTML()}`);
+
+      await this.db.update({crib: this.crib.map(c => c.toPlainObject()), logs: this.logs});
       await this.render();
       return;
     }
@@ -833,6 +839,7 @@ export class Cribbage extends BaseGame {
       this.findTeamByPlayer(player)!.score += 2;
       player.score += 2;
       changes.teams = this.teams.map(team => team.toPlainObject());
+      changes[`players.${player.id}`] = player.toPlainObject();
       this.addLog(`${player.name} got Nibs! +2 points`);
       changes.logs = this.logs;
     }

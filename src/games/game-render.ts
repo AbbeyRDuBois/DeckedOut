@@ -133,3 +133,15 @@ export function renderIndicators(
     });
   });
 }
+
+export function renderPlayed(game: BaseGame) {
+  const currentId = localStorage.getItem("playerId");
+  const player = game.getPlayers().find(player => player.id === currentId)!;
+  const playedContainer = document.getElementById("played-container")!;
+
+  playedContainer.innerHTML = '';
+
+  player.playedCards.forEach((card: Card) => {
+      playedContainer.appendChild(card.createCard(game.getSpriteSheet(), {startsFlipped: true, clickable: true, onClick: game.cardClick}));
+  });
+}
