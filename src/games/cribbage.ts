@@ -176,6 +176,14 @@ export class Cribbage extends BaseGame {
 
     ]);
 
+    //Show that it is throwing round
+    if(this.roundState == RoundState.Throwing){
+      document.getElementById('throwing')!.style.display = "flex";
+    }
+    else{
+      document.getElementById('throwing')!.style.display = "none";
+    }
+
     //Check if player's hand has joker
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
     if(player.hand?.find(card => card.value == "JK") != null){

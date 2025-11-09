@@ -819,6 +819,12 @@ body {
 * Cribbage Elements
 *
 *********************************************************************************************************************************************/
+#throwing {
+  position: fixed;
+  font-size: 40px;
+  bottom: 200px;
+  left: 45%; 
+}
 #flipped {
   position: absolute; 
   top: 45%;
