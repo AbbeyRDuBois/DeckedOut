@@ -591,7 +591,8 @@ body {
 
 .divide-line {
   width: 2px;
-  background-color: black;
+  background-color: var(--mg-color);
+  align-self: stretch;
 }
 
 .menu-selector{
@@ -734,9 +735,10 @@ body {
 ***************************************************************************************************************************************/
 #opponents {
   margin-top: 45px;
-  min-height: 80px;
   padding: 0 16px;
+  min-height:90px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 12px;
@@ -797,7 +799,7 @@ body {
 }
 #hand.hand-disabled .card {
   pointer-events: none;
-  filter: grayscale(100%);/*Grey scales the card*/
+  filter: grayscale(100%) brightness(1.5);/*Grey scales the card*/
   cursor: default;
   transform: none !important; /* Prevents hover effect */
   border: 2px solid transparent;

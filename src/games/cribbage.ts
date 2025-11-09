@@ -810,18 +810,24 @@ export class Cribbage extends BaseGame {
   } 
 
   findFlush(cards: Card[], crib = false): number{
-
     //Add flipped to the check if it's the crib
     if (crib){
       cards.push(this.flipped)
     }
+    //Check for flush normally
+    const suitSet = new Set(cards.map(card => card.suit));
+    
+    
+    if (this.deckMode == "Mega" && 
+      suitSet.size === 2 &&
+      (suitSet.has("Hearts") && suitSet.has("Diamonds")) || (suitSet.has("Clubs") && suitSet.has("Spades"))){
+        return suitSet.has(this.flipped.suit) && !crib ? cards.length + 1 : cards.length;
+    }
 
-    const suits = cards.map(card => card.suit);
-
-    //If only one suit was found in the set you have a flush
-    if (new Set(suits).size === 1) {
+    //If only one suit was found in the set you have a flush (Mega will go here too if somehow you only have 1 suit in your hand)
+    if (suitSet.size === 1) {
       //Check to see if flipped matches to return extra point (dont if crib)
-      return this.flipped.suit == suits[0] && !crib ? cards.length + 1 : cards.length;
+      return suitSet.has(this.flipped.suit) && !crib ? cards.length + 1 : cards.length;
     }
     return 0;
   }

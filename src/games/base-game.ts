@@ -98,15 +98,15 @@ export abstract class BaseGame {
 
     //Cycle through teams adding them to player array in order.
     const newOrder = [];
-    let tempTeams = [...this.teams];
+    let tempTeams = this.teams.map(team => ({players: [...team.getPlayers()]}));
     let stillHasPlayers = true;
     let order = 0;
 
     while (stillHasPlayers) {
       stillHasPlayers = false;
       for (const team of tempTeams) {
-        if (team.getPlayers().length > 0) {
-          const player = this.getPlayerById(team.getPlayers().shift()!)!;
+        if (team.players.length > 0) {
+          const player = this.getPlayerById(team.players.shift()!)!;
           player.setOrder(order);
           newOrder.push(player);
           stillHasPlayers = true;

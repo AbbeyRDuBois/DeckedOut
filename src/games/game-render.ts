@@ -58,7 +58,8 @@ export function renderScoreboard(game: BaseGame) {
     const opponents = game.getPlayers().filter(p => p.id !== localStorage.getItem('playerId'));
     const opponentContainer = document.getElementById('opponents')!;
     opponentContainer.innerHTML = '';
-    opponents.forEach(opponent => {
+
+    opponents.forEach((opponent, index) => {
         const opponentDiv = document.createElement('div');
         opponentDiv.classList.add('opponent');
 
@@ -79,6 +80,7 @@ export function renderScoreboard(game: BaseGame) {
         const oppInfo = document.createElement('div');
         oppInfo.style.display = 'flex';
         oppInfo.style.justifyContent = 'center';
+        oppInfo.style.height = '25px';
 
         oppInfo.appendChild(opponentName);
         game.createIndicators(opponent.id).forEach(indicator => {
@@ -88,6 +90,14 @@ export function renderScoreboard(game: BaseGame) {
         opponentDiv.appendChild(oppInfo);
         opponentDiv.appendChild(cardRow);
         opponentContainer.appendChild(opponentDiv);
+
+
+        //Adds a line to divide opponents (except after last opponent)
+        if(index + 1 != opponents.length){
+          const divideLine = document.createElement('div');
+          divideLine.classList.add("divide-line");
+          opponentContainer.appendChild(divideLine);
+        }
     });
 }
 
