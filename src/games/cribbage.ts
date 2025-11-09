@@ -198,8 +198,10 @@ export class Cribbage extends BaseGame {
   updateLocalState(data: DocumentData): void {
     this.players = []; // Clear first
     for (const [id, player] of Object.entries(data.players)) {
-      this.players.push(Player.fromPlainObject(player as DocumentData));
+      this.players.push(Player.fromPlainObject(player as DocumentData)); //Recreating player objects
     }
+    this.players.sort((a, b) => a.getOrder() - b.getOrder()); //Resorting to make sure everyone is in the correct order.
+
     this.teams = data.teams?.map((team: any) => Team.fromPlainObject(team)) ?? [];
     this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
     this.crib_owner = Player.fromPlainObject(data.crib_owner);

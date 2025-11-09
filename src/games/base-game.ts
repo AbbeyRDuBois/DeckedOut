@@ -90,20 +90,31 @@ export abstract class BaseGame {
   }
 
   getPlayerOrder(){
-    const newOrder = [];
-    const maxPlayers = Math.max(...this.teams.map(team => team.playerIds.length));
-    //Want to start out with random team
-    const rand = Math.floor(Math.random() * this.teams.length);
+    //Randomize Team Order and Player Order in the teams
+    this.teams = this.shuffle(this.teams);
+    for(let teamIndex = 0; teamIndex < this.teams.length; teamIndex++){
+      this.teams[teamIndex].setPlayers(this.shuffle(this.teams[teamIndex].getPlayers()));
+    }
 
-    for(let playerIndex = 0; playerIndex < maxPlayers; playerIndex++){
-      for(let teamIndex = 0; teamIndex < this.teams.length; teamIndex++){
-        const index = (teamIndex + rand) % this.teams.length;
-        if (playerIndex < this.teams[index].playerIds.length){
-          const player = this.getPlayerById(this.teams[index].playerIds[playerIndex])!;
+    //Cycle through teams adding them to player array in order.
+    const newOrder = [];
+    let tempTeams = [...this.teams];
+    let stillHasPlayers = true;
+    let order = 0;
+
+    while (stillHasPlayers) {
+      stillHasPlayers = false;
+      for (const team of tempTeams) {
+        if (team.getPlayers().length > 0) {
+          const player = this.getPlayerById(team.getPlayers().shift()!)!;
+          player.setOrder(order);
           newOrder.push(player);
+          stillHasPlayers = true;
+          order++;
         }
       }
     }
+
     this.players = newOrder;
   }
 
@@ -214,5 +225,14 @@ export abstract class BaseGame {
       cardDiv.style.opacity = '1';
       cardDiv.style.transform = 'translateY(0)';
     }, 10);
+  }
+
+  shuffle<T>(array: T[]): T[] {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 }
