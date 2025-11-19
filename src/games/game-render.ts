@@ -1,3 +1,4 @@
+import { stringify } from "uuid";
 import { Card } from "../deck";
 import { Player } from "../player";
 import { BaseGame } from "./base-game";
@@ -54,51 +55,82 @@ export function renderScoreboard(game: BaseGame) {
   });
 }
 
-  export function renderOpponents(game: BaseGame) {
-    const opponents = game.getPlayers().filter(p => p.id !== localStorage.getItem('playerId'));
-    const opponentContainer = document.getElementById('opponents')!;
-    opponentContainer.innerHTML = '';
+export function renderPointDiff(playerName: string, pointDiff: number) {
+  //Get player name components from scoreboard
+  const container = document.getElementById("scoreboard")!;
+  const spans = container.getElementsByTagName('span');
 
-    opponents.forEach((opponent, index) => {
-        const opponentDiv = document.createElement('div');
-        opponentDiv.classList.add('opponent');
+  //Find correct player
+  for (let i = 0; i < spans.length; i++) {
+    //If correct player, set x,y and add plus indicator as needed
+    if (spans[i].textContent == playerName) {
+      const pointLabel = document.createElement("label");
+      pointLabel.style.height = (parseInt(spans[i].style.height.slice(0, -2)) - 20).toString() + "px";
+      pointLabel.style.width = (parseInt(spans[i].style.width.slice(0, -2)) - 20).toString() + "px";
+      pointLabel.textContent = pointDiff >= 0 ? "+" + pointDiff.toString() : pointDiff.toString(); //Add a plus sign if positive
 
-        const opponentName = document.createElement('div');
-        opponentName.classList.add('opponent-name');
-        opponentName.textContent = opponent.name;
+      //Add fade out
+      // pointLabel.style.opacity = "1";
+      // pointLabel.style.transition = "opacity 2s ease-out;";
+      let opacity = 1;
+      const fadeInterval = setInterval(() => {
+          if (opacity > 0) {
+            opacity -= .05;
+            pointLabel.style.opacity = opacity.toString();
+          } else {
+            clearInterval(fadeInterval);
+            pointLabel.remove()
+          }
+      }, 10);
+    }
+  }
+}
 
-        const cardRow = document.createElement('div');
-        cardRow.classList.add('card-row');
+export function renderOpponents(game: BaseGame) {
+  const opponents = game.getPlayers().filter(p => p.id !== localStorage.getItem('playerId'));
+  const opponentContainer = document.getElementById('opponents')!;
+  opponentContainer.innerHTML = '';
 
-        opponent.hand.forEach(card => {
-          //TODO: Fix the hardcoded values?
-          const cardDiv = card.createCard(game.getSpriteSheet(), {width: 40, height:60});
-          cardDiv.classList.add('small-card');
-          cardRow.appendChild(cardDiv);
-        });
+  opponents.forEach((opponent, index) => {
+      const opponentDiv = document.createElement('div');
+      opponentDiv.classList.add('opponent');
 
-        const oppInfo = document.createElement('div');
-        oppInfo.style.display = 'flex';
-        oppInfo.style.justifyContent = 'center';
-        oppInfo.style.height = '25px';
+      const opponentName = document.createElement('div');
+      opponentName.classList.add('opponent-name');
+      opponentName.textContent = opponent.name;
 
-        oppInfo.appendChild(opponentName);
-        game.createIndicators(opponent.id).forEach(indicator => {
-          oppInfo.appendChild(indicator);
-        });
+      const cardRow = document.createElement('div');
+      cardRow.classList.add('card-row');
 
-        opponentDiv.appendChild(oppInfo);
-        opponentDiv.appendChild(cardRow);
-        opponentContainer.appendChild(opponentDiv);
+      opponent.hand.forEach(card => {
+        //TODO: Fix the hardcoded values?
+        const cardDiv = card.createCard(game.getSpriteSheet(), {width: 40, height:60});
+        cardDiv.classList.add('small-card');
+        cardRow.appendChild(cardDiv);
+      });
+
+      const oppInfo = document.createElement('div');
+      oppInfo.style.display = 'flex';
+      oppInfo.style.justifyContent = 'center';
+      oppInfo.style.height = '25px';
+
+      oppInfo.appendChild(opponentName);
+      game.createIndicators(opponent.id).forEach(indicator => {
+        oppInfo.appendChild(indicator);
+      });
+
+      opponentDiv.appendChild(oppInfo);
+      opponentDiv.appendChild(cardRow);
+      opponentContainer.appendChild(opponentDiv);
 
 
-        //Adds a line to divide opponents (except after last opponent)
-        if(index + 1 != opponents.length){
-          const divideLine = document.createElement('div');
-          divideLine.classList.add("divide-line");
-          opponentContainer.appendChild(divideLine);
-        }
-    });
+      //Adds a line to divide opponents (except after last opponent)
+      if(index + 1 != opponents.length){
+        const divideLine = document.createElement('div');
+        divideLine.classList.add("divide-line");
+        opponentContainer.appendChild(divideLine);
+      }
+  });
 }
 
 export function renderLogs(game: BaseGame){
