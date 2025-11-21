@@ -3,7 +3,7 @@ import { Card, Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
 import { renderIndicators } from "./game-render";
-import { CatSheet, PokemonSheet, SpriteSheet } from "../spritesheets";
+import { CatSheet, GenshinSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
 import { Database, getDBInstance } from "../databases";
 
 export abstract class BaseGame {
@@ -43,6 +43,12 @@ export abstract class BaseGame {
         break;
       case "Cats":
         this.spriteSheet = new CatSheet();
+        break;
+      case "StarWars":
+        this.spriteSheet = new StarWarsSheet();
+        break;
+      case "Genshin":
+        this.spriteSheet = new GenshinSheet();
         break;
       case "Pokemon":
         this.spriteSheet = new PokemonSheet();

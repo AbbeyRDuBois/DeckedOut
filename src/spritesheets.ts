@@ -7,6 +7,8 @@ import poke2 from "./SpriteSheets/Pokemon2_Deck.png";
 import poke2S from "./SpriteSheets/Pokemon2_Shiny_Deck.png";
 import pokeQ from "./SpriteSheets/PokemonQ_Deck.png";
 import pokeQS from "./SpriteSheets/PokemonQ_Shiny_Deck.png";
+import starSheet from "./SpriteSheets/StarWars_Deck.png";
+import genshinSheet from "./SpriteSheets/Genshin_Deck.png";
 
 export class SpriteSheet {
     sheet_width = 1300;
@@ -99,4 +101,12 @@ export class PokemonSheet extends SpriteSheet {
             this.image = this.pokemonMap["PokemonQ"][shiny];
         }
     }
+}
+
+export class StarWarsSheet extends SpriteSheet {
+    image = `url(${starSheet})`;
+}
+
+export class GenshinSheet extends SpriteSheet {
+    image = `url(${genshinSheet})`;
 }
