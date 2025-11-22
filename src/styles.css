@@ -6,69 +6,101 @@
 
   /*Default Theme (dark)*/
 :root {
-  --bg-color: #1c1c1c;
-  --mg-color: #4a4a4a;
-  --fg-color: #6d6d6d;
+  --logs:  #6d6d6d;
+  --teams:  #6d6d6d;
+  --scoreboard: #6d6d6d;
+  --hand-container: #4a4a4a;
+  --background: #1c1c1c;
+  --top_bar: #4a4a4a;
+  --settings:#4a4a4a; 
+  --border:  #4a4a4a;
+  --text-bg: #6d6d6d;
   --text-color: white;
   --bl-btn:#005fff;
-  --bl-btn-hv: #0033CC;
   --rd-btn:tomato;
-  --rd-btn-hv:crimson;
   --gn-btn:#01b401;
-  --gn-btn-hv:#009400;
 }
 
 body[data-theme='light'] {
-  --bg-color: whiteSmoke;
-  --mg-color: ivory;
-  --fg-color: white;
+  --logs:  white;
+  --teams:  white;
+  --scoreboard: white;
+  --hand-container: ivory;
+  --background: whiteSmoke;
+  --top_bar: ivory;
+  --settings:ivory;
+  --border:  ivory;
+  --text-bg: white;
   --text-color: black;
   --bl-btn:#005fff;
-  --bl-btn-hv: #0033CC;
   --rd-btn:red;
-  --rd-btn-hv:darkred;
   --gn-btn:#01b401;
-  --gn-btn-hv:#009400;
 }
 
 body[data-theme='pink_rose'] {
-  --bg-color: ivory;
-  --mg-color: mistyRose;
-  --fg-color: floralWhite;
+  --logs:  floralWhite;
+  --teams:  floralWhite;
+  --scoreboard: floralWhite;
+  --hand-container: mistyRose;
+  --background: ivory;
+  --top_bar: mistyRose;
+  --settings:mistyRose;
+  --border:  mistyRose;
+  --text-bg: floralWhite;
   --text-color: black;
   --bl-btn:dodgerBlue;
-  --bl-btn-hv: MediumBlue;
   --rd-btn:tomato;
-  --rd-btn-hv:crimson;
   --gn-btn:mediumSeaGreen;
-  --gn-btn-hv:seaGreen;
 }
 
 body[data-theme='ocean'] {
-  --bg-color: lightSeaGreen;
-  --mg-color: darkSlateGrey;
-  --fg-color: teal;
+  --logs:  teal;
+  --teams:  teal;
+  --scoreboard: teal;
+  --hand-container: darkSlateGrey;
+  --background: lightSeaGreen;
+  --top_bar: darkSlateGrey;
+  --settings: darkSlateGrey;
+  --border:  darkSlateGrey;
+  --text-bg: teal;
   --text-color: white;
   --bl-btn:dodgerBlue;
-  --bl-btn-hv: MediumBlue;
   --rd-btn:tomato;
-  --rd-btn-hv:crimson;
   --gn-btn:mediumSeaGreen;
-  --gn-btn-hv:seaGreen;
 }
 
 body[data-theme='navy'] {
-  --bg-color: #19232c;
-  --mg-color: #22303c;
-  --fg-color: #344a5d;
+  --logs:  #344a5d;
+  --teams:  #344a5d;
+  --scoreboard: #344a5d;
+  --hand-container: #22303c;
+  --background: #19232c;
+  --top_bar: #22303c;
+  --settings:#22303c;
+  --border:  #22303c;
+  --text-bg: #344a5d;
   --text-color: #a9a9a9;
   --bl-btn:#213571;
-  --bl-btn-hv: #1a2a5a;
   --rd-btn:#6f0000;
-  --rd-btn-hv:#610000;
   --gn-btn:#154f30;
-  --gn-btn-hv:#124429;
 }
+
+body[data-theme='cursed'] {
+  --logs:  #6d6d6d;
+  --teams:  #6d6d6d;
+  --scoreboard: #6d6d6d;
+  --hand-container: #4a4a4a;
+  --background: #1c1c1c;
+  --top_bar: #4a4a4a;
+  --settings:#4a4a4a;
+  --border:  #4a4a4a;
+  --text-bg: #6d6d6d;
+  --text-color: white;
+  --bl-btn:#005fff;
+  --rd-btn:tomato;
+  --gn-btn:#01b401;
+}
+
 
 /**************************************
   *
@@ -82,7 +114,7 @@ body {
   flex-direction: column;
   overflow-x: hidden; /* prevents horizontal scroll*/
   color: var(--text-color);
-  background: var(--bg-color);
+  background: var(--background);
 }
 /********************************************************************************************************************************************
 *
@@ -116,7 +148,7 @@ body {
   transition: background-color 0.2s ease;
 }
 #signInBtn:hover {
-  background-color: var(--rd-btn-hv)
+  background-color: color-mix(in srgb, var(--rd-btn) 80%, black)
 }
 /* #username-input{
   text-align: center;
@@ -173,7 +205,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .create-room-btn:hover{
-  background-color: var(--bl-btn-hv);
+  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 .join-section{
   display:flex;
@@ -190,8 +222,6 @@ body {
   width: 200px;
   padding: 5px;
   border-radius: 6px;
-  border: 1px solid var(--fg-color);
-  background-color: var(--fg-color);
   color: var(--text-color); 
 }
 .join-btn {
@@ -205,7 +235,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .join-btn:hover {
-  background-color: var(--gn-btn-hv);
+  background-color: color-mix(in srgb, var(--gn-btn) 80%, black)
 }
 .menu-input{
   text-align: center;
@@ -223,8 +253,6 @@ body {
   width: 200px;
   padding: 5px;
   border-radius: 6px;
-  border: 1px solid var(--fg-color);
-  background-color: var(--fg-color);
   color: var(--text-color);
 }
 .cribbage-btn {
@@ -238,13 +266,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .cribbage-btn:hover{
-  background-color: var(--bl-btn-hv);
-}
-.menu-selector{
-  background-color: var(--fg-color);
-  color: var(--text-color);
-  /*border-radius: 6px;*/
-  margin-bottom: 10px;
+  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 .cancel-room-btn {
   padding: 10px 16px;
@@ -257,7 +279,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .cancel-room-btn:hover{
-  background-color: var(--rd-btn-hv);
+  background-color: color-mix(in srgb, var(--rd-btn) 80%, black)
 }
 .options-menu {
   display: grid;
@@ -277,7 +299,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--mg-color);
+  background: var(--top_bar);
   padding: 5px 10px;
   font-family: Arial, sans-serif;
   position: fixed;
@@ -312,7 +334,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .leave-room:hover {
-  background-color: var(--rd-btn-hv)
+  background-color: color-mix(in srgb, var(--rd-btn) 80%, black)
 }
 
 /***************************************
@@ -331,14 +353,14 @@ body {
   align-items: center;
   border-radius: 10px;
   box-shadow: 0 0 5px #000;
-  background-color: var(--mg-color);
+  background-color: var(--settings);
 }
 #settings-panel.closed {
   display: none;
 }
 .settings-panel h2{
   text-align: center;
-  border-bottom: 2px solid var(--bg-color);
+  border-bottom: 2px solid var(--background);
 }
 #settings-toggle { 
   width: 30px;
@@ -356,7 +378,7 @@ body {
   z-index: 5; 
 }
 .theme-selector{
-  background-color: var(--fg-color);
+  background-color: var(--text-bg);
   color: var(--text-color);
   /*border-radius: 6px;*/
   margin-bottom: 10px;
@@ -373,11 +395,11 @@ body {
   right: 0;
   height: calc(100vh - 160px - 56px); /*Used to make side meet bottom box*/
   max-width:15%;
-  background-color: var(--fg-color);
+  background-color: var(--scoreboard);
   color: var(--text-color);
   padding: 8px;
   box-sizing: border-box;
-  border-right: 2px solid var(--mg-color);
+  border-right: 2px solid var(--border);
 }
 .team-header {
   display: flex;
@@ -385,7 +407,7 @@ body {
   font-weight: bold;
   font-size: 20px;
   padding-bottom: 4px;
-  border-bottom: 1px solid var(--mg-color);
+  border-bottom: 1px solid var(--border);
   margin: 5px;
   color: var(--text-color);
 }
@@ -422,7 +444,7 @@ body {
 }
 .popup {
   position: relative;
-  background: var(--bg-color);
+  background: var(--background);
   flex-direction: column; /*Stacks children vertically*/
   display: flex;
   align-items: center;
@@ -468,7 +490,7 @@ body {
   transition: background-color 0.2s ease;
 }
 #start-game:hover {
-  background-color: var(--bl-btn-hv)
+  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 
 /*Team Selector Part of Popup*/
@@ -485,7 +507,7 @@ body {
   justify-content: center;
 }
 .team-column {
-  background-color: var(--mg-color);
+  background-color: var(--teams);
   border: 2px solid black;
   border-radius: 12px;
   padding: 15px;
@@ -497,7 +519,7 @@ body {
 }
 .team-column input#team-name {
   font-size: 1.1rem;
-  background-color: var(--fg-color);
+  background-color: var(--text-bg);
   border: 1px solid black;
   border-radius: 8px;
   text-align: center;
@@ -516,7 +538,7 @@ body {
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 0.95rem;
-  background-color: var(--fg-color);
+  background-color: var(--text-bg);
   border: 1px solid black;
   color: black;
 }
@@ -532,7 +554,7 @@ body {
   margin-left: 4px;
 }
 .move-player:hover {
-  background-color: var(--bl-btn-hv);
+  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 #add-del-container {
   display: flex;
@@ -540,7 +562,7 @@ body {
   gap: 15px;
 }
 .add-del-btn {
-  background-color: var(--fg-color);
+  background-color: var(--text-bg);
   padding: 5px 8px;
   border-radius: 10px;
   border: none;
@@ -548,7 +570,7 @@ body {
   cursor: pointer;
 }
 .add-del-btn:hover {
-  background-color: var(--mg-color);
+  background-color: color-mix(in srgb, var(--text-bg) 80%, black)
 }
 #random-teams {
   display: flex;
@@ -561,7 +583,7 @@ body {
   font-weight: bold;
 }
 .team-size {
-  background-color: var(--fg-color);
+  background-color: var(--text-bg);
   padding: 6px;
   border-radius: 8px;
   border: 1px solid;
@@ -577,7 +599,7 @@ body {
   cursor: pointer;
 }
 #random-btn:hover {
-  background-color: var(--gn-btn-hv);
+  background-color: color-mix(in srgb, var(--gn-btn) 80%, black)
 }
 
 /*Game mode selection part of popup*/
@@ -591,7 +613,7 @@ body {
 
 .divide-line {
   width: 2px;
-  background-color: var(--mg-color);
+  background-color: var(--border);
   align-self: stretch;
 }
 
@@ -669,17 +691,17 @@ body {
   left: 0;
   width: 20%;
   height: calc(100vh - 160px - 56px); /*Used to make side meet bottom box*/
-  background-color: var(--fg-color);
+  background-color: var(--logs);
   color: var(--text-color);
   padding: 8px;
   box-sizing: border-box;
   overflow-y: auto;
-  border-right: 2px solid var(--mg-color);
+  border-right: 2px solid var(--border);
 }
 .log-entry {
   margin-bottom: 10px;
   font-size: 14px;
-  border-bottom: 1px solid var(--mg-color);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 4px;
 }
 
@@ -782,7 +804,7 @@ body {
   align-items: center;
   gap: 8px;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-  background: var(--mg-color);
+  background: var(--hand-container);
 }
 #hand {
   display: flex;
