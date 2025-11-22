@@ -83,7 +83,7 @@ async function joinRoom(roomId: string, player: string) {
     teams: arrayUnion((new Team(player, [newPlayer.id])).toPlainObject())
   });
 
-  window.location.href = `${roomData.gameType}.html?roomId=${roomId}&game=${roomData.gameType}`;
+  window.location.href = `room.html?roomId=${roomId}&game=${roomData.gameType}`;
 }
 
 // Select all buttons with the class "create-room-btn"
@@ -102,7 +102,7 @@ buttons.forEach(button => {
     try {
       const roomId = await createRoom(gameType);
       if (roomId != '' || roomId != null){
-        window.location.href = `${gameType}.html?roomId=${roomId}&game=${gameType}`;
+        window.location.href = `room.html?roomId=${roomId}&game=${gameType}`;
       }
     } catch (e) {
       console.error('Failed to create room:', e);

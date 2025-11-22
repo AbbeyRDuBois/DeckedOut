@@ -2,6 +2,7 @@ const path = require('path');
 const glob = require('glob');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 //Auto-detect all entries based on src/*.ts
 const entry = {};
@@ -10,20 +11,17 @@ glob.sync('./src/**/!(*.d).ts').forEach(file => {
   entry[name] = path.resolve(file);
 });
 
-// Generate HtmlWebpackPlugin for each HTML file in /public
+const allowedHtmlFiles = ["index.html", "room.html"];
+
+// Generate HtmlWebpackPlugin for each HTML file above
 const htmlPlugins = require('fs').readdirSync('./public')
-  .filter((file) => file.endsWith('.html'))
+  .filter((file) => file.endsWith('.html') && allowedHtmlFiles.includes(file))
   .map((file) => {
     const name = path.parse(file).name;
-
-    //If html has a ts that has same name use that (ex: index), oherwise use room.ts
-    const knownEntryPoints = Object.keys(entry);
-    const chunk = knownEntryPoints.includes(name) ? name : 'room';
-
     return new HtmlWebpackPlugin({
       template: `./public/${file}`,
       filename: `${file}`,
-      chunks: [chunk], // Only inject its matching JS chunk
+      chunks: [name], //inject its matching JS chunk
     });
   });
 
@@ -59,6 +57,18 @@ module.exports = {
       new MiniCssExtractPlugin({
       filename: '[name].css', // generates CSS files like main.css
     }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "public",
+          to: ".",
+          filter: (filepath) => {
+            const file = path.basename(filepath);
+            return file.endsWith(".html") && !allowedHtmlFiles.includes(file);
+          }
+        }
+      ]
+    })
   ],
   resolve: {
     extensions: ['.ts', '.js'], // So you can import .ts without extensions

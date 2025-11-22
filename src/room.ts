@@ -32,7 +32,7 @@ export class Room {
   gameType: string;
   db!: Database;
   game!: BaseGame;
-  sharedUILoaded: boolean = false;
+  uniqueLoaded: boolean = false;
 
   constructor(gameType: string, roomId: string) {
     this.roomId = roomId;
@@ -70,9 +70,9 @@ export class Room {
     this.db.listenForUpdates();
     await this.db.update({ maxPlayers: this.game.getMaxPlayers() });
 
-    // Load shared UI
-    await this.loadSharedUI();
-    this.sharedUILoaded = true;
+    // Load UI
+    await this.loadUniqueUI();
+    this.uniqueLoaded = true;
 
     document.querySelectorAll('.room-id').forEach(info => {
       info.innerHTML = `<div>Room ID: ${this.roomId}</div>`;
@@ -82,15 +82,18 @@ export class Room {
     this.createListeners();
   }
 
-  async loadSharedUI(containerId = "room-template") {
-    const container = document.getElementById(containerId)!;
-    const html = await fetch("shared-ui.html").then(res => res.text());
+  async loadUniqueUI() {
+    //Loads the Unique content of the game into the UI
+    const container = document.getElementById("center-content")!;
+    const html = await fetch(`/${this.gameType}.html`).then(res => res.text());
     container.innerHTML = html;
+    container.style.display = "block"
+
     await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
   }
 
   getUILoaded(){
-    return this.sharedUILoaded;
+    return this.uniqueLoaded;
   }
 
   async handlePopup() {
