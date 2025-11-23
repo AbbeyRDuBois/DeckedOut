@@ -6,6 +6,12 @@
 
   /*Default Theme (dark)*/
 :root {
+  /*Sizing*/
+  --top-height: 5vh;
+  --bottom-height: 25vh;
+  --side-width: 20vh;
+
+  /*Colors*/
   --logs:  #6d6d6d;
   --teams:  #6d6d6d;
   --scoreboard: #6d6d6d;
@@ -86,16 +92,16 @@ body[data-theme='navy'] {
 }
 
 body[data-theme='cursed'] {
-  --logs:  #6d6d6d;
-  --teams:  #6d6d6d;
-  --scoreboard: #6d6d6d;
-  --hand-container: #4a4a4a;
-  --background: #1c1c1c;
-  --top_bar: #4a4a4a;
-  --settings:#4a4a4a;
-  --border:  #4a4a4a;
-  --text-bg: #6d6d6d;
-  --text-color: white;
+  --logs:  #344a5d;
+  --teams:  #344a5d;
+  --scoreboard:  #344a5d;
+  --hand-container: #344a5d;
+  --background:  #344a5d;
+  --top_bar:  #344a5d;
+  --settings: #344a5d;
+  --border: black;
+  --text-bg:#6d6d6d;
+  --text-color: black;
   --bl-btn:#005fff;
   --rd-btn:tomato;
   --gn-btn:#01b401;
@@ -108,14 +114,54 @@ body[data-theme='cursed'] {
   *
   ************************************/
 body {
+  width: 100%;
   height: 100%;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden; /* prevents horizontal scroll*/
+  padding:0;
+  overflow: hidden;   /* disables scrolling */
+}
+
+/* Full-page grid with 3 rows and 3 columns */
+.layout {
+  display: grid;
   color: var(--text-color);
   background: var(--background);
+  background-size: 100% 100%;
+  overflow-x: hidden; /* prevents horizontal scroll*/
+  width: 100vw;
+  height: 100vh;
+
+  grid-template-rows: 
+      var(--top-height)
+      calc(100vh - var(--top-height) - var(--bottom-height))
+      var(--bottom-height);
+
+  grid-template-columns: 
+      var(--side-width)
+      calc(100vw - 2 * var(--side-width))
+      var(--side-width);
 }
+
+/*Other grid sections specified below */
+.center {
+  grid-column: 2;
+  grid-row: 2;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: var(--background);
+
+  display: flex;
+  flex-direction: column;
+  position:relative;
+}
+
+.center-main {
+  height: 60%;
+  position: relative;
+  overflow: hidden;
+}
+
 /********************************************************************************************************************************************
 *
 * Game Selection Screen
@@ -296,16 +342,14 @@ body {
 *
 *********************************************************************************************************************************************/
 .top-bar {
+  grid-column: 1/4;
+  grid-row: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--top_bar);
-  padding: 5px 10px;
+  background-size: 100% 100%;
   font-family: Arial, sans-serif;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 4;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 .room-info {
@@ -369,6 +413,7 @@ body {
   margin-left: auto;
   margin-right: 10px;
   background: var(--bl-btn);
+  background-size: 100% 100%;
   font-size: 15px;
   display: flex;
   align-items: center;
@@ -390,11 +435,8 @@ body {
 *
 ***************************************/
 #scoreboard {
-  position: absolute;
-  top: 35px;
-  right: 0;
-  height: calc(100vh - 160px - 56px); /*Used to make side meet bottom box*/
-  max-width:15%;
+  grid-column: 3;
+  grid-row: 2;
   background-color: var(--scoreboard);
   color: var(--text-color);
   padding: 8px;
@@ -445,6 +487,7 @@ body {
 .popup {
   position: relative;
   background: var(--background);
+  background-size: 100% 100%;
   flex-direction: column; /*Stacks children vertically*/
   display: flex;
   align-items: center;
@@ -657,12 +700,12 @@ body {
   color: white;
 }
 .local-indicator {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   position: absolute;
-  bottom: 200px;
-  z-index: 5;
+  bottom: 0;
+  left: 0;
+  width: 4vmin;
+  height: 4vmin;
+  border-radius: 50%;
   display: none;
   justify-content: center;
   align-items: center;
@@ -671,12 +714,12 @@ body {
   display: flex;
 }
 .local-indicator[data-type="crib"] {
-  left: 25%;
+  left: 5%;
   background: purple;
   color: white;
 }
 .local-indicator[data-type="turn"] {
-  left: 21%;
+  left: 2%;
   background: gold;
   color:black;
 }
@@ -686,11 +729,8 @@ body {
 *
 ***************************************/
 .logs {
-  position: absolute;
-  top: 35px;
-  left: 0;
-  width: 20%;
-  height: calc(100vh - 160px - 56px); /*Used to make side meet bottom box*/
+  grid-column: 1;
+  grid-row: 2;
   background-color: var(--logs);
   color: var(--text-color);
   padding: 8px;
@@ -711,8 +751,8 @@ body {
 *
 ***************************************************************************************************************************************/
 .card {
-  width: 100px;
   height: 150px;
+  width: 100px;
   transition: border 0.3s ease, transform 0.2s ease;
   cursor: pointer;
   border-radius: 15px;
@@ -756,9 +796,7 @@ body {
 *
 ***************************************************************************************************************************************/
 #opponents {
-  margin-top: 45px;
-  padding: 0 16px;
-  min-height:90px;
+  height: 20%;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -773,8 +811,8 @@ body {
 }
 .small-card {
   pointer-events: none;  /* disables all interaction */
-  width: 40px;
   height: 60px;
+  width: 40px;
   transition: border 0.3s ease, transform 0.2s ease;
   display: flex;
   justify-content: center;
@@ -792,27 +830,19 @@ body {
 * Player Hand
 *
 ***************************************************************************************************************************************/
-#bottom-section {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 160px;
-  padding: 8px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-  background: var(--hand-container);
-}
 #hand {
+  grid-column: 1 / 4;
+  grid-row: 3;
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 6px;
   justify-content: center;
   padding: 3px;
   overflow-x: auto;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  background: var(--hand-container);
+  background-size: 100% 100%;
 }
 .hand-info{
   display: flex;
@@ -827,13 +857,14 @@ body {
   border: 2px solid transparent;
 }
 #played-container {
-  pointer-events: none;
-  position: relative;
-  bottom: -240px;
-  height: 160px;
+  position: absolute;
+  bottom: 0;
   left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 20%;
+  pointer-events: none;
   display: inline-flex;
-  z-index: 4;
 }
 
 /**********************************************************************************************************************************************
