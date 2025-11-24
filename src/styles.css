@@ -9,7 +9,7 @@
   /*Sizing*/
   --top-height: 5vh;
   --bottom-height: 25vh;
-  --side-width: 20vh;
+  --side-width: 18vw;
 
   /*Colors*/
   --logs:  #6d6d6d;
@@ -20,7 +20,7 @@
   --top_bar: #4a4a4a;
   --settings:#4a4a4a; 
   --border:  #4a4a4a;
-  --text-bg: #6d6d6d;
+  --text-bg: lightgrey;
   --text-color: white;
   --bl-btn:#005fff;
   --rd-btn:tomato;
@@ -116,17 +116,20 @@ body[data-theme='cursed'] {
 body {
   width: 100%;
   height: 100%;
+  color: var(--text-color);
+  background: var(--background);
+  background-size: 100% 100%;
   margin: 0;
   padding:0;
   overflow: hidden;   /* disables scrolling */
 }
-
+.input {
+  background: var(--text-bg);
+  color: var(--text-color);
+}
 /* Full-page grid with 3 rows and 3 columns */
 .layout {
   display: grid;
-  color: var(--text-color);
-  background: var(--background);
-  background-size: 100% 100%;
   overflow-x: hidden; /* prevents horizontal scroll*/
   width: 100vw;
   height: 100vh;
@@ -150,9 +153,6 @@ body {
   background-repeat: no-repeat;
   background-position: center;
   background-image: var(--background);
-
-  display: flex;
-  flex-direction: column;
   position:relative;
 }
 
@@ -342,19 +342,17 @@ body {
 *
 *********************************************************************************************************************************************/
 .top-bar {
+  padding: 1%;
   grid-column: 1/4;
   grid-row: 1;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   background: var(--top_bar);
   background-size: 100% 100%;
-  font-family: Arial, sans-serif;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: var(--border);
 }
 .room-info {
   display: flex;
-  flex-direction: row;
   gap: 8px;
   font-weight: bold;
 }
@@ -370,12 +368,10 @@ body {
 .leave-room {
   background-color: var(--rd-btn);
   border: none;
-  margin-right: 20px;
   padding: 4px 10px;
   font-weight: bold;
   cursor: pointer;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
 }
 .leave-room:hover {
   background-color: color-mix(in srgb, var(--rd-btn) 80%, black)
@@ -388,12 +384,11 @@ body {
 ***************************************/
 #settings-panel {
   position: absolute;
-  justify-content: center;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  right: 95px;
-  top: 10px;
+  padding: 5px;
+  right: 8%;
+  top: 2%;
   align-items: center;
   border-radius: 10px;
   box-shadow: 0 0 5px #000;
@@ -407,25 +402,22 @@ body {
   border-bottom: 2px solid var(--background);
 }
 #settings-toggle { 
-  width: 30px;
-  height: 30px;
-  right: 1px;
+  width: 4.5vmin;
+  height: 4.5vmin;
   margin-left: auto;
-  margin-right: 10px;
+  margin-right: 1%;
   background: var(--bl-btn);
   background-size: 100% 100%;
   font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
   border-radius: 10px;
-  z-index: 5; 
+  border: none;
+  z-index: 1; 
 }
 .theme-selector{
   background-color: var(--text-bg);
   color: var(--text-color);
-  /*border-radius: 6px;*/
+  border-radius: 6px;
   margin-bottom: 10px;
 }
 
@@ -440,8 +432,6 @@ body {
   background-color: var(--scoreboard);
   color: var(--text-color);
   padding: 8px;
-  box-sizing: border-box;
-  border-right: 2px solid var(--border);
 }
 .team-header {
   display: flex;
@@ -475,10 +465,8 @@ body {
   height: 100%;
   backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
   background-color: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
-  display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
 }
 .popup-overlay#joker_popup {
   backdrop-filter: none;               /* Removes the blur */
@@ -493,22 +481,15 @@ body {
   align-items: center;
   padding: 15px;
   border-radius: 10px;
-  text-align: center;
-  width: 90%;
-  max-width: 400px;
-  min-height: 300px;
+  max-width: 50%;
+  min-height: 30%;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
   animation: 0.3s ease-in-out;
-  justify-content: center;
-  /*overflow: auto;*/
 }
 #waiting-popup .room-info {
   position: absolute;
   top: 12px;
   left: 16px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   font-size: 12px;
   font-weight: bold;
 }
@@ -662,9 +643,11 @@ body {
 
 .menu-selector{
   display: flex;
+  background: var(--text-bg);
   flex-direction: column;
   align-items: center;
   border-radius: 5px;
+  margin-bottom:10px;
 }
 
 /*Winner Popup*/
@@ -678,12 +661,10 @@ body {
 *
 ***************************************/
 .indicator {
-  width: 20px;
-  height: 20px;
+  width: 3vmin;
+  height: 3vmin;
   border-radius: 50%;
   margin-left: 10px;
-  margin-bottom: 5px;
-  transition: opacity 0.3s ease;
   display: none;
   justify-content: center;
   align-items: center;
@@ -700,9 +681,8 @@ body {
   color: white;
 }
 .local-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  position: fixed;
+  bottom: 26%;
   width: 4vmin;
   height: 4vmin;
   border-radius: 50%;
@@ -714,12 +694,12 @@ body {
   display: flex;
 }
 .local-indicator[data-type="crib"] {
-  left: 5%;
+  left: 25%;
   background: purple;
   color: white;
 }
 .local-indicator[data-type="turn"] {
-  left: 2%;
+  left: 20%;
   background: gold;
   color:black;
 }
@@ -734,15 +714,12 @@ body {
   background-color: var(--logs);
   color: var(--text-color);
   padding: 8px;
-  box-sizing: border-box;
   overflow-y: auto;
-  border-right: 2px solid var(--border);
 }
 .log-entry {
   margin-bottom: 10px;
   font-size: 14px;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
 }
 
 /**************************************************************************************************************************************
@@ -753,11 +730,9 @@ body {
 .card {
   height: 150px;
   width: 100px;
-  transition: border 0.3s ease, transform 0.2s ease;
+  transition: border 0.3s,ease, transform 0.2s ease;
   cursor: pointer;
   border-radius: 15px;
-  position: relative;
-  perspective: 1000px; /* needed for 3D effect */
 }
 .card:hover {
   border: 2px solid #2196f3;
@@ -768,7 +743,6 @@ body {
   height: 100%;
   transition: transform 0.6s;
   transform-style: preserve-3d;
-  position: relative;
 }
 .card.flipped .card-hinge {
   transform: rotateY(180deg);
@@ -796,33 +770,22 @@ body {
 *
 ***************************************************************************************************************************************/
 #opponents {
+  margin-top: 1%;
   height: 20%;
-  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 12px;
 }
 .card-row {
   display: grid;
   grid-template-columns: repeat(5, auto); /* 5 cards per row */
   justify-content: center;
-  gap: 10px;
+  gap: 2px;
 }
 .small-card {
   pointer-events: none;  /* disables all interaction */
   height: 60px;
   width: 40px;
-  transition: border 0.3s ease, transform 0.2s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 13px;
-  background-repeat: no-repeat;
-}
-.opponent-name{
-  display: flex;
-  justify-content: center;
 }
 
 /**************************************************************************************************************************************
@@ -834,20 +797,13 @@ body {
   grid-column: 1 / 4;
   grid-row: 3;
   display: flex;
-  flex-direction: row;
   align-items: center;
   gap: 6px;
   justify-content: center;
-  padding: 3px;
   overflow-x: auto;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
   background: var(--hand-container);
   background-size: 100% 100%;
-}
-.hand-info{
-  display: flex;
-  justify-content: center; 
-  gap: 6px; /*Gap between cards*/
 }
 #hand.hand-disabled .card {
   pointer-events: none;
@@ -857,14 +813,15 @@ body {
   border: 2px solid transparent;
 }
 #played-container {
-  position: absolute;
-  bottom: 0;
+  position: relative;
+  justify-content: center;
+  bottom: 13%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%); /* center horizontally */
   width: 80%;
   height: 20%;
   pointer-events: none;
-  display: inline-flex;
+  display: flex;
 }
 
 /**********************************************************************************************************************************************
@@ -881,33 +838,25 @@ body {
 #flipped {
   position: absolute; 
   top: 45%;
-  left: 25%;          
+  left: 15%;          
   transform: translateY(-50%);
   padding: 10px;
   pointer-events: none;   
   cursor: default;               
 }
-#peggingContainer {
-  position: absolute; 
-  top: 38%;
-  left: 65%;          
-  transform: translateY(-50%);
-  padding: 10px;
-  pointer-events: none;    
-  filter: grayscale(100%);    
-  cursor: default;     
-  justify-content: center;
-  align-items: center;
-  display:flex;          
+#peggingContainer { 
+  position: absolute;
+  top: 40%;
+  right: 10%;            /* align to right edge */
+  transform: translateY(-50%); /* center vertically */
+  cursor: default;
 }
 #pegging{
   font-size: 20px;
 }
 #peggingTotal {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  display:flex;
+  justify-content:center;
   font-size: 40px;
 }
 .card-grid {
