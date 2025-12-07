@@ -15,7 +15,7 @@
   --logs:  #6d6d6d;
   --teams:  #6d6d6d;
   --scoreboard: #6d6d6d;
-  --hand-container: #4a4a4a;
+  --hand: #4a4a4a;
   --background: #1c1c1c;
   --top_bar: #4a4a4a;
   --settings:#4a4a4a; 
@@ -31,7 +31,7 @@ body[data-theme='light'] {
   --logs:  white;
   --teams:  white;
   --scoreboard: white;
-  --hand-container: ivory;
+  --hand: ivory;
   --background: whiteSmoke;
   --top_bar: ivory;
   --settings:ivory;
@@ -47,7 +47,7 @@ body[data-theme='pink_rose'] {
   --logs:  floralWhite;
   --teams:  floralWhite;
   --scoreboard: floralWhite;
-  --hand-container: mistyRose;
+  --hand: mistyRose;
   --background: ivory;
   --top_bar: mistyRose;
   --settings:mistyRose;
@@ -63,7 +63,7 @@ body[data-theme='ocean'] {
   --logs:  teal;
   --teams:  teal;
   --scoreboard: teal;
-  --hand-container: darkSlateGrey;
+  --hand: darkSlateGrey;
   --background: lightSeaGreen;
   --top_bar: darkSlateGrey;
   --settings: darkSlateGrey;
@@ -79,7 +79,7 @@ body[data-theme='navy'] {
   --logs:  #344a5d;
   --teams:  #344a5d;
   --scoreboard: #344a5d;
-  --hand-container: #22303c;
+  --hand: #22303c;
   --background: #19232c;
   --top_bar: #22303c;
   --settings:#22303c;
@@ -92,16 +92,16 @@ body[data-theme='navy'] {
 }
 
 body[data-theme='cursed'] {
-  --logs:  #344a5d;
-  --teams:  #344a5d;
-  --scoreboard:  #344a5d;
-  --hand-container: #344a5d;
-  --background:  #344a5d;
-  --top_bar:  #344a5d;
-  --settings: #344a5d;
+  --logs:  url("./Assets/Cursed/Logs.png");
+  --teams:  url("./Assets/Cursed/Teams.png");
+  --scoreboard:  url("./Assets/Cursed/ScoreBoard.png");
+  --hand: url("./Assets/Cursed/Hand.png");
+  --background:  url("./Assets/Cursed/Background.png");
+  --top_bar:  url("./Assets/Cursed/Top_Bar.png");
+  --settings: url("./Assets/Cursed/Settings.png");
   --border: black;
-  --text-bg:#6d6d6d;
-  --text-color: black;
+  --text-bg:black;
+  --text-color: white;
   --bl-btn:#005fff;
   --rd-btn:tomato;
   --gn-btn:#01b401;
@@ -184,7 +184,7 @@ body {
   top: 20px;
   right: 20px;
   gap: 10px;
-  background-color: var(--rd-btn);
+  background: var(--rd-btn);
   padding: 10px 16px;
   border: none;
   color: var(--text-color);
@@ -194,7 +194,7 @@ body {
   transition: background-color 0.2s ease;
 }
 #signInBtn:hover {
-  background-color: color-mix(in srgb, var(--rd-btn) 80%, black)
+  background: color-mix(in srgb, var(--rd-btn) 80%, black)
 }
 /* #username-input{
   text-align: center;
@@ -243,7 +243,7 @@ body {
 .create-room-btn {
   padding: 10px 16px;
   border: none;
-  background-color: var(--bl-btn);
+  background: var(--bl-btn);
   color: var(--text-color);
   border-radius: 6px;
   cursor: pointer;
@@ -251,7 +251,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .create-room-btn:hover{
-  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
+  background: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 .join-section{
   display:flex;
@@ -272,7 +272,7 @@ body {
 }
 .join-btn {
   width: 70px;
-  background-color: var(--gn-btn);
+  background: var(--gn-btn);
   color: var(--text-color) ;
   border: none;
   border-radius: 6px;
@@ -281,7 +281,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .join-btn:hover {
-  background-color: color-mix(in srgb, var(--gn-btn) 80%, black)
+  background: color-mix(in srgb, var(--gn-btn) 80%, black)
 }
 .menu-input{
   text-align: center;
@@ -304,7 +304,7 @@ body {
 .cribbage-btn {
   padding: 10px 16px;
   border: none;
-  background-color: var(--bl-btn);
+  background: var(--bl-btn);
   color: var(--text-color);
   border-radius: 6px;
   cursor: pointer;
@@ -312,7 +312,7 @@ body {
   transition: background-color 0.2s ease;
 }
 .cribbage-btn:hover{
-  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
+  background: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 /********************************************************************************************************************************************
 *
@@ -326,6 +326,8 @@ body {
   display: flex;
   align-items: center;
   background: var(--top_bar);
+  background-position: center;
+  background-repeat: no-repeat;
   background-size: 100% 100%;
   border: var(--border);
 }
@@ -345,7 +347,7 @@ body {
 }
 .leave-room {
   height: 4vmin;
-  background-color: var(--rd-btn);
+  background: var(--rd-btn);
   border: none;
   padding: 4px 10px;
   font-weight: bold;
@@ -353,7 +355,7 @@ body {
   border-radius: 4px;
 }
 .leave-room:hover {
-  background-color: color-mix(in srgb, var(--rd-btn) 80%, black)
+  background: color-mix(in srgb, var(--rd-btn) 80%, black)
 }
 
 .options {
@@ -382,14 +384,18 @@ body {
   align-items: center;
   border-radius: 10px;
   box-shadow: 0 0 5px #000;
-  background-color: var(--settings);
+  background: var(--settings);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 2;
 }
 #settings-panel.closed {
   display: none;
 }
 .settings-panel h2{
   text-align: center;
-  border-bottom: 2px solid var(--background);
+  border-bottom: 2px solid var(--border);
 }
 #settings-toggle {
   position: absolute;
@@ -403,10 +409,10 @@ body {
   cursor: pointer;
   border-radius: 10px;
   border: none;
-  z-index: 1; 
+  z-index: 3; 
 }
 .theme-selector{
-  background-color: var(--text-bg);
+  background: var(--text-bg);
   color: var(--text-color);
   border-radius: 6px;
   margin-bottom: 10px;
@@ -420,7 +426,10 @@ body {
 #scoreboard {
   grid-column: 3;
   grid-row: 2;
-  background-color: var(--scoreboard);
+  background: var(--scoreboard);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
   color: var(--text-color);
   padding: 8px;
 }
@@ -455,14 +464,14 @@ body {
   width: 100%;
   height: 100%;
   backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
-  background-color: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
+  background: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
   align-items: center;
   justify-content: center;
   z-index: 2;
 }
 .popup-overlay#joker-popup {
   backdrop-filter: none;               /* Removes the blur */
-  background-color: transparent;       /* Removes the dark overlay */
+  background: transparent;       /* Removes the dark overlay */
   z-index:2;
 }
 .popup {
@@ -496,7 +505,7 @@ body {
   gap: 12px;
 }
 #start-game {
-  background-color: var(--bl-btn);
+  background: var(--bl-btn);
   border: none;
   padding: 4px 6px;
   font-weight: bold;
@@ -505,7 +514,7 @@ body {
   transition: background-color 0.2s ease;
 }
 #start-game:hover {
-  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
+  background: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 
 /*Team Selector Part of Popup*/
@@ -522,7 +531,7 @@ body {
   justify-content: center;
 }
 .team-column {
-  background-color: var(--teams);
+  background: var(--teams);
   border: 2px solid black;
   border-radius: 12px;
   padding: 15px;
@@ -534,7 +543,7 @@ body {
 }
 .team-column input#team-name {
   font-size: 1.1rem;
-  background-color: var(--text-bg);
+  background: var(--text-bg);
   border: 1px solid black;
   border-radius: 8px;
   text-align: center;
@@ -549,17 +558,16 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 6px 8px;
-  background-color: #fff;
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 0.95rem;
-  background-color: var(--text-bg);
+  background: var(--text-bg);
   border: 1px solid black;
   color: black;
 }
 .move-player {
   border: none;
-  background-color: var(--bl-btn);
+  background: var(--bl-btn);
   color: var(--text-color);
   border-radius: 50%;
   padding: 2px 4px;
@@ -569,7 +577,7 @@ body {
   margin-left: 4px;
 }
 .move-player:hover {
-  background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
+  background: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
 #add-del-container {
   display: flex;
@@ -577,7 +585,7 @@ body {
   gap: 15px;
 }
 .add-del-btn {
-  background-color: var(--text-bg);
+  background: var(--text-bg);
   padding: 5px 8px;
   border-radius: 10px;
   border: none;
@@ -585,7 +593,7 @@ body {
   cursor: pointer;
 }
 .add-del-btn:hover {
-  background-color: color-mix(in srgb, var(--text-bg) 80%, black)
+  background: color-mix(in srgb, var(--text-bg) 80%, black)
 }
 #random-teams {
   display: flex;
@@ -598,14 +606,14 @@ body {
   font-weight: bold;
 }
 .team-size {
-  background-color: var(--text-bg);
+  background: var(--text-bg);
   padding: 6px;
   border-radius: 8px;
   border: 1px solid;
   text-align: center;
 }
 #random-btn {
-  background-color: var(--gn-btn);
+  background: var(--gn-btn);
   color: black;
   padding: 4px 7px;
   border: none;
@@ -614,7 +622,7 @@ body {
   cursor: pointer;
 }
 #random-btn:hover {
-  background-color: color-mix(in srgb, var(--gn-btn) 80%, black)
+  background: color-mix(in srgb, var(--gn-btn) 80%, black)
 }
 
 /*Game mode selection part of popup*/
@@ -628,7 +636,7 @@ body {
 
 .divide-line {
   width: 2px;
-  background-color: var(--border);
+  background: var(--border);
   align-self: stretch;
 }
 
@@ -702,7 +710,10 @@ body {
 .logs {
   grid-column: 1;
   grid-row: 2;
-  background-color: var(--logs);
+  background: var(--logs);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
   color: var(--text-color);
   padding: 8px;
   overflow-y: auto;
@@ -792,7 +803,9 @@ body {
   justify-content: center;
   overflow-x: auto;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-  background: var(--hand-container);
+  background: var(--hand);
+  background-position: center;
+  background-repeat: no-repeat;
   background-size: 100% 100%;
   overflow: hidden;   /* disables scrolling */
   padding: 1%;

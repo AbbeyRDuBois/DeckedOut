@@ -28,6 +28,11 @@ const htmlPlugins = require('fs').readdirSync('./public')
 module.exports = {
   entry,
   mode: 'development',
+  stats: {
+    errors: true,
+    errorDetails: true,
+    moduleTrace: true,
+  },
   module: {
     rules: [
       {
