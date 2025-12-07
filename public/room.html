@@ -22,31 +22,33 @@
           </svg>
         </span>
       </div>
-      <div id="settings">
-        <button id="settings-toggle" aria-label="Toggle settings panel" title="Settings">⚙️</button>
-        <div id="settings-panel" class="settings-panel closed">
-          <h2>Settings</h2>
-          <label for="theme-selector">Select Theme:</label>
-          <select id="theme-selector" class="theme-selector">
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-            <option value="navy">Navy</option>
-            <option value="pink_rose">Pink Rose</option>
-            <option value="ocean">Ocean</option>
-            <option value="cursed">Cursed</option>
-          </select>
-          <label for="card-theme-selector">Select Card Theme:</label>
-          <select class="theme-selector" id="card-theme-selector">
-            <option value="Classic">Classic</option>
-            <option value="Cats">Cats</option>
-            <option value="Pokemon">Pokemon</option>
-            <option value="StarWars">StarWars</option>
-            <option value="Genshin">Genshin</option>
-            <option value="Hollow">Hollow Knight</option>
-          </select>
+      <div class="options">
+        <div id="settings">
+          <button id="settings-toggle" aria-label="Toggle settings panel" title="Settings">⚙️</button>
+          <div id="settings-panel" class="settings-panel closed">
+            <h2>Settings</h2>
+            <label for="theme-selector">Select Theme:</label>
+            <select id="theme-selector" class="theme-selector">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="navy">Navy</option>
+              <option value="pink_rose">Pink Rose</option>
+              <option value="ocean">Ocean</option>
+              <option value="cursed">Cursed</option>
+            </select>
+            <label for="card-theme-selector">Select Card Theme:</label>
+            <select class="theme-selector" id="card-theme-selector">
+              <option value="Classic">Classic</option>
+              <option value="Cats">Cats</option>
+              <option value="Pokemon">Pokemon</option>
+              <option value="StarWars">StarWars</option>
+              <option value="Genshin">Genshin</option>
+              <option value="Hollow">Hollow Knight</option>
+            </select>
+          </div>
         </div>
+        <button class="leave-room" id="top-bar">Leave</button>
       </div>
-      <button class="leave-room">Leave</button>
     </header>
     <footer id="hand"></footer>
     <aside id="scoreboard"></aside>

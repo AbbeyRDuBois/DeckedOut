@@ -10,11 +10,10 @@ export const SUITS = [
 ];
 
 export type CardOptions = {
-  width?: number;
-  height?: number;
-  startsFlipped?: boolean;
-  clickable?: boolean;
-  onClick?: (card: Card, cardDiv: HTMLDivElement) => void;
+    container?: HTMLElement;
+    startsFlipped?: boolean;
+    clickable?: boolean;
+    onClick?: (card: Card, cardDiv: HTMLDivElement) => void;
 };
 
 export class Card {
@@ -51,12 +50,16 @@ export class Card {
 
     createCard(spriteSheet: SpriteSheet, options: CardOptions = {}): HTMLDivElement { 
         const {
-            width = 100,
-            height = 150,
+            container = document.getElementById('hand')!,
             startsFlipped = false, //This tells if it starts out flipped or not
             clickable = false,
             onClick
         } = options;
+
+        const style = getComputedStyle(container);
+        const containerRect = container.getBoundingClientRect();
+        const height = containerRect.height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+        const width = containerRect.height / 2;
 
         const {bgWidth, bgHeight} = spriteSheet.getBackgroundSize(width, height);
         var {col, row} = spriteSheet.getCardLocation(this.toInt(), spriteSheet.getRow(this.suit), width, height);
@@ -64,6 +67,8 @@ export class Card {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card' + (startsFlipped || this.isFlipped ? '' : ' flipped');
         cardDiv.setAttribute("card-id", this.id.toString());
+        cardDiv.style.height = `${height}px`;
+        cardDiv.style.width = `${width}px`;
 
         //This is the hinge that will flip the card. Face/Back elements will exist inside of this.
         const hinge = document.createElement('div');

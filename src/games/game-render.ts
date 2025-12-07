@@ -59,38 +59,38 @@ export function renderScoreboard(game: BaseGame) {
     const opponentContainer = document.getElementById('opponents')!;
     opponentContainer.innerHTML = '';
 
+    const oppRect = opponentContainer.getBoundingClientRect(); //Dividing width equally between opponents
+
     opponents.forEach((opponent, index) => {
         const opponentDiv = document.createElement('div');
         opponentDiv.classList.add('opponent');
+        opponentDiv.style.width = `${oppRect?.width / Math.ceil(Math.sqrt(opponents.length))}px`; //Dividing width equally between opponents
+        opponentDiv.style.height = `${oppRect?.height}px`;
+        opponentContainer.appendChild(opponentDiv);
 
         const opponentName = document.createElement('div');
         opponentName.classList.add('opponent-name');
         opponentName.textContent = opponent.name;
 
-        const cardRow = document.createElement('div');
-        cardRow.classList.add('card-row');
-
-        opponent.hand.forEach(card => {
-          //TODO: Fix the hardcoded values?
-          const cardDiv = card.createCard(game.getSpriteSheet(), {width: 40, height:60});
-          cardDiv.classList.add('small-card');
-          cardRow.appendChild(cardDiv);
-        });
-
         const oppInfo = document.createElement('div');
         oppInfo.style.display = 'flex';
         oppInfo.style.justifyContent = 'center';
-        oppInfo.style.height = '25px';
 
         oppInfo.appendChild(opponentName);
         game.createIndicators(opponent.id).forEach(indicator => {
           oppInfo.appendChild(indicator);
         });
-
         opponentDiv.appendChild(oppInfo);
-        opponentDiv.appendChild(cardRow);
-        opponentContainer.appendChild(opponentDiv);
 
+        const oppCards = document.createElement('div');
+        oppCards.classList.add('opp-cards');
+        opponentDiv.appendChild(oppCards);
+
+        opponent.hand.forEach(card => {
+          const cardDiv = card.createCard(game.getSpriteSheet(), {container: oppCards});
+          cardDiv.style.pointerEvents = "none";
+          oppCards.appendChild(cardDiv);
+        });
 
         //Adds a line to divide opponents (except after last opponent)
         if(index + 1 != opponents.length){
@@ -152,6 +152,6 @@ export function renderPlayed(game: BaseGame) {
   playedContainer.innerHTML = '';
 
   player.playedCards.forEach((card: Card) => {
-      playedContainer.appendChild(card.createCard(game.getSpriteSheet(), {startsFlipped: true, clickable: true, onClick: game.cardClick}));
+      playedContainer.appendChild(card.createCard(game.getSpriteSheet(), {container: playedContainer, startsFlipped: true, clickable: true, onClick: game.cardClick}));
   });
 }

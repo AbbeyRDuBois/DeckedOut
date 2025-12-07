@@ -191,5 +191,17 @@ export class Room {
     toggle?.addEventListener('click', () => {
       panel.classList.toggle('closed');
     });
+
+    //Resizes elements on page when window resizes
+    let resizePending = false;
+    window.addEventListener("resize", () => {
+      if (!resizePending) {
+        resizePending = true;
+        requestAnimationFrame(() => {
+          this.game.render();
+          resizePending = false;
+        });
+      }
+    });
   }
 }
