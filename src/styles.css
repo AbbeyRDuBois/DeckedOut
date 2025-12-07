@@ -314,20 +314,6 @@ body {
 .cribbage-btn:hover{
   background-color: color-mix(in srgb, var(--bl-btn) 80%, black)
 }
-.cancel-room-btn {
-  padding: 10px 16px;
-  border: none;
-  background-color: var(--rd-btn);
-  color: var(--text-color);
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
-}
-.cancel-room-btn:hover{
-  background-color: color-mix(in srgb, var(--rd-btn) 80%, black)
-}
-
 /********************************************************************************************************************************************
 *
 * Default Room Items
@@ -474,7 +460,7 @@ body {
   justify-content: center;
   z-index: 2;
 }
-.popup-overlay#joker_popup {
+.popup-overlay#joker-popup {
   backdrop-filter: none;               /* Removes the blur */
   background-color: transparent;       /* Removes the dark overlay */
   z-index:2;
