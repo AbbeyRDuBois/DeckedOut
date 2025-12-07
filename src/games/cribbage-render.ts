@@ -42,6 +42,10 @@ export function renderJokerPopup(game: Cribbage): Promise<Card> {
     document.getElementById("joker-overlay")!.style.display = "flex";
     const rows = document.getElementById("joker-popup")!.children;
 
+    for(var i = 0; i < 4; i++){
+      rows.item(i)!.innerHTML = "";
+    }
+
     const newDeck = new Deck()
     const options:CardOptions = {
       startsFlipped: true,
