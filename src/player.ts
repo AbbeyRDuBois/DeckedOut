@@ -23,7 +23,8 @@ export class Player {
             isTurn: this.isTurn,
             score: this.score,
             playedCards: this.playedCards?.map(card => card?.toPlainObject()),
-            team: this.team
+            team: this.team,
+            order: this.order
         };
     }
 
@@ -47,6 +48,8 @@ export class Player {
             : [];
         
         player.team = data.team;
+
+        player.order = data.order;
 
         return player;
     }

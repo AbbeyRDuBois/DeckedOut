@@ -7,6 +7,10 @@ import poke2 from "./SpriteSheets/Pokemon2_Deck.png";
 import poke2S from "./SpriteSheets/Pokemon2_Shiny_Deck.png";
 import pokeQ from "./SpriteSheets/PokemonQ_Deck.png";
 import pokeQS from "./SpriteSheets/PokemonQ_Shiny_Deck.png";
+import shinx from "./SpriteSheets/Shinx_Deck.png";
+import starSheet from "./SpriteSheets/StarWars_Deck.png";
+import genshinSheet from "./SpriteSheets/Genshin_Deck.png";
+import hollowSheet from "./SpriteSheets/Hollow_Deck.png";
 
 export class SpriteSheet {
     sheet_width = 1300;
@@ -80,6 +84,10 @@ export class PokemonSheet extends SpriteSheet {
         PokemonQ: {
             normal: `url(${pokeQ})`,
             shiny: `url(${pokeQS})`
+        },
+        Shinx: {
+            normal: `url(${shinx})`,
+            shiny: `url(${shinx})`
         }
     };
 
@@ -89,14 +97,29 @@ export class PokemonSheet extends SpriteSheet {
 
         rng = Math.floor(Math.random() * 101);
 
-        if (rng <= 40){
+        if (rng <= 29){
             this.image = this.pokemonMap["Pokemon1"][shiny];
         }
-        else if (rng <= 80){
+        else if (rng <= 59){
             this.image = this.pokemonMap["Pokemon2"][shiny];
+        }
+        else if (rng <= 79){
+            this.image = this.pokemonMap["Shinx"][shiny];
         }
         else{
             this.image = this.pokemonMap["PokemonQ"][shiny];
         }
     }
+}
+
+export class StarWarsSheet extends SpriteSheet {
+    image = `url(${starSheet})`;
+}
+
+export class GenshinSheet extends SpriteSheet {
+    image = `url(${genshinSheet})`;
+}
+
+export class HollowSheet extends SpriteSheet {
+    image = `url(${hollowSheet})`;
 }

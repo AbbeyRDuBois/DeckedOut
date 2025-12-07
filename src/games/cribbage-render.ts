@@ -10,7 +10,7 @@ export function renderPeggingTotal(game: Cribbage){
 export function renderFlipped(game: Cribbage){
     const flippedDiv = document.getElementById("flipped")!;
     flippedDiv.innerHTML = '';
-    flippedDiv.appendChild(game.getFlipped().createCard(game.getSpriteSheet()));
+    flippedDiv.appendChild(game.getFlipped().createCard(game.getSpriteSheet(), {container: flippedDiv}));
 }
 
 export function renderWinner(game: Cribbage, winner: Team){
@@ -40,27 +40,26 @@ export function renderWinner(game: Cribbage, winner: Team){
 export function renderJokerPopup(game: Cribbage): Promise<Card> {
   return new Promise((resolve) => {
     document.getElementById("joker-overlay")!.style.display = "flex";
-    const card_grid = document.getElementById("card-btns")!;
-    card_grid.innerHTML = "";
+    const rows = document.getElementById("joker-popup")!.children;
+
+    for(var i = 0; i < 4; i++){
+      rows.item(i)!.innerHTML = "";
+    }
 
     const newDeck = new Deck()
     const options:CardOptions = {
       startsFlipped: true,
       clickable: true,
-      height: 60,
-      width: 40,
+      container: rows.item(0)! as HTMLElement,
       onClick: async (card: Card, cardDiv: HTMLDivElement) => {
           await game.jokerCardClick(card, cardDiv);
           resolve(card); // Resolve the Promise once the joker has been chosen
         }
     }
 
-    newDeck.deck.forEach(card => {
+    newDeck.deck.forEach((card, index)=> {
       const cardDiv = card.createCard(game.getSpriteSheet(), options);
-      cardDiv.classList.add('small-card');
-      cardDiv.style.pointerEvents = "all";
-      cardDiv.style.transform = "0";
-      card_grid.appendChild(cardDiv) //Add button to grid
+      rows.item(Math.floor(index / 13))?.appendChild(cardDiv); // Add button to grid
     });
   });
 }
