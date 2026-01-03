@@ -655,27 +655,32 @@ export class Cribbage extends BaseGame {
     //Have to count the hands in order starting from the person after the crib owner
     for(let i = 1; i <= this.players.length && !this.ended; i++){
       let player = this.players[(currIndex + i) % this.players.length];
-
-      let points = 0;
       let hand = [...player.hand];
-            
-      //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
-      points += this.findFlush(hand);
-      points += this.findNobs(hand);
-
-      hand.push(this.flipped);
-      hand.sort((a,b) => a.toInt() - b.toInt());
-
-      points += this.find15s(hand);
-      points += this.findPairs(hand);
-      points += this.findRuns(hand);
-      
+      const points = this.countHand(hand, false);
       this.findTeamByPlayer(player)!.score += points;
       player.score += points;
       this.addLog(`${player.name} got ${points} points with hand ${player.hand.map(card => card.toHTML())}`);
     
       this.checkIfWon(player);
     }
+  }
+
+  countHand(hand: Card[], crib: Boolean){
+    let points = 0;
+
+    hand.forEach( card => console.log(card.suit + " " + card.value))
+    //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
+    points += this.findFlush([...hand], crib);
+    points += this.findNobs(hand);
+
+    hand.push(this.flipped);
+    hand.sort((a,b) => a.toInt() - b.toInt());
+
+    points += this.find15s(hand);
+    points += this.findPairs(hand);
+    points += this.findRuns(hand);
+
+    return points;
   }
 
   async countCrib(){
@@ -697,21 +702,9 @@ export class Cribbage extends BaseGame {
 
     //All players wait until crib no longer has Jokers
     await this.waitForJokerSelection();
-
-    let points = 0;
     let hand = [...this.crib];
 
-    //Do flush/nobs first as it doesn't need to be sorted and a card being the flipped one matters
-    points += this.findFlush(hand, true);
-    points += this.findNobs(hand);
-
-    hand.push(this.flipped);
-    hand.sort((a,b) => a.toInt() - b.toInt());
-
-    points += this.find15s(hand);
-    points += this.findPairs(hand);
-    points += this.findRuns(hand);
-
+    const points = this.countHand(hand, true);
     const player = this.players.find(player => player.name == this.crib_owner.name)!;
     this.findTeamByPlayer(player)!.score += points;
     player.score += points;
@@ -817,7 +810,7 @@ export class Cribbage extends BaseGame {
     return points;
   } 
 
-  findFlush(cards: Card[], crib = false): number{
+  findFlush(cards: Card[], crib: Boolean): number{
     //Add flipped to the check if it's the crib
     if (crib){
       cards.push(this.flipped)
@@ -826,9 +819,9 @@ export class Cribbage extends BaseGame {
     const suitSet = new Set(cards.map(card => card.suit));
     
     
-    if (this.deckMode == "Mega" && 
+    if (this.gameMode == "Mega" && 
       suitSet.size === 2 &&
-      (suitSet.has("Hearts") && suitSet.has("Diamonds")) || (suitSet.has("Clubs") && suitSet.has("Spades"))){
+      ((suitSet.has("Hearts") && suitSet.has("Diamonds")) || (suitSet.has("Clubs") && suitSet.has("Spades")))){
         return suitSet.has(this.flipped.suit) && !crib ? cards.length + 1 : cards.length;
     }
 
