@@ -1,7 +1,7 @@
 import { DocumentData } from "firebase/firestore";
-import { SpriteSheet } from "./spritesheets";
+import { SpriteSheet } from "../spritesheets";
 
-const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+export const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 export const SUITS = [
     { name: 'Clubs', symbol: '♣', color: 'black' },
     { name: 'Diamonds', symbol: '♦', color: 'crimson' },
@@ -129,55 +129,5 @@ export class Card {
             return new Card(0, "", "", false);
         }
         return new Card(data.id, data.value, data.suit, data.isFlipped);
-    }
-}
-
-
-export class Deck{
-    deck: Card[] = [];
-
-    constructor(deck: Card[] = []){
-        if (deck.length ===  0){
-            this.resetDeck();
-        }else {
-            this.deck = deck;
-        }
-    }
-
-    resetDeck(){
-        this.deck = [];
-        let idCounter = 0;
-
-        //Adds in a card of each value/suit
-        for (const suit of SUITS){
-            for(const value of VALUES){
-                this.deck.push(new Card(idCounter++, value, suit.name));
-            }
-        }
-    }
-
-    getCard(){
-        if(this.deck.length === 0) return;
-
-        let card = Math.floor(Math.random() * this.deck.length);
-        return this.deck.splice(card, 1)[0];
-    }
-
-    toPlainObject(){
-        return this.deck.map(card => card.toPlainObject());
-    }
-
-    static fromPlainObject(data: DocumentData): Deck{
-        return new Deck(Array.isArray(data)
-            ? data.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped))
-            : []);
-    }
-}
-
-export class JokerDeck extends Deck{
-    resetDeck(){
-        super.resetDeck();
-        this.deck.push(new Card(this.deck.length, 'JK', 'Red'))
-        this.deck.push(new Card(this.deck.length, 'JK', 'Black'))
     }
 }

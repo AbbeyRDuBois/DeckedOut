@@ -1,10 +1,21 @@
 import { DocumentData } from "firebase/firestore";
-import { Card, Deck } from "../deck";
+import { EventEmitter } from "../events/event-emitter";
+import { Deck } from "../deck";
+import { Card } from "../card";
 import { Player } from "../player";
 import { Team } from "../team";
-import { renderIndicators } from "./game-render";
-import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
-import { Database, getDBInstance } from "../databases";
+import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../../spritesheets";
+
+
+//Defines event types that can occur in base game
+type BaseEvents = {
+  stateChanged: any;
+  cardPlayed: { playerId: string; card: Card };
+  logAdded: string;
+  turnChanged: string;
+  handStateChanged: { playerId: string; enabled: boolean };
+  playRequested: { playerId: string; card: Card };
+};
 
 export abstract class BaseGame {
   protected deck: Deck;
@@ -18,12 +29,11 @@ export abstract class BaseGame {
   protected logs: string[] = [];
   protected playedOffset: number = -65; //How much the cards cover the past played
   protected spriteSheet: SpriteSheet = new SpriteSheet();
-  protected db: Database
+  protected events = new EventEmitter<BaseEvents>();
 
   constructor( deck: Deck, players: Player[], roomId: string){
     this.deck = deck;
     this.players = players;
-    this.db = getDBInstance();
   }
 
   abstract start(): void;
@@ -31,6 +41,16 @@ export abstract class BaseGame {
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
   abstract cardClick(card: Card, cardDiv: HTMLDivElement): void;
+
+  //Allows the controller/view to subscribe to event
+  on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
+    this.events.on(event, listener);
+  }
+
+  //Allows controller/view to unsubscribe to event
+  off<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
+    this.events.off(event, listener);
+  }
 
   getSpriteSheet(): SpriteSheet{
     return this.spriteSheet;
@@ -62,10 +82,6 @@ export abstract class BaseGame {
     }
   }
   updateLocalState(roomData: any){}
-
-  getDB(): Database{
-    return this.db;
-  }
 
   setPlayers(players: Player[]) {
     this.players = players;
@@ -146,7 +162,7 @@ export abstract class BaseGame {
   getPlayerTeam(playerId: string): Team | null{
     for (let i = 0; i < this.teams.length; i++) {
         const team = this.teams[i];
-        if (team.playerIds.findIndex(id => id === playerId) !== -1) {
+        if (team.playerIds.findIndex((id: string) => id === playerId) !== -1) {
           return team;
         }
     }
@@ -159,46 +175,53 @@ export abstract class BaseGame {
 
   addLog(log: string){
     this.logs.push(log);
+    this.events.emit('logAdded', log);
+    this.events.emit('stateChanged', this.toPlainObject());
+  }
+
+  toPlainObject() {
+    return {
+      players: this.players.map(p => p.toPlainObject()),
+      teams: this.teams.map(t => t.toPlainObject()),
+      deck: this.deck.toPlainObject(),
+      currentPlayerId: this.currentPlayer?.id ?? null,
+      started: this.started,
+      logs: this.logs
+    };
+  }
+
+  toViewState(localPlayerId?: string, revealOpponentHands = false) {
+    return {
+      players: this.players.map(p => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        order: p.getOrder?.() ?? p.order,
+        hand: (p.id === localPlayerId || revealOpponentHands)
+              ? p.hand.map(c => c.toPlainObject())
+              : p.hand.map(c => ({ id: c.id })), // minimal placeholder
+        playedCards: p.playedCards.map(c => c.toPlainObject())
+      })),
+      teams: this.teams.map(t => t.toPlainObject()),
+      currentPlayerId: this.currentPlayer?.id ?? null,
+      logs: this.logs.slice(-100) // cap size for perf
+    };
   }
 
   setHandState(player: Player){
-    this.activateHand();
-  }
-
-  deactivateHand(){
-    document.getElementById('hand')?.classList.add('hand-disabled');
-  }
-
-  activateHand(){
-    document.getElementById('hand')?.classList.remove('hand-disabled');
+    // Model informs subscribers that the hand/state should change.
+    this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
   }
 
   nextPlayer(){
     const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
     this.currentPlayer = this.players[(index + 1) % this.players.length];
     
-    if (this.currentPlayer.id === localStorage.getItem('playerId')){
-      this.isTurn = true;
-    }
-    else{
-      this.isTurn = false;
-    }
-    renderIndicators(this, [
-      {
-        name: 'turn',
-        isActive: (player) => player.id === this.getCurrentPlayer().id
-      }
-    ]);
-  }
+    this.isTurn = this.currentPlayer.id === localStorage.getItem('playerId');
 
-  createIndicators(oppId: string): HTMLDivElement[]{
-      const turnIndicator = document.createElement('div');
-      turnIndicator.classList.add('indicator');
-      turnIndicator.dataset.type = 'turn';
-      turnIndicator.innerHTML= "T";
-      turnIndicator.id = "turn-indicator-" + oppId;
-
-      return [turnIndicator];
+    // Notify subscribers of the turn change and new state
+    this.events.emit('turnChanged', this.currentPlayer.id);
+    this.events.emit('stateChanged', this.toPlainObject());
   }
 
   createModeSelector(): HTMLDivElement | null {
@@ -207,35 +230,37 @@ export abstract class BaseGame {
 
   findTeamByPlayer(player: Player): Team {
     return this.teams.find(team =>
-        team.playerIds.some(id => id === player.id)
+        team.playerIds.some((id: string) => id === player.id)
     )!;
   }
 
-  playCard(handContainer: HTMLElement, playedContainer: HTMLElement, cardDiv: HTMLDivElement, card: Card) {
-    handContainer.removeChild(cardDiv);
-    cardDiv.classList.add('played');
-    
-    playedContainer.appendChild(cardDiv);
-    const cards = Array.from(playedContainer.children) as HTMLElement[];
-
-    cards.forEach((card, i) => {
-      card.style.left = `${i * this.playedOffset}px`; //Offsets the cards
-      card.style.zIndex = `${i}`; //Layers the cards with the earlier ones being farther back and later being upfront
-    });
-
-    const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
-    player.playedCards.push(card);
-
-    //Animation for entry into the played container
-    cardDiv.style.opacity = '0';
-    cardDiv.style.transform = 'translateY(-20px)';
-    setTimeout(() => {
-      cardDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease, left 0.3s ease';
-      cardDiv.style.opacity = '1';
-      cardDiv.style.transform = 'translateY(0)';
-    }, 10);
+  // Legacy helper: UI used to call this with DOM elements. Controllers should call playCardState instead.
+  playCard(card: Card) {
+    const playerId = localStorage.getItem('playerId')!;
+    // Update model state
+    this.playCardState(playerId, card.id);
+    // Emit an intent for views to animate (views/controllers pick up DOM elements)
+    this.events.emit('playRequested', { playerId, card });
   }
 
+  // Pure model operation: change game state (no DOM, no persistence)
+  playCardState(playerId: string, cardId: number) {
+    const player = this.players.find((p) => p.id === playerId);
+    if (!player) return;
+    const card = player.hand.find((c: Card) => c.id === cardId);
+    if (!card) return;
+
+    // remove card from hand and add to played cards
+    player.hand = player.hand.filter((c: Card) => c.id !== cardId);
+    player.playedCards = player.playedCards ?? [];
+    player.playedCards.push(card);
+
+    this.addLog(`${player.name} played ${card.toHTML()}`);
+    this.events.emit('cardPlayed', { playerId, card });
+    this.events.emit('stateChanged', this.toPlainObject());
+  }
+
+  //Shuffles the player/team order
   shuffle<T>(array: T[]): T[] {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
