@@ -1,5 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-import { Card } from "./deck";
+import { Card } from "./card";
 
 export class Player {
     id: string;

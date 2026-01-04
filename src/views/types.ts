@@ -1,5 +1,5 @@
 export type CardPlain = {
-  id: string | number;
+  id: number;
   value?: string;
   suit?: string;
   isFlipped?: boolean;

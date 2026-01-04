@@ -1,10 +1,10 @@
 import { DocumentData } from "firebase/firestore";
-import { EventEmitter } from "../events/event-emitter";
+import { EventEmitter } from "../event-emitter";
 import { Deck } from "../deck";
 import { Card } from "../card";
 import { Player } from "../player";
 import { Team } from "../team";
-import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../../spritesheets";
+import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
 
 
 //Defines event types that can occur in base game
@@ -15,6 +15,7 @@ type BaseEvents = {
   turnChanged: string;
   handStateChanged: { playerId: string; enabled: boolean };
   playRequested: { playerId: string; card: Card };
+  gameEnded:{ winner: any; losers?: any[] };
 };
 
 export abstract class BaseGame {
@@ -24,6 +25,7 @@ export abstract class BaseGame {
   protected maxPlayers: number = 6;
   protected minPlayers: number = 2;
   protected started: boolean = false;
+  protected ended: boolean = false;
   protected currentPlayer: Player = new Player("", "");
   protected isTurn: boolean = false;
   protected logs: string[] = [];
@@ -37,7 +39,6 @@ export abstract class BaseGame {
   }
 
   abstract start(): void;
-  abstract render(): void;
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
   abstract cardClick(card: Card, cardDiv: HTMLDivElement): void;
@@ -179,6 +180,15 @@ export abstract class BaseGame {
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
+  // Signal that the game has ended. The payload intentionally carries only the winner
+  endGame(winner: any) {
+    this.started = false;
+    this.ended = true;
+    this.events.emit('gameEnded', { winner });
+    // Emit a state update so controllers/views can re-render final state
+    this.events.emit('stateChanged', this.toPlainObject());
+  }
+
   toPlainObject() {
     return {
       players: this.players.map(p => p.toPlainObject()),
@@ -186,20 +196,20 @@ export abstract class BaseGame {
       deck: this.deck.toPlainObject(),
       currentPlayerId: this.currentPlayer?.id ?? null,
       started: this.started,
+      ended: this.ended,
       logs: this.logs
     };
   }
 
-  toViewState(localPlayerId?: string, revealOpponentHands = false) {
+  toViewState() {
     return {
+      ended: this.ended,
       players: this.players.map(p => ({
         id: p.id,
         name: p.name,
         score: p.score,
         order: p.getOrder?.() ?? p.order,
-        hand: (p.id === localPlayerId || revealOpponentHands)
-              ? p.hand.map(c => c.toPlainObject())
-              : p.hand.map(c => ({ id: c.id })), // minimal placeholder
+        hand: p.hand.map(c => c.toPlainObject()),
         playedCards: p.playedCards.map(c => c.toPlainObject())
       })),
       teams: this.teams.map(t => t.toPlainObject()),

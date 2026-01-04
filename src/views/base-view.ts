@@ -1,4 +1,4 @@
-import { SpriteSheet } from "../spritesheets";
+import { SpriteSheet } from "../models/spritesheets";
 import { CardPlain, IndicatorDescriptor, PlayerPlain, TeamPlain } from "./types";
 
 export type GameState = {
@@ -12,7 +12,7 @@ export type GameState = {
 export class BaseView {
   // Top-level render orchestration
   // Accepts an options object with handlers and an optional spriteSheet
-  render(state: GameState, localPlayerId: string, options?: { onCardClick?: (cardId: string) => void; spriteSheet?: any }) {
+  render(state: GameState, localPlayerId: string, options?: { onCardClick?: (cardId: number) => void; spriteSheet?: any }) {
     this.renderScoreboard(state);
     this.renderOpponents(state, localPlayerId, options?.spriteSheet, options?.onCardClick);
     this.renderLogs(state);
@@ -21,7 +21,7 @@ export class BaseView {
   }
 
   // Render local player's hand. Controller supplies click handler and (optionally) a spriteSheet
-  renderHand(state: GameState, localPlayerId: string, spriteSheet?: any, onCardClick?: (cardId: string) => void) {
+  renderHand(state: GameState, localPlayerId: string, spriteSheet?: any, onCardClick?: (cardId: number) => void) {
     const player = state.players.find(p => p.id === localPlayerId);
     if (!player) return;
 
@@ -37,7 +37,7 @@ export class BaseView {
         startsFlipped: true,
         clickable: !!onCardClick,
         container: handContainer,
-        onClick: () => onCardClick ? onCardClick(String(card.id)) : undefined
+        onClick: () => onCardClick ? onCardClick(card.id) : undefined
       });
       cardEl.dataset.cardId = String(card.id);
     });
@@ -65,7 +65,7 @@ export class BaseView {
   }
 
   // Render opponents block
-  renderOpponents(state: GameState, localPlayerId: string, spriteSheet?: any, onCardClick?: (cardId: string) => void) {
+  renderOpponents(state: GameState, localPlayerId: string, spriteSheet?: any, onCardClick?: (cardId: number) => void) {
     const opponents = state.players.filter(p => p.id !== localPlayerId);
     const opponentContainer = document.getElementById('opponents');
     if (!opponentContainer) return;
@@ -193,6 +193,24 @@ export class BaseView {
     entry.innerHTML = log;
     logBox.appendChild(entry);
     logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  renderWinner(winner: any, losers: any) {
+    const winnerPopup = document.getElementById('winner-overlay');
+    if (!winnerPopup) return;
+    winnerPopup.style.display = 'flex';
+
+    const winners = document.getElementById('winners');
+    if (!winners) return;
+    winners.innerHTML = `Winner: ${winner.name}!`;
+    const loserEl = document.createElement("h2");
+    
+    loserEl.innerHTML = `
+        <strong>Losers:</strong><br>
+        ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<br>")}
+    `;
+    
+    winners.appendChild(loserEl);
   }
 
   createCardElement(card: CardPlain, spriteSheet: SpriteSheet, options: { container?: HTMLElement; startsFlipped?: boolean; clickable?: boolean; onClick?: (card: any, el: HTMLDivElement) => void } = {}) {

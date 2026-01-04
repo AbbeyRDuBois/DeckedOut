@@ -49,3 +49,5 @@ export class JokerDeck extends Deck{
         this.deck.push(new Card(this.deck.length, 'JK', 'Black'))
     }
 }
+
+export { SUITS };

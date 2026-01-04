@@ -1,7 +1,7 @@
 import { addDoc, collection, deleteDoc, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
-import { BaseGame } from "../games/base-game";
-import { Cribbage } from "../games/cribbage";
+import { BaseGame } from "../Old/base-game";
+import { Cribbage } from "../Old/cribbage";
 import { Room } from "../room";
 
 let currentDB: Database | null = null;

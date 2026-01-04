@@ -1,4 +1,4 @@
-import { SUITS } from "./deck";
+import { SUITS } from "./card";
 import classicSheet from "./SpriteSheets/Classic_Deck.png";
 import catSheet from "./SpriteSheets/Cats_Deck.png";
 import poke1 from "./SpriteSheets/Pokemon1_Deck.png";

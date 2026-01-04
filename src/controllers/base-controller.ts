@@ -17,12 +17,12 @@ export class BaseController {
       }
 
       // Create view-safe snapshot (model may mask opponents' hands by default)
-      const viewState = this.game.toViewState ? this.game.toViewState(localId) : this.game.toPlainObject();
+      const viewState = this.game.toViewState();
 
       // Render the view and wire card clicks back to controller
       const spriteSheet = this.game.getSpriteSheet();
       this.view.render(viewState, localId ?? '', { 
-        onCardClick: localId ? (cardId: string) => this.onCardClicked(localId, Number(cardId)) : undefined,
+        onCardClick: localId ? cardId => this.onCardClicked(localId, Number(cardId)) : undefined,
         spriteSheet
       });
     });
@@ -39,6 +39,10 @@ export class BaseController {
 
     this.game.on('handStateChanged', (payload) => {
       this.view.setHandEnabled(payload.playerId, payload.enabled);
+    });
+
+    this.game.on('gameEnded', (payload: any) => {
+        this.view.renderWinner(payload?.winner, payload?.losers);
     });
   }
 

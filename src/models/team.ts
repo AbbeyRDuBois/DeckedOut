@@ -1,5 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-import { BaseGame } from "../games/base-game";
+import { BaseGame } from "./games/base-model";
 
 export class Team {
     name: string;
@@ -35,7 +35,7 @@ export class Team {
 
         // If the team is now empty, remove the team from the list
         if (this.playerIds.length === 0) {
-            game.getTeams().splice(game.getTeams().findIndex(team => team.name = this.name), 1);
+            game.getTeams().splice(game.getTeams().findIndex((team: Team) => team.name = this.name), 1);
         }
     }
 
@@ -46,5 +46,4 @@ export class Team {
     getPlayers(): string[] {
         return this.playerIds;
     }
-
 }
