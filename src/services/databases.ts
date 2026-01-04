@@ -1,9 +1,9 @@
 import { addDoc, collection, deleteDoc, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
-import { Cribbage } from "../cribbage/cribbage-model";
 import EventEmitter from "events";
 import { Room } from "../room/room-model";
+import { Cribbage } from "../cribbage/cribbage-model";
 
 let currentDB: Database | null = null;
 

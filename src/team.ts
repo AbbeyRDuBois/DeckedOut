@@ -1,5 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-import { BaseGame } from "./base-model";
+import { BaseGame } from "./base-game/base-model";
 
 export class Team {
     name: string;
@@ -28,22 +28,5 @@ export class Team {
         let team = new Team(data.name, data.playerIds, data.score);
 
         return team;
-    }
-
-    removePlayer(playerId: string, game: BaseGame): void {
-        this.playerIds.splice(this.playerIds.findIndex(id => id === playerId), 1); // Remove the player
-
-        // If the team is now empty, remove the team from the list
-        if (this.playerIds.length === 0) {
-            game.getTeams().splice(game.getTeams().findIndex((team: Team) => team.name = this.name), 1);
-        }
-    }
-
-    setPlayers(players: string[]){
-        this.playerIds = players;
-    }
-    
-    getPlayers(): string[] {
-        return this.playerIds;
     }
 }

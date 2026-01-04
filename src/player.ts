@@ -1,5 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-import { Card } from "../card";
+import { Card } from "./card";
 
 export class Player {
     id: string;
@@ -9,7 +9,6 @@ export class Player {
     isTurn: boolean = false;
     score: number = 0;
     team: number = 0;
-    order: number = 0;
 
     constructor(id: string, name: string){
         this.id = id;
@@ -23,8 +22,7 @@ export class Player {
             isTurn: this.isTurn,
             score: this.score,
             playedCards: this.playedCards?.map(card => card?.toPlainObject()),
-            team: this.team,
-            order: this.order
+            team: this.team
         };
     }
 
@@ -49,16 +47,6 @@ export class Player {
         
         player.team = data.team;
 
-        player.order = data.order;
-
         return player;
-    }
-
-    setOrder(order: number){
-        this.order = order;
-    }
-
-    getOrder(): number{
-        return this.order;
     }
 }
