@@ -48,7 +48,7 @@ export class Database{
 
     async init(name: string, initialValues = {}): Promise<Database>{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
-        this.roomRef = doc(this.db, name, (this.roomId as any));
+        this.roomRef = doc(this.db, name, this.roomId);
         return this;
     }
 
@@ -76,9 +76,14 @@ export class Database{
             window.location.href = "index.html";
         }
         
-        const snapData = docSnap.data();
-        this.game?.updateLocalState(snapData);
-        this.room?.applyRemoteState(snapData);
+        const remote = docSnap.data();
+        this.game?.updateLocalState(remote);
+        this.room?.updateLocalState(remote);
+
+        // If the room has started and this client hasn't started the game yet, run guest setup
+        if (remote?.started && !this.game?.getStarted()) {
+            this.game?.guestSetup(remote);
+        }
     }
 
     async join(name: string, roomId: string): Promise<this> {

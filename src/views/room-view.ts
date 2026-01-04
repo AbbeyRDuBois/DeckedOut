@@ -1,3 +1,6 @@
+import { BaseView } from "./base-view";
+
+//These will have functionality set up to them in Controller
 export type RoomViewHandlers = {
   onStart?: () => Promise<void>;
   onLeave?: () => Promise<void>;
@@ -12,12 +15,16 @@ export type RoomViewHandlers = {
 
 export class RoomView {
   private handlers: RoomViewHandlers = {};
+  private gameView: BaseView;
 
-  constructor(handlers?: RoomViewHandlers) {
+  //Set up the Listeners for events
+  constructor(gameView: BaseView, handlers?: RoomViewHandlers) {
+    this.gameView = gameView;
     if (handlers) this.handlers = handlers;
     this.attachBasicControls();
   }
 
+  //Outer call to set up listeners
   setHandlers(h: RoomViewHandlers) {
     this.handlers = h;
     this.attachBasicControls();
@@ -27,6 +34,7 @@ export class RoomView {
     this.renderPlayerList(state.players || []);
     this.renderTeams(state.teams || []);
     this.showWaitingOverlay(!state.started);
+    this.gameView.renderGameOptions(state)
   }
 
   renderPlayerList(players: any[]) {
@@ -40,6 +48,7 @@ export class RoomView {
     `;
   }
 
+  //Renders Team containers in the Waiting overlay where teams can be edited
   renderTeams(teams: any[]) {
     const innerContainer = document.getElementById('inner-container');
     if (!innerContainer) return;
@@ -73,14 +82,14 @@ export class RoomView {
       team.playerIds.forEach((id: string) => {
         const player = document.createElement('div');
         player.className = 'team-player';
-        player.innerText = id; // ID-only here; controller can enhance with names if needed
+        player.innerText = id;
         column.appendChild(player);
       });
 
       columnsWrapper.appendChild(column);
     });
 
-    // Add controls
+    // Add switching team controls
     const addDel = document.createElement('div');
     addDel.id = 'add-del-container';
 
@@ -109,6 +118,7 @@ export class RoomView {
     el.style.display = show ? 'flex' : 'none';
   }
 
+  //Sets up listeners for all the click events
   attachBasicControls() {
     document.getElementById('start-game')?.addEventListener('click', async () => {
       await this.handlers.onStart?.();

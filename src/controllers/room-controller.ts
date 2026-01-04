@@ -3,7 +3,7 @@ import { RoomView, RoomViewHandlers } from "../views/room-view";
 
 export class RoomController {
   constructor(private model: Room, private view: RoomView, private dbCtor: any) {
-    // Wire view handlers back to model actions
+    //Connect the listener handlers to actual functions outlined in the model
     const handlers: RoomViewHandlers = {
       onStart: async () => { await this.model.startGame(); },
       onLeave: async () => { const pid = localStorage.getItem('playerId')!; await this.model.leaveRoom(pid); },
@@ -12,7 +12,7 @@ export class RoomController {
       onRemoveTeam: async () => { const teams = this.model.getState().teams; if (teams.length > 1) { teams.pop(); await this.model.updateTeams(teams); } },
       onTeamNameChange: async (idx, name) => { const teams = this.model.getState().teams; teams[idx].name = name; await this.model.updateTeams(teams); },
       onRandomize: async (size) => {
-        // basic randomize implementation
+        //Randomizes the teams
         const players = this.model.getState().players.slice();
         const shuffled = players.sort(() => Math.random() - 0.5);
         const newTeams: any[] = [];
@@ -20,7 +20,7 @@ export class RoomController {
           const slice = shuffled.slice(i, i + size);
           newTeams.push({ name: `Team ${newTeams.length + 1}`, playerIds: slice.map(p => p.id) });
         }
-        await this.model.setTeamsFromShuffle(newTeams as any);
+        await this.model.updateTeams(newTeams);
       }
     };
 

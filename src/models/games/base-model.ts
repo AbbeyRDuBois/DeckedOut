@@ -4,11 +4,11 @@ import { Deck } from "../deck";
 import { Card } from "../card";
 import { Player } from "../player";
 import { Team } from "../team";
-import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
+import { CardPlain } from "../../views/types";
 
 
 //Defines event types that can occur in base game
-type BaseEvents = {
+export type BaseEvents = {
   stateChanged: any;
   cardPlayed: { playerId: string; card: Card };
   logAdded: string;
@@ -30,7 +30,6 @@ export abstract class BaseGame {
   protected isTurn: boolean = false;
   protected logs: string[] = [];
   protected playedOffset: number = -65; //How much the cards cover the past played
-  protected spriteSheet: SpriteSheet = new SpriteSheet();
   protected events = new EventEmitter<BaseEvents>();
 
   constructor( deck: Deck, players: Player[], roomId: string){
@@ -53,36 +52,11 @@ export abstract class BaseGame {
     this.events.off(event, listener);
   }
 
-  getSpriteSheet(): SpriteSheet{
-    return this.spriteSheet;
-  }
-  
-  setSpriteSheet(sheet: string) {
-    switch(sheet){
-      case "Classic":
-        this.spriteSheet = new SpriteSheet();
-        break;
-      case "Cats":
-        this.spriteSheet = new CatSheet();
-        break;
-      case "StarWars":
-        this.spriteSheet = new StarWarsSheet();
-        break;
-      case "Genshin":
-        this.spriteSheet = new GenshinSheet();
-        break;
-      case "Hollow":
-        this.spriteSheet = new HollowSheet();
-        break;
-      case "Pokemon":
-        this.spriteSheet = new PokemonSheet();
-        this.spriteSheet.setImage(); //Have to do this to rando the cards you get
-        break;
-      default:
-        this.spriteSheet = new SpriteSheet();
-    }
-  }
   updateLocalState(roomData: any){}
+
+  getDeck(): Deck{
+    return this.deck;
+  }
 
   setPlayers(players: Player[]) {
     this.players = players;
@@ -180,15 +154,7 @@ export abstract class BaseGame {
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
-  // Signal that the game has ended. The payload intentionally carries only the winner
-  endGame(winner: any) {
-    this.started = false;
-    this.ended = true;
-    this.events.emit('gameEnded', { winner });
-    // Emit a state update so controllers/views can re-render final state
-    this.events.emit('stateChanged', this.toPlainObject());
-  }
-
+  //Have to do this to send the state to Firebase (they only like plain objects)
   toPlainObject() {
     return {
       players: this.players.map(p => p.toPlainObject()),
@@ -201,21 +167,14 @@ export abstract class BaseGame {
     };
   }
 
-  toViewState() {
-    return {
-      ended: this.ended,
-      players: this.players.map(p => ({
-        id: p.id,
-        name: p.name,
-        score: p.score,
-        order: p.getOrder?.() ?? p.order,
-        hand: p.hand.map(c => c.toPlainObject()),
-        playedCards: p.playedCards.map(c => c.toPlainObject())
-      })),
-      teams: this.teams.map(t => t.toPlainObject()),
-      currentPlayerId: this.currentPlayer?.id ?? null,
-      logs: this.logs.slice(-100) // cap size for perf
-    };
+  getFullPlainDeck(): CardPlain[] {
+    const deck = new Deck();
+    return deck.deck.map(card => ({
+      id: card.id,
+      suit: card.suit,
+      value: card.value,
+      isFlipped: true
+    }));
   }
 
   setHandState(player: Player){
@@ -244,17 +203,8 @@ export abstract class BaseGame {
     )!;
   }
 
-  // Legacy helper: UI used to call this with DOM elements. Controllers should call playCardState instead.
-  playCard(card: Card) {
-    const playerId = localStorage.getItem('playerId')!;
-    // Update model state
-    this.playCardState(playerId, card.id);
-    // Emit an intent for views to animate (views/controllers pick up DOM elements)
-    this.events.emit('playRequested', { playerId, card });
-  }
-
-  // Pure model operation: change game state (no DOM, no persistence)
-  playCardState(playerId: string, cardId: number) {
+  //Play card and update state
+  playCard(playerId: string, cardId: number) {
     const player = this.players.find((p) => p.id === playerId);
     if (!player) return;
     const card = player.hand.find((c: Card) => c.id === cardId);

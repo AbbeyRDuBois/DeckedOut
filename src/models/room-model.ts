@@ -31,7 +31,7 @@ export class Room {
       const remote = await this.db.pullState();
       if (!remote) throw new Error("Room not found");
 
-      this.updateFromRemote(remote);
+      this.updateLocalState(remote);
 
       // Listen for remote updates
       this.db.listenForUpdates();
@@ -41,17 +41,13 @@ export class Room {
     }
   }
 
-  private updateFromRemote(remote: any) {
+  //Updates state from Database values
+  updateLocalState(remote: any) {
     this.state.players = (remote.players ?? []).map((p: any) => Player.fromPlainObject(p));
     this.state.teams = (remote.teams ?? []).map((t: any) => Team.fromPlainObject(t));
     this.state.started = !!remote.started;
     this.state.hostId = remote.hostId;
     this.events.emit('stateChanged', this.getState());
-  }
-
-  // Public wrapper so external services (like Database) can push remote snapshots into the model
-  applyRemoteState(remote: any) {
-    this.updateFromRemote(remote);
   }
 
   getState(): RoomState {
@@ -74,11 +70,6 @@ export class Room {
     this.state.players = this.state.players.filter(p => p.id !== playerId);
     await this.db.update({ players: this.state.players.map(p => p.toPlainObject()) });
     this.events.emit('stateChanged', this.getState());
-  }
-
-  // Convenience helpers
-  async setTeamsFromShuffle(newTeams: Team[]) {
-    await this.updateTeams(newTeams);
   }
 
   async addTeam(team: Team) {

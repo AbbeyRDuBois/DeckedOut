@@ -1,8 +1,8 @@
 export type CardPlain = {
   id: number;
-  value?: string;
-  suit?: string;
-  isFlipped?: boolean;
+  value: string;
+  suit: string;
+  isFlipped: boolean;
 };
 
 export type PlayerPlain = {
@@ -20,12 +20,8 @@ export type TeamPlain = {
   playerIds: string[];
 };
 
-export type IndicatorDescriptor = {
+export type IndicatorPlain = {
   id: string;
   label?: string;
   isActive: boolean;
 };
-
-export type SpriteSheetPlain = {
-    
-}

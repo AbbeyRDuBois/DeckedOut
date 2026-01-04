@@ -1,39 +1,37 @@
-import { SpriteSheet } from "../models/spritesheets";
-import { CardPlain, IndicatorDescriptor, PlayerPlain, TeamPlain } from "./types";
-
-export type GameState = {
-  players: PlayerPlain[];
-  teams: TeamPlain[];
-  currentPlayerId?: string | null;
-  logs: string[];
-  [key: string]: any; // allow game-specific extensions
-};
+import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../models/spritesheets";
+import { CardPlain, IndicatorPlain,PlayerPlain, TeamPlain } from "./types";
 
 export class BaseView {
-  // Top-level render orchestration
-  // Accepts an options object with handlers and an optional spriteSheet
-  render(state: GameState, localPlayerId: string, options?: { onCardClick?: (cardId: number) => void; spriteSheet?: any }) {
-    this.renderScoreboard(state);
-    this.renderOpponents(state, localPlayerId, options?.spriteSheet, options?.onCardClick);
-    this.renderLogs(state);
-    this.renderHand(state, localPlayerId, options?.spriteSheet, options?.onCardClick);
-    this.renderPlayed(state, localPlayerId, options?.spriteSheet);
+  //SpriteSheet is a purely visual class. No knowledge of game rules/logic so it's okay to have in the View
+  private spriteSheet: SpriteSheet;
+  constructor() {
+    this.spriteSheet = new SpriteSheet();
   }
 
-  // Render local player's hand. Controller supplies click handler and (optionally) a spriteSheet
-  renderHand(state: GameState, localPlayerId: string, spriteSheet?: any, onCardClick?: (cardId: number) => void) {
-    const player = state.players.find(p => p.id === localPlayerId);
+  //Basic Render of the Game
+  render(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
+    this.renderScoreboard(state);
+    this.renderOpponents(state, localPlayerId);
+    this.renderLogs(state);
+    this.renderHand(state, localPlayerId, onCardClick);
+    this.renderPlayed(state, localPlayerId);
+  }
+
+  renderGameOptions(state: any): void {};
+
+  //Render local player's hand
+  renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
+    const player = state.players.find((p: PlayerPlain) => p.id === localPlayerId);
     if (!player) return;
 
     const handContainer = document.getElementById('hand');
     if (!handContainer) return;
 
-    // Let the controller decide if the hand should be enabled; view just renders
     handContainer.innerHTML = '';
 
-    const unplayed = player.hand.filter(card => !player.playedCards.some(pc => pc.id === card.id));
-    unplayed.forEach(card => {
-      const cardEl = this.createCardElement(card, spriteSheet, {
+    const unplayed = player.hand.filter((card: CardPlain) => !player.playedCards.some((pc:CardPlain) => pc.id === card.id));
+    unplayed.forEach((card: CardPlain) => {
+      const cardEl = this.createCardElement(card, {
         startsFlipped: true,
         clickable: !!onCardClick,
         container: handContainer,
@@ -44,16 +42,16 @@ export class BaseView {
   }
 
   // Render played cards for local player
-  renderPlayed(state: GameState, localPlayerId: string, spriteSheet?: any) {
-    const player = state.players.find(p => p.id === localPlayerId);
+  renderPlayed(state: any, localPlayerId: string, spriteSheet?: any) {
+    const player = state.players.find((p: PlayerPlain) => p.id === localPlayerId);
     if (!player) return;
     const playedContainer = document.getElementById('played-container');
     if (!playedContainer) return;
 
     playedContainer.innerHTML = '';
-    player.playedCards.forEach(card => {
-      const cardEl = this.createCardElement(card, spriteSheet, { startsFlipped: true, container: playedContainer });
-      // appended by helper
+    player.playedCards.forEach((card: CardPlain) => {
+      const cardEl = this.createCardElement(card, { startsFlipped: true, container: playedContainer });
+      playedContainer.appendChild(cardEl);
     });
 
     // Apply basic layout offsets
@@ -65,15 +63,15 @@ export class BaseView {
   }
 
   // Render opponents block
-  renderOpponents(state: GameState, localPlayerId: string, spriteSheet?: any, onCardClick?: (cardId: number) => void) {
-    const opponents = state.players.filter(p => p.id !== localPlayerId);
+  renderOpponents(state: any, localPlayerId: string, spriteSheet?: any) {
+    const opponents = state.players.filter((p: PlayerPlain) => p.id !== localPlayerId);
     const opponentContainer = document.getElementById('opponents');
     if (!opponentContainer) return;
 
     opponentContainer.innerHTML = '';
     const rect = opponentContainer.getBoundingClientRect();
 
-    opponents.forEach((opp, index) => {
+    opponents.forEach((opp: PlayerPlain, index: number) => {
       const opponentDiv = document.createElement('div');
       opponentDiv.classList.add('opponent');
       opponentDiv.style.width = `${rect?.width / Math.ceil(Math.sqrt(opponents.length))}px`;
@@ -94,8 +92,8 @@ export class BaseView {
       oppCards.classList.add('opp-cards');
       opponentDiv.appendChild(oppCards);
 
-      opp.hand.forEach(card => {
-        const cardDiv = this.createCardElement(card, spriteSheet, { container: oppCards });
+      opp.hand.forEach((card: CardPlain) => {
+        const cardDiv = this.createCardElement(card, { container: oppCards });
         cardDiv.style.pointerEvents = 'none';
       });
 
@@ -110,12 +108,12 @@ export class BaseView {
   }
 
   // Render teams and players scores
-  renderScoreboard(state: GameState) {
+  renderScoreboard(state: any) {
     const container = document.getElementById('scoreboard');
     if (!container) return;
     container.innerHTML = '';
 
-    state.teams.forEach(team => {
+    state.teams.forEach((team: TeamPlain) => {
       const teamDiv = document.createElement('div');
       teamDiv.className = 'team';
 
@@ -130,8 +128,8 @@ export class BaseView {
       const playersDiv = document.createElement('div');
       playersDiv.className = 'players';
 
-      team.playerIds.forEach(id => {
-        const player = state.players.find(p => p.id === id);
+      team.playerIds.forEach((id: string) => {
+        const player = state.players.find((p: PlayerPlain) => p.id === id);
         if (!player) return;
         const playerDiv = document.createElement('div');
         playerDiv.className = 'player';
@@ -147,13 +145,13 @@ export class BaseView {
     });
   }
 
-  // Render logs box (idempotent)
-  renderLogs(state: GameState) {
+  // Render logs box all in entirety
+  renderLogs(state: any) {
     const logBox = document.getElementById('logs');
     if (!logBox) return;
     logBox.innerHTML = '';
 
-    state.logs.forEach(log => {
+    state.logs.forEach((log: string) => {
       const entry = document.createElement('div');
       entry.className = 'log-entry';
       entry.innerHTML = log;
@@ -163,28 +161,7 @@ export class BaseView {
     logBox.scrollTop = logBox.scrollHeight;
   }
 
-  // Convert indicator descriptors into DOM toggles
-  renderIndicatorsFromDescriptors(descriptors: IndicatorDescriptor[]) {
-    descriptors.forEach(descriptor => {
-      const el = document.getElementById(descriptor.id);
-      if (!el) return;
-      if (descriptor.isActive) el.classList.add('active'); else el.classList.remove('active');
-    });
-  }
-
-  // Simple animation placeholder - views should animate between DOM elements
-  animatePlay(playerId: string, card: CardPlain) {
-    // Example: locate card DOM and add a CSS class/animation
-    console.log(`Animate play for ${playerId} ${card.id}`);
-  }
-
-  // Enables/disables the local hand UI
-  setHandEnabled(playerId: string, enabled: boolean) {
-    const hand = document.getElementById('hand');
-    if (!hand) return;
-    if (!enabled) hand.classList.add('hand-disabled'); else hand.classList.remove('hand-disabled');
-  }
-
+  //Just add a log to the log box
   renderLog(log: string) {
     const logBox = document.getElementById('logs');
     if (!logBox) return;
@@ -195,6 +172,28 @@ export class BaseView {
     logBox.scrollTop = logBox.scrollHeight;
   }
 
+  // Render all the different indicators for the game
+  renderIndicators(indicators: IndicatorPlain[]) {
+    indicators.forEach(indicator => {
+      const el = document.getElementById(indicator.id);
+      if (!el) return;
+      if (indicator.isActive) el.classList.add('active'); else el.classList.remove('active');
+    });
+  }
+
+  //Played Animation Placeholder TODO: Implement Later?
+  animatePlay(playerId: string, card: CardPlain) {
+    console.log(`Animate play for ${playerId} ${card.id}`);
+  }
+
+  // Enables/disables the local hand UI
+  setHandEnabled(enabled: boolean) {
+    const hand = document.getElementById('hand');
+    if (!hand) return;
+    if (!enabled) hand.classList.add('hand-disabled'); else hand.classList.remove('hand-disabled');
+  }
+
+  //Render the Winner! (and the losers I suppose)
   renderWinner(winner: any, losers: any) {
     const winnerPopup = document.getElementById('winner-overlay');
     if (!winnerPopup) return;
@@ -213,7 +212,33 @@ export class BaseView {
     winners.appendChild(loserEl);
   }
 
-  createCardElement(card: CardPlain, spriteSheet: SpriteSheet, options: { container?: HTMLElement; startsFlipped?: boolean; clickable?: boolean; onClick?: (card: any, el: HTMLDivElement) => void } = {}) {
+  setSpriteSheet(sheet: string) {
+    switch(sheet){
+      case "Classic":
+        this.spriteSheet = new SpriteSheet();
+        break;
+      case "Cats":
+        this.spriteSheet = new CatSheet();
+        break;
+      case "StarWars":
+        this.spriteSheet = new StarWarsSheet();
+        break;
+      case "Genshin":
+        this.spriteSheet = new GenshinSheet();
+        break;
+      case "Hollow":
+        this.spriteSheet = new HollowSheet();
+        break;
+      case "Pokemon":
+        this.spriteSheet = new PokemonSheet();
+        this.spriteSheet.setImage(); //Have to do this to rando the cards you get
+        break;
+      default:
+        this.spriteSheet = new SpriteSheet();
+    }
+  }
+
+  createCardElement(card: CardPlain, options: { container?: HTMLElement; startsFlipped?: boolean; clickable?: boolean; onClick?: (card: any, el: HTMLDivElement) => void } = {}) {
     const {
       container = document.getElementById('hand')!,
       startsFlipped = false,
@@ -221,33 +246,26 @@ export class BaseView {
       onClick
     } = options;
 
-    // Resolve fields whether card is a model or plain object
-    const cardData = {
-      id: card.id,
-      value: card.value ?? '',
-      suit: card.suit ?? '',
-      isFlipped: card.isFlipped ?? false
-    };
-
     const style = getComputedStyle(container);
     const containerRect = container.getBoundingClientRect();
     const height = containerRect.height - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
     const width = containerRect.height / 2;
 
-    const { bgWidth, bgHeight } = spriteSheet.getBackgroundSize(width, height);
+    const { bgWidth, bgHeight } = this.spriteSheet.getBackgroundSize(width, height);
 
-    // valueToInt mapping (same logic as Card.toInt for face placement)
+    //Maps the value of the cards to the column they exist in the spritesheet
     const valueToInt = (value: string, counting = false) => {
       switch (value) {
         case 'A': return 1;
         case 'J': return counting ? 10 : 11;
         case 'Q': return counting ? 10 : 12;
         case 'K': return counting ? 10 : 13;
-        case 'JK': return (cardData.suit == "Red") ? 1 : 2;
+        case 'JK': return (card.suit == "Red") ? 1 : 2;
         default: return parseInt(value);
       }
     };
 
+    //Finds what row the card is apart of in spritesheet
     const getRowFromSuit = (suit: string) => {
       switch (suit) {
         case 'Clubs': return 0;
@@ -258,31 +276,32 @@ export class BaseView {
       }
     };
 
-    const colRow = spriteSheet.getCardLocation(valueToInt(cardData.value), getRowFromSuit(cardData.suit), width, height);
+    const colRow = this.spriteSheet.getCardLocation(valueToInt(card.value), getRowFromSuit(card.suit), width, height);
 
     const cardDiv = document.createElement('div');
-    cardDiv.className = 'card' + (startsFlipped || cardData.isFlipped ? '' : ' flipped');
-    cardDiv.setAttribute('card-id', String(cardData.id));
+    cardDiv.className = 'card' + (startsFlipped || card.isFlipped ? '' : ' flipped');
+    cardDiv.setAttribute('card-id', String(card.id));
     cardDiv.style.height = `${height}px`;
     cardDiv.style.width = `${width}px`;
 
+    //Hinge for the animations?
     const hinge = document.createElement('div');
     hinge.className = 'card-hinge';
 
+    //Face of the Card
     const face = document.createElement('div');
     face.className = 'card-face';
     face.style.backgroundPosition = `${colRow.col}px ${colRow.row}px`;
     face.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
-    face.style.backgroundImage = spriteSheet.getImage();
+    face.style.backgroundImage = this.spriteSheet.getImage();
 
+    //Back of the Card
     const back = document.createElement('div');
     back.className = 'card-back';
-
-    // back position
-    const backPos = spriteSheet.getCardLocation(spriteSheet.back_col, spriteSheet.back_row, width, height);
+    const backPos = this.spriteSheet.getCardLocation(this.spriteSheet.back_col, this.spriteSheet.back_row, width, height);
     back.style.backgroundPosition = `${backPos.col}px ${backPos.row}px`;
     back.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
-    back.style.backgroundImage = spriteSheet.getImage();
+    back.style.backgroundImage = this.spriteSheet.getImage();
 
     hinge.appendChild(face);
     hinge.appendChild(back);
