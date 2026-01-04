@@ -1,8 +1,9 @@
 import { addDoc, collection, deleteDoc, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
-import { BaseGame } from "../Old/base-game";
-import { Cribbage } from "../Old/cribbage";
-import { Room } from "../room";
+import { BaseGame } from "../models/games/base-model";
+import { Cribbage } from "../models/games/cribbage-model";
+import EventEmitter from "events";
+import { Room } from "../models/room-model";
 
 let currentDB: Database | null = null;
 
@@ -75,11 +76,9 @@ export class Database{
             window.location.href = "index.html";
         }
         
-        this.game?.updateLocalState(docSnap.data());
-
-        if (this.room?.getUILoaded() && !this.game?.getStarted()){
-            this.room?.handlePopup();
-        }
+        const snapData = docSnap.data();
+        this.game?.updateLocalState(snapData);
+        this.room?.applyRemoteState(snapData);
     }
 
     async join(name: string, roomId: string): Promise<this> {
@@ -93,7 +92,8 @@ export class CribbageDatabase extends Database {
     constructor() {
         super();
     }
-
+    protected events = new EventEmitter<{stateChanged: any;}>();
+    
     snapFunctionality(docSnap: any){
         super.snapFunctionality(docSnap);
 
@@ -107,7 +107,7 @@ export class CribbageDatabase extends Database {
             handContainer.classList.remove('hand-disabled');
             game.setIsTurn(true);
         }
-        //Rerenders stuff to put the updates on everyones computer
-        game.render();
+
+        this.events.emit('stateChanged', this.game.toPlainObject());
     }
 }

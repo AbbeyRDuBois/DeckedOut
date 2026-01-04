@@ -1,6 +1,6 @@
-import { Team } from "./team";
-import { Player } from "./player";
-import { BaseGame } from "./games/base-game";
+import { Team } from "../models/team";
+import { Player } from "../models/player";
+import { BaseGame } from "./Old/base-game";
 
 export function renderGameOptions(gameType: String, game: BaseGame){
   switch(gameType){
