@@ -185,12 +185,12 @@
 //       this.game.render();
 //     });
 
-//     // Settings panel toggle
-//     const toggle = document.getElementById('settings-toggle')!;
-//     const panel = document.getElementById('settings-panel')!;
-//     toggle?.addEventListener('click', () => {
-//       panel.classList.toggle('closed');
-//     });
+    // // Settings panel toggle
+    // const toggle = document.getElementById('settings-toggle')!;
+    // const panel = document.getElementById('settings-panel')!;
+    // toggle?.addEventListener('click', () => {
+    //   panel.classList.toggle('closed');
+    // });
 
 //     //Resizes elements on page when window resizes
 //     let resizePending = false;

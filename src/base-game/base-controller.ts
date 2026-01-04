@@ -1,6 +1,6 @@
-import { BaseGame } from "../models/games/base-model";
+import { BaseGame } from "./base-model";
 import { Database } from "../services/databases";
-import { BaseView } from "../views/base-view";
+import { BaseView } from "./base-view";
 
 export class BaseController {
   constructor(private game: BaseGame, private view: BaseView, private db?: Database) {

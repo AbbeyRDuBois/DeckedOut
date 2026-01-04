@@ -1,8 +1,8 @@
-import { Cribbage, DeckMode, GameMode, RoundState } from "../models/games/cribbage-model";
-import { CribbageView } from "../views/cribbage-view";
+import { Cribbage, DeckMode, GameMode, RoundState } from "./cribbage-model";
+import { CribbageView } from "./cribbage-view";
 import { Database } from "../services/databases";
-import { Card } from "../models/card";
-import { Deck } from "../models/deck";
+import { Card } from "../card";
+import { Deck } from "../general/deck";
 
 export class CribbageController {
   constructor(private game: Cribbage, private view: CribbageView, private db?: Database) {

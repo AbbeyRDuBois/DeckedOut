@@ -1,26 +1,27 @@
-import { BaseView } from "./base-view";
+import { BaseView } from "../base-game/base-view";
 
 //These will have functionality set up to them in Controller
 export type RoomViewHandlers = {
-  onStart?: () => Promise<void>;
-  onLeave?: () => Promise<void>;
-  onCopyId?: () => Promise<void> | void;
-  onTeamNameChange?: (teamIndex: number, name: string) => Promise<void> | void;
-  onAddTeam?: () => Promise<void> | void;
-  onRemoveTeam?: () => Promise<void> | void;
-  onRandomize?: (size: number) => Promise<void> | void;
+  onStart: () => Promise<void>;
+  onLeave: () => Promise<void>;
+  onCopyId: () => Promise<void> | void;
+  onTeamNameChange: (teamIndex: number, name: string) => Promise<void> | void;
+  onAddTeam: () => Promise<void> | void;
+  onRemoveTeam: () => Promise<void> | void;
+  onRandomize: (size: number) => Promise<void> | void;
   onThemeChange?: (theme: string) => void;
   onCardThemeChange?: (theme: string) => void;
+  onSettingsToggle?: () => void;
 };
 
 export class RoomView {
-  private handlers: RoomViewHandlers = {};
+  private handlers: RoomViewHandlers;
   private gameView: BaseView;
 
   //Set up the Listeners for events
-  constructor(gameView: BaseView, handlers?: RoomViewHandlers) {
+  constructor(gameView: BaseView, handlers: RoomViewHandlers) {
     this.gameView = gameView;
-    if (handlers) this.handlers = handlers;
+    this.handlers = handlers;
     this.attachBasicControls();
   }
 
@@ -28,6 +29,11 @@ export class RoomView {
   setHandlers(h: RoomViewHandlers) {
     this.handlers = h;
     this.attachBasicControls();
+  }
+
+  renderSettingsPanel(isOpen: boolean) {
+    const panel = document.getElementById('settings-panel')!
+    panel.classList.toggle('closed', !isOpen);
   }
 
   render(state: any) {
@@ -74,7 +80,7 @@ export class RoomView {
       teamNameInput.addEventListener('blur', async () => {
         const newName = teamNameInput.value.trim();
         if (newName !== team.name && newName !== '') {
-          await this.handlers.onTeamNameChange?.(teamIndex, newName);
+          await this.handlers.onTeamNameChange(teamIndex, newName);
         }
       });
       column.appendChild(teamNameInput);
@@ -96,12 +102,12 @@ export class RoomView {
     const addBtn = document.createElement('button');
     addBtn.textContent = 'Add Team';
     addBtn.className = 'add-del-btn';
-    addBtn.onclick = async () => await this.handlers.onAddTeam?.();
+    addBtn.onclick = async () => await this.handlers.onAddTeam();
 
     const delBtn = document.createElement('button');
     delBtn.textContent = 'Remove Team';
     delBtn.className = 'add-del-btn';
-    delBtn.onclick = async () => await this.handlers.onRemoveTeam?.();
+    delBtn.onclick = async () => await this.handlers.onRemoveTeam();
 
     addDel.appendChild(addBtn);
     addDel.appendChild(delBtn);
@@ -117,6 +123,9 @@ export class RoomView {
     if (!el) return;
     el.style.display = show ? 'flex' : 'none';
   }
+
+
+
 
   //Sets up listeners for all the click events
   attachBasicControls() {
@@ -141,5 +150,8 @@ export class RoomView {
 
     const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
     cardThemeSelector?.addEventListener('change', () => this.handlers.onCardThemeChange?.(cardThemeSelector.value));
+
+    const toggle = document.getElementById('settings-toggle')!;
+    toggle.addEventListener('click', () => this.handlers.onSettingsToggle?.());
   }
 }

@@ -1,5 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-import { Card, SUITS, VALUES } from "./card";
+import { Card, SUITS, VALUES } from "../card";
 
 export class Deck{
     deck: Card[] = [];

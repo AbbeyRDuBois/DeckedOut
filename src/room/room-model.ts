@@ -1,7 +1,7 @@
-import { EventEmitter } from "./event-emitter";
-import { Database } from "../services/databases";
-import { Player } from "./player";
-import { Team } from "./team";
+import { EventEmitter } from "../event-emitter";
+import { CribbageDatabase, Database } from "../services/databases";
+import { Player } from "../player";
+import { Team } from "../team";
 
 export type RoomState = {
   roomId: string;
@@ -9,9 +9,14 @@ export type RoomState = {
   players: Player[];
   teams: Team[];
   started: boolean;
+  settingsOpen: boolean;
   hostId?: string;
   [key: string]: any;
 };
+
+const DBMap: Record<string, any> = {
+    'cribbage': CribbageDatabase
+}
 
 export class Room {
   private db!: Database;
@@ -19,12 +24,12 @@ export class Room {
   public events = new EventEmitter<{ stateChanged: RoomState; error: string }>();
 
   constructor(gameType: string, roomId: string) {
-    this.state = { roomId, gameType, players: [], teams: [], started: false };
+    this.state = { roomId, gameType, players: [], teams: [], started: false, settingsOpen: false};
   }
 
-  async init(dbCtor: any) {
+  async init() {
     try {
-      this.db = new dbCtor();
+      this.db = new DBMap[this.state.gameType]();
       await this.db.join("rooms", this.state.roomId);
       this.db.setRoom(this);
 
@@ -41,11 +46,20 @@ export class Room {
     }
   }
 
+  toggleSettings() {
+    this.state.settingsOpen = !this.state.settingsOpen;
+  }
+
+  isSettingsOpen(): boolean {
+    return this.state.settingsOpen;
+  }
+
   //Updates state from Database values
   updateLocalState(remote: any) {
-    this.state.players = (remote.players ?? []).map((p: any) => Player.fromPlainObject(p));
-    this.state.teams = (remote.teams ?? []).map((t: any) => Team.fromPlainObject(t));
-    this.state.started = !!remote.started;
+    this.state.players = remote.players.map((p: any) => Player.fromPlainObject(p));
+    this.state.teams = remote.teams.map((t: any) => Team.fromPlainObject(t));
+    this.state.started = remote.started;
+    this.state.settingsOpen = remote.settingsOpen;
     this.state.hostId = remote.hostId;
     this.events.emit('stateChanged', this.getState());
   }

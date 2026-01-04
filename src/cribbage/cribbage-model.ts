@@ -1,10 +1,10 @@
 import { DocumentData } from "firebase/firestore";
-import { BaseGame } from "./base-model";
-import { Deck, JokerDeck } from "../deck";
+import { BaseGame } from "../base-game/base-model";
+import { Deck, JokerDeck } from "../general/deck";
 import { Card } from "../card";
-import { Player } from "../player";
-import { Team } from "../team";
-import { CardPlain } from "../../views/types";
+import { Player } from "../general/player";
+import { Team } from "./team";
+import { CardPlain } from "../types";
 
 export enum RoundState {
   Throwing = "Throwing",

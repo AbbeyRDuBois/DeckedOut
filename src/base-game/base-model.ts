@@ -1,10 +1,10 @@
 import { DocumentData } from "firebase/firestore";
 import { EventEmitter } from "../event-emitter";
-import { Deck } from "../deck";
+import { Deck } from "../general/deck";
 import { Card } from "../card";
-import { Player } from "../player";
-import { Team } from "../team";
-import { CardPlain } from "../../views/types";
+import { Player } from "../general/player";
+import { Team } from "./team";
+import { CardPlain } from "../types";
 
 
 //Defines event types that can occur in base game

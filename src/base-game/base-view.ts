@@ -1,5 +1,6 @@
-import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../models/spritesheets";
-import { CardPlain, IndicatorPlain,PlayerPlain, TeamPlain } from "./types";
+
+import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
+import { CardPlain, IndicatorPlain,PlayerPlain, TeamPlain } from "../types";
 
 export class BaseView {
   //SpriteSheet is a purely visual class. No knowledge of game rules/logic so it's okay to have in the View

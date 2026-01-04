@@ -1,7 +1,7 @@
-import { BaseView } from "./base-view";
-import { DeckMode, GameMode } from "../models/games/cribbage-model";
-import { CardPlain } from "./types";
-import { Card } from "../models/card";
+import { BaseView } from "../base-game/base-view";
+import { DeckMode, GameMode } from "./cribbage-model";
+import { CardPlain } from "../types";
+import { Card } from "../card";
 
 export class CribbageView extends BaseView {
   onDeckChange?: (mode: DeckMode) => void;

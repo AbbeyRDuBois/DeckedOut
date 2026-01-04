@@ -1,5 +1,5 @@
-import { Room } from "../models/room-model";
-import { RoomView, RoomViewHandlers } from "../views/room-view";
+import { Room } from "./room-model";
+import { RoomView, RoomViewHandlers } from "./room-view";
 
 export class RoomController {
   constructor(private model: Room, private view: RoomView, private dbCtor: any) {
@@ -31,7 +31,7 @@ export class RoomController {
   }
 
   async init() {
-    await this.model.init(this.dbCtor);
+    await this.model.init();
     this.view.render(this.model.getState());
   }
 }
