@@ -3,12 +3,12 @@ Entry point to application
 Game selection hosting and joining
 */
 import { arrayUnion } from "firebase/firestore";
-import { signInWithGoogle } from "./authentication";
+import { signInWithGoogle } from "./services/authentication";
 import { v4 } from 'uuid';
 import './styles.css'
-import { Player } from "./player";
-import { Team } from "./team";
-import { CribbageDatabase, Database, getDBInstance, setDBInstance } from "./databases";
+import { Player } from "./models/player";
+import { Team } from "./models/team";
+import { CribbageDatabase, Database, getDBInstance, setDBInstance } from "./services/databases";
 
 const DBMap: Record<string, any> = {
     'cribbage': CribbageDatabase

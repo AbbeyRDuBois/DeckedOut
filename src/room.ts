@@ -1,12 +1,12 @@
 // Room.ts
 import { Cribbage } from './games/cribbage';
 import { BaseGame } from './games/base-game';
-import { Deck } from './deck';
+import { Deck } from './models/deck';
 import { DocumentData } from 'firebase/firestore';
-import { Player } from './player';
-import { Team } from './team';
+import { Player } from './models/player';
+import { Team } from './models/team';
 import { renderGameOptions } from './room-render';
-import { CribbageDatabase, Database, setDBInstance } from './databases';
+import { CribbageDatabase, Database, setDBInstance } from './services/databases';
 import './styles.css';
 
 const urlParams = new URLSearchParams(window.location.search);
