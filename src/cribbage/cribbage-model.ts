@@ -31,6 +31,7 @@ export class Cribbage extends BaseGame {
   protected roundState: RoundState = RoundState.Throwing;
   protected peggingCards: Card[] = [];
   protected peggingTotal: number = 0;
+  protected awaitingJokerSelection: boolean = false;
   protected options: CribbageOptions;
 
   constructor(deck: Deck, players: Player[], roomId: string){
@@ -89,6 +90,7 @@ export class Cribbage extends BaseGame {
       roundState: this.roundState,
       peggingCards: this.peggingCards.map(c => c.toPlainObject()),
       peggingTotal: this.peggingTotal,
+      awaitingJokerSelection: this.awaitingJokerSelection,
       options: this.options
     }
   }
@@ -148,6 +150,7 @@ export class Cribbage extends BaseGame {
     this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? [];
     this.peggingTotal = data.peggingTotal ?? 0;
     this.flipped = Card.fromPlainObject(data.flipped);
+    this.awaitingJokerSelection = data.awaitingJokerSelection ?? false;
     this.logs = data.logs ?? [];
     this.pointGoal = data.point_goal ?? 121;
     this.skunkLength = data.skunk_length ?? 90;
@@ -179,7 +182,7 @@ export class Cribbage extends BaseGame {
     return this.options.deckMode;
   }
 
-  async cardClick(card: Card, _cardDiv?: HTMLDivElement) {
+  async cardPlayed(card: Card) {
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
     if (!player) return;
 
@@ -192,13 +195,21 @@ export class Cribbage extends BaseGame {
       this.addLog(`${player.name} has thrown a card to the crib.`);
 
       // If all players have thrown, move to pegging
-      if (this.players.every(p => p.hand.length == this.handSize)){
+        if (this.players.every(p => p.hand.length == this.handSize)){
         this.roundState = RoundState.Pegging;
         this.flipped.isFlipped = true;
+
+        // If the flipped card is a Joker, we must pause pegging until the crib owner selects a replacement
+        if (this.flipped.value === 'JK') {
+          this.awaitingJokerSelection = true;
+        }
       }
       this.events.emit('stateChanged', this.toPlainObject());
     } else {
-      // Pegging: play card if legal
+      // Pegging: if we're waiting for a joker selection, block all plays
+      if (this.awaitingJokerSelection) return;
+
+      // play card if legal
       if (this.peggingTotal + card.toInt(true) > 31) return;
       card.isFlipped = true;
       // Move to played
@@ -239,11 +250,8 @@ export class Cribbage extends BaseGame {
     }
   }
 
-  /**
-   * Handle a joker being turned into another card. This is pure model logic —
-   * it updates state and emits events; persistence and DOM work is a controller/view responsibility.
-   */
-    applyJokerCard(card: Card, playerId: string) {
+//Handle a joker being turned into another card
+    async applyJokerCard(card: Card, playerId: string) {
     const player = this.players.find(p => p.id === playerId);
     if (!player) return;
 
@@ -261,6 +269,8 @@ export class Cribbage extends BaseGame {
     if (this.flipped.value == "JK" && this.flipped.isFlipped) {
       this.flipped = card;
       this.flipped.isFlipped = true;
+      // Selection made, unfreeze play
+      this.awaitingJokerSelection = false;
       this.events.emit('stateChanged', this.toPlainObject());
       return;
     }
@@ -270,7 +280,11 @@ export class Cribbage extends BaseGame {
     if (cribJoker != -1) {
       this.crib.splice(cribJoker, 1);
       this.crib.push(card);
+      // Selection made, unfreeze and immediately count the crib
+      this.awaitingJokerSelection = false;
       this.events.emit('stateChanged', this.toPlainObject());
+      // Now proceed to count crib (this is async)
+      await this.countCrib();
       return;
     }
   }
@@ -529,7 +543,6 @@ export class Cribbage extends BaseGame {
           }
         }
       }
-
       if (!found) {
         // Add in that last point and restart pegging/move to next throw round
         if (this.peggingTotal !== 31){
@@ -564,6 +577,16 @@ export class Cribbage extends BaseGame {
     else{
       this.addLog(`Flipped Card: ${this.flipped.toHTML()}`);
       this.countHands();
+
+      // If crib contains Joker we must pause here and ask crib owner to choose a replacement
+      const cribHasJoker = this.crib.some(c => c.value === 'JK');
+      if (cribHasJoker) {
+        this.roundState = RoundState.Pointing;
+        this.awaitingJokerSelection = true;
+        this.events.emit('stateChanged', this.toPlainObject());
+        return false as any; // indicate we paused
+      }
+
       await this.countCrib();
 
       if (this.ended) return;

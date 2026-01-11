@@ -17,7 +17,7 @@ export class BaseController {
       const viewState = this.game.toPlainObject();
 
       // Render the view and set up those cardClicks
-      this.view.render(viewState, localId, cardId => this.onCardClicked(localId, cardId));
+      this.view.render(viewState, localId, cardId => this.onCardPlayed(localId, cardId));
     });
 
     //Event to trigger an animation
@@ -43,7 +43,7 @@ export class BaseController {
   }
     
   // Called by View when a user clicks a card, Model then is called to handle it
-  onCardClicked(playerId: string, cardId: number) {
+  onCardPlayed(playerId: string, cardId: number) {
     this.game.playCard(playerId, cardId);
   }
 }

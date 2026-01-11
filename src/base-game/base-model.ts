@@ -1,16 +1,15 @@
 import { DocumentData } from "firebase/firestore";
 import { EventEmitter } from "../event-emitter";
-import { Deck } from "../general/deck";
 import { Card } from "../card";
-import { Player } from "../general/player";
-import { Team } from "./team";
 import { CardPlain } from "../types";
-
+import { Deck } from "../deck";
+import { Player } from "../player";
+import { Team } from "../team";
 
 //Defines event types that can occur in base game
 export type BaseEvents = {
   stateChanged: any;
-  cardPlayed: { playerId: string; card: Card };
+  cardPlayed: Card;
   logAdded: string;
   turnChanged: string;
   handStateChanged: { playerId: string; enabled: boolean };
@@ -40,7 +39,7 @@ export abstract class BaseGame {
   abstract start(): void;
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
-  abstract cardClick(card: Card, cardDiv: HTMLDivElement): void;
+  abstract cardPlayed(card: Card): void;
 
   //Allows the controller/view to subscribe to event
   on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
@@ -193,10 +192,6 @@ export abstract class BaseGame {
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
-  createModeSelector(): HTMLDivElement | null {
-    return null
-  }
-
   findTeamByPlayer(player: Player): Team {
     return this.teams.find(team =>
         team.playerIds.some((id: string) => id === player.id)
@@ -205,18 +200,15 @@ export abstract class BaseGame {
 
   //Play card and update state
   playCard(playerId: string, cardId: number) {
-    const player = this.players.find((p) => p.id === playerId);
-    if (!player) return;
-    const card = player.hand.find((c: Card) => c.id === cardId);
-    if (!card) return;
+    const player = this.players.find((p) => p.id === playerId)!;
+    const card = player.hand.find((c: Card) => c.id === cardId)!;
 
     // remove card from hand and add to played cards
     player.hand = player.hand.filter((c: Card) => c.id !== cardId);
-    player.playedCards = player.playedCards ?? [];
     player.playedCards.push(card);
 
     this.addLog(`${player.name} played ${card.toHTML()}`);
-    this.events.emit('cardPlayed', { playerId, card });
+    this.events.emit('cardPlayed', card); //Implemented in the game specific controllers
     this.events.emit('stateChanged', this.toPlainObject());
   }
 

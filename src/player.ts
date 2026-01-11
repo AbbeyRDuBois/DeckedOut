@@ -9,6 +9,7 @@ export class Player {
     isTurn: boolean = false;
     score: number = 0;
     team: number = 0;
+    order: number = 0;
 
     constructor(id: string, name: string){
         this.id = id;
@@ -48,5 +49,13 @@ export class Player {
         player.team = data.team;
 
         return player;
+    }
+
+    setOrder(order: number){
+        this.order = order;
+    }
+
+    getOrder(): number{
+        return this.order;
     }
 }

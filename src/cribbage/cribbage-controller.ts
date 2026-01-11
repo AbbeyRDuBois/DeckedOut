@@ -15,6 +15,8 @@ export class CribbageController {
 
     this.game.on('logAdded', (log) => this.view.renderLog(log));
 
+    this.game.on('cardPlayed', (card) => this.onCardPlayed(card));
+
     this.view.onDeckChange = this.handleDeckChange;
     this.view.onGameModeChange = this.handleGameModeChange;
 
@@ -47,8 +49,17 @@ export class CribbageController {
 
     const viewState = this.game.toPlainObject();
     this.view.render(viewState, localId, 
-      (cardId) => this.game.cardClick(this.game.getDeck().deck.find((c: any) => c.id === cardId)!)
+      (cardId) => this.game.cardPlayed(this.game.getDeck().deck.find((c: any) => c.id === cardId)!)
     );
+
+    // Freeze or restore the local hand UI depending on whether a selection is pending
+    if (viewState.awaitingJokerSelection) {
+      this.view.setHandEnabled(false);
+    } else {
+      // Reset local hand enabled state based on current round and player
+      const localPlayerObj = this.game.getPlayers().find(p => p.id === localId)!;
+      this.game.setHandState(localPlayerObj);
+    }
 
     const localPlayer = this.game.getPlayers().find(p => p.id === localId);
 
@@ -57,39 +68,37 @@ export class CribbageController {
       const fullDeck = new Deck();
       this.view.renderJokerPopup(this.game.getFullPlainDeck(),
         async (cardId: number) => {
-          this.game.applyJokerCard(fullDeck.deck.find(c => c.id === cardId)!, localId);
+          await this.game.applyJokerCard(fullDeck.deck.find(c => c.id === cardId)!, localId);
           // Hide the popup after selection
           this.view.hideJokerPopup();
         }
       );
     }
 
-    //If local player is crib owner and flipped or crib has joker, prompt for selection, otherwise let the others wait it out
+    // If a joker selection is pending, show the crib (if applicable) and prompt crib owner to select
     const flipped = this.game.getFlipped();
     const cribJoker = this.game.getCrib().some((c: any) => c?.value === 'JK');
     const cribOwner = this.game.getCribOwner();
     const state = this.game.getRoundState();
 
-    if ((flipped.isFlipped && flipped.value === 'JK') || 
-      (state == RoundState.Pointing && cribJoker)){
-
-      //Move Crib to Hand so user can make selection (and others can see)
-      if (state==RoundState.Pointing && cribJoker){
+    if (viewState.awaitingJokerSelection && (
+      (state === RoundState.Pegging && flipped.value === 'JK') ||
+      (state === RoundState.Pointing && cribJoker)
+    )) {
+      // Show crib to everyone while awaiting selection (if crib case)
+      if (state === RoundState.Pointing && cribJoker) {
         this.view.renderCribAsHand(this.game.getCribRenderState());
       }
 
-      if(localId === cribOwner.id){
+      if (localId === cribOwner.id) {
         const fullDeck = new Deck();
         this.view.renderJokerPopup(this.game.getFullPlainDeck(),
           async (cardId: number) => {
-            this.game.applyJokerCard(fullDeck.deck.find(c => c.id === cardId)!, localId);
+            await this.game.applyJokerCard(fullDeck.deck.find(c => c.id === cardId)!, localId);
             // Hide the popup after selection
             this.view.hideJokerPopup();
           }
         );
-      }
-      else{
-        await this.waitForJokerSelection();
       }
     }
   }
@@ -115,13 +124,13 @@ export class CribbageController {
   async showJokerPopup(selectingPlayerId?: string) {
     const cards = this.game.getFullPlainDeck();
 
-    const onCardClick = (cardId: number) => {
+const onCardClick = async (cardId: number) => {
       const deck = new Deck();
       const card = deck.deck.find(c => c.id === cardId);
       if (!card) return;
 
       const playerId = selectingPlayerId ?? localStorage.getItem('playerId')!;
-      this.game.applyJokerCard(card, playerId); // call model logic
+      await this.game.applyJokerCard(card, playerId); // call model logic and wait for any post-selection counting
       this.view.hideJokerPopup();
     };
 
@@ -129,7 +138,7 @@ export class CribbageController {
   }
 
   // Called by view when a user interacts with a card
-  onCardClicked(cardId: number) {
-    this.game.cardClick(new (this.game as any).deck.deck.find((c: any) => c.id === cardId));
+  onCardPlayed(card: Card) {
+    this.game.cardPlayed(card);
   }
 }
