@@ -11,17 +11,16 @@ export type RoomViewHandlers = {
   onRandomize: (size: number) => Promise<void> | void;
   onThemeChange?: (theme: string) => void;
   onCardThemeChange?: (theme: string) => void;
-  onSettingsToggle?: () => void;
+  onSettingsToggle?: () => Promise<void> | void;
 };
 
 export class RoomView {
-  private handlers: RoomViewHandlers;
+  private handlers!: RoomViewHandlers;
   private gameView: BaseView;
 
   //Set up the Listeners for events
-  constructor(gameView: BaseView, handlers: RoomViewHandlers) {
+  constructor(gameView: BaseView) {
     this.gameView = gameView;
-    this.handlers = handlers;
     this.attachBasicControls();
   }
 
@@ -37,10 +36,21 @@ export class RoomView {
   }
 
   render(state: any) {
+    // Apply persisted theme and card theme immediately
+    document.body.setAttribute('data-theme', state.theme || 'dark');
+    this.gameView.setSpriteSheet(state.cardTheme || 'Classic');
+    this.renderSettingsPanel(state.settingsOpen);
+
+    // Ensure selectors reflect the current state
+    const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement | null;
+    if (themeSelector) themeSelector.value = state.theme || 'dark';
+    const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
+    if (cardThemeSelector) cardThemeSelector.value = state.cardTheme || 'Classic';
+
     this.renderPlayerList(state.players || []);
     this.renderTeams(state.teams || []);
     this.showWaitingOverlay(!state.started);
-    this.gameView.renderGameOptions(state)
+    this.gameView.renderGameOptions(state);
   }
 
   renderPlayerList(players: any[]) {
@@ -118,14 +128,20 @@ export class RoomView {
     innerContainer.appendChild(teamsContainer);
   }
 
-  showWaitingOverlay(show: boolean) {
-    const el = document.getElementById('waiting-overlay');
-    if (!el) return;
-    el.style.display = show ? 'flex' : 'none';
+  //Loads the Unique content of the game into the UI
+  async renderGameContent(gameType: string){
+    const container = document.getElementById("center-content")!;
+    const html = await fetch(`/${gameType}.html`).then(res => res.text());
+    container.innerHTML = html;
+    container.style.display = "block"
+
+    await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
   }
 
-
-
+  showWaitingOverlay(show: boolean) {
+    const el = document.getElementById('waiting-overlay')!;
+    el.style.display = show ? 'flex' : 'none';
+  }
 
   //Sets up listeners for all the click events
   attachBasicControls() {
@@ -153,5 +169,9 @@ export class RoomView {
 
     const toggle = document.getElementById('settings-toggle')!;
     toggle.addEventListener('click', () => this.handlers.onSettingsToggle?.());
+  }
+
+  navigateToHome() {
+    window.location.href = 'index.html';
   }
 }

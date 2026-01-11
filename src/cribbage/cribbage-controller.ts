@@ -2,7 +2,7 @@ import { Cribbage, DeckMode, GameMode, RoundState } from "./cribbage-model";
 import { CribbageView } from "./cribbage-view";
 import { Database } from "../services/databases";
 import { Card } from "../card";
-import { Deck } from "../general/deck";
+import { Deck } from "../deck";
 
 export class CribbageController {
   constructor(private game: Cribbage, private view: CribbageView, private db?: Database) {
@@ -17,6 +17,12 @@ export class CribbageController {
 
     this.view.onDeckChange = this.handleDeckChange;
     this.view.onGameModeChange = this.handleGameModeChange;
+
+    // Re-render when room triggers a resize (throttled by RoomController)
+    window.addEventListener('room:resize', () => {
+      // Call onStateChanged which will re-render the game view with current state
+      void this.onStateChanged();
+    });
   }
 
   init() {

@@ -9,6 +9,7 @@ export class EntryController {
     private view: EntryView
   ) {}
 
+  ///Binds all the buttons in view with their functionality
   init() {
     this.view.bindCreateRoom(this.handleCreateRoom);
     this.view.bindJoinRoom(this.handleJoinRoom);

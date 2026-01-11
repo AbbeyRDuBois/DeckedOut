@@ -1,10 +1,10 @@
 import { DocumentData } from "firebase/firestore";
 import { BaseGame } from "../base-game/base-model";
-import { Deck, JokerDeck } from "../general/deck";
 import { Card } from "../card";
-import { Player } from "../general/player";
-import { Team } from "./team";
 import { CardPlain } from "../types";
+import { Player } from "../player";
+import { Deck, JokerDeck } from "../deck";
+import { Team } from "../team";
 
 export enum RoundState {
   Throwing = "Throwing",
@@ -185,7 +185,7 @@ export class Cribbage extends BaseGame {
 
     if (this.roundState == RoundState.Throwing) {
       // Move card to crib
-      const cardIndex = player.hand.findIndex(c => c.id == card.id);
+      const cardIndex = player.hand.findIndex((c: Card) => c.id == card.id);
       if (cardIndex === -1) return;
       player.hand.splice(cardIndex, 1);
       this.crib.push(card);
@@ -203,7 +203,7 @@ export class Cribbage extends BaseGame {
       card.isFlipped = true;
       // Move to played
       const hand = this.players.find(p => p.id === localStorage.getItem('playerId')!)!;
-      const cardIndex = hand.hand.findIndex(c => c.id === card.id);
+      const cardIndex = hand.hand.findIndex((c: Card) => c.id === card.id);
       if (cardIndex === -1) return;
       hand.hand.splice(cardIndex, 1);
       hand.playedCards.push(card);
@@ -248,7 +248,7 @@ export class Cribbage extends BaseGame {
     if (!player) return;
 
     // Joker in hand
-    const playerJoker = player.hand.findIndex(c => c.value == "JK");
+    const playerJoker = player.hand.findIndex((c: Card) => c.value == "JK");
     if (playerJoker != -1) {
       player.hand.splice(playerJoker, 1);
       card.isFlipped = true;
@@ -334,7 +334,7 @@ export class Cribbage extends BaseGame {
       const points = this.countHand(hand, false);
       this.findTeamByPlayer(player)!.score += points;
       player.score += points;
-      this.addLog(`${player.name} got ${points} points with hand ${player.hand.map(card => card.toHTML())}`);
+      this.addLog(`${player.name} got ${points} points with hand ${player.hand.map((card: Card) => card.toHTML())}`);
       this.checkIfWon(player);
     }
 
@@ -522,8 +522,8 @@ export class Cribbage extends BaseGame {
         for (let i = 1; i <= this.players.length && !found; i++) {
           const player = this.players[(index + i) % this.players.length];
 
-          const unplayedCards = player.hand.filter(card => !player.playedCards.some(played => played.id === card.id));
-          if (unplayedCards?.some(card => card.toInt(true) + this.peggingTotal <= 31)){
+          const unplayedCards = player.hand.filter((card: Card) => !player.playedCards.some((played: Card) => played.id === card.id));
+          if (unplayedCards?.some((card: Card) => card.toInt(true) + this.peggingTotal <= 31)){
             this.currentPlayer = player;
             found = true;
           }

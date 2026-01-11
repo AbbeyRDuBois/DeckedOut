@@ -11,6 +11,18 @@ export class Team {
         this.playerIds = ids;
         this.score = score;
     }
+
+    removePlayer(playerId: string): void {
+        this.playerIds.splice(this.playerIds.findIndex(id => id === playerId), 1); // Remove the player
+    }
+
+    setPlayers(players: string[]){
+        this.playerIds = players;
+    }
+    
+    getPlayers(): string[] {
+        return this.playerIds;
+    }
     
     toPlainObject() {
         return {

@@ -10,6 +10,8 @@ export type RoomState = {
   teams: Team[];
   started: boolean;
   settingsOpen: boolean;
+  theme: string;
+  cardTheme: string;
   hostId?: string;
   [key: string]: any;
 };
@@ -18,13 +20,17 @@ const DBMap: Record<string, any> = {
     'cribbage': CribbageDatabase
 }
 
+export type LeaveRoomResult =
+  | { type: 'DELETE_ROOM' }
+  | { type: 'LEFT_ROOM'; state: any };
+  
 export class Room {
   private db!: Database;
   private state: RoomState;
   public events = new EventEmitter<{ stateChanged: RoomState; error: string }>();
 
   constructor(gameType: string, roomId: string) {
-    this.state = { roomId, gameType, players: [], teams: [], started: false, settingsOpen: false};
+    this.state = { roomId, gameType, players: [], teams: [], started: false, settingsOpen: false, theme: 'dark', cardTheme: 'Classic'};
   }
 
   async init() {
@@ -46,8 +52,13 @@ export class Room {
     }
   }
 
+  async closeRoom () {
+    await this.db.delete();
+  }
+
   toggleSettings() {
     this.state.settingsOpen = !this.state.settingsOpen;
+    this.events.emit('stateChanged', this.getState());
   }
 
   isSettingsOpen(): boolean {
@@ -61,6 +72,16 @@ export class Room {
     this.state.started = remote.started;
     this.state.settingsOpen = remote.settingsOpen;
     this.state.hostId = remote.hostId;
+    this.events.emit('stateChanged', this.getState());
+  }
+
+  async setTheme(theme: string) {
+    this.state.theme = theme;
+    this.events.emit('stateChanged', this.getState());
+  }
+
+  async setCardTheme(theme: string) {
+    this.state.cardTheme = theme;
     this.events.emit('stateChanged', this.getState());
   }
 
@@ -80,10 +101,22 @@ export class Room {
     this.events.emit('stateChanged', this.getState());
   }
 
-  async leaveRoom(playerId: string) {
+  async leaveRoom(playerId: string): Promise<LeaveRoomResult> {
+    if (this.state.started || playerId === this.state.hostId) {
+      return { type: 'DELETE_ROOM' };
+    }
+
+    // Remove player
     this.state.players = this.state.players.filter(p => p.id !== playerId);
-    await this.db.update({ players: this.state.players.map(p => p.toPlainObject()) });
-    this.events.emit('stateChanged', this.getState());
+
+    // Remove from team
+    const team = this.state.teams.find(t => t.playerIds.includes(playerId)) as Team;
+    team?.removePlayer(playerId);
+
+    return {
+      type: 'LEFT_ROOM',
+      state: this.state
+    };
   }
 
   async addTeam(team: Team) {
@@ -94,5 +127,14 @@ export class Room {
 
   getDbInstance() {
     return this.db;
+  }
+
+  //Generic as most (if not all) games at least require 2 people
+  enoughPlayers(): boolean {
+    if (this.state.players.length < 2){
+      return false
+    }
+
+    return true
   }
 }

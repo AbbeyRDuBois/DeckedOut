@@ -1,4 +1,3 @@
-// entry-model.ts
 import { arrayUnion } from "firebase/firestore";
 import { v4 } from "uuid";
 import { Player } from "../player";
@@ -13,8 +12,10 @@ export class EntryModel {
   private db!: Database;
 
   async createRoom(gameType: string, username: string): Promise<string> {
-    const playerId = v4();
+    const playerId = v4();  //Generates a unique playerId
 
+    // Saves the player's Id and username in storage
+    // This helps us be able to tell who is making actions later on in the application
     localStorage.setItem("playerId", playerId);
     localStorage.setItem("username", username);
 
@@ -34,12 +35,14 @@ export class EntryModel {
     return this.db.getRoomId();
   }
 
+  //Allows other players to join a pre setup room. Requires them to pass in a roomId and username
   async joinRoom(roomId: string, username: string): Promise<string> {
     const playerId = v4();
 
     localStorage.setItem("playerId", playerId);
     localStorage.setItem("username", username);
 
+    //Have to connect and set the instance of the host created db
     this.db = new Database();
     await this.db.join("rooms", roomId);
     setDBInstance(this.db);

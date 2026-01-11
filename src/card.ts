@@ -29,6 +29,17 @@ export class Card {
         this.isFlipped = isFlipped;
     }
 
+    toInt(counting = false): number {
+        switch (this.value) {
+            case 'A': return 1;
+            case 'J': return counting ? 10 : 11;
+            case 'Q': return counting ? 10 : 12;
+            case 'K': return counting ? 10 : 13;
+            case 'JK': return this.suit == "Red" ? 1 : 2;
+            default: return parseInt(this.value);
+        }
+    }
+
     toHTML(): string {
         if (this.suit != ""){
             var suit = SUITS.filter(suit => suit.name == this.suit)[0];
