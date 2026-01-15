@@ -1,5 +1,4 @@
 import { DocumentData } from "firebase/firestore";
-import { BaseGame } from "./base-game/base-model";
 
 export class Team {
     name: string;

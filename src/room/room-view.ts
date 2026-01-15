@@ -12,6 +12,7 @@ export type RoomViewHandlers = {
   onThemeChange?: (theme: string) => void;
   onCardThemeChange?: (theme: string) => void;
   onSettingsToggle?: () => Promise<void> | void;
+  onMovePlayer: (playerId: string, fromIndex: number, toIndex: number) => Promise<void> | void;
 };
 
 export class RoomView {
@@ -47,8 +48,8 @@ export class RoomView {
     const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
     if (cardThemeSelector) cardThemeSelector.value = state.cardTheme || 'Classic';
 
-    this.renderPlayerList(state.players || []);
-    this.renderTeams(state.teams || []);
+    this.renderPlayerList(state.players);
+    this.renderTeams(state.teams, state.players);
     this.showWaitingOverlay(!state.started);
     this.gameView.renderGameOptions(state);
   }
@@ -65,9 +66,11 @@ export class RoomView {
   }
 
   //Renders Team containers in the Waiting overlay where teams can be edited
-  renderTeams(teams: any[]) {
+  renderTeams(teams: any[], players: any[]) {
     const innerContainer = document.getElementById('inner-container');
     if (!innerContainer) return;
+
+    innerContainer.innerHTML = "";
 
     // Recreate teams section
     let teamsContainer = document.getElementById('teams');
@@ -85,7 +88,7 @@ export class RoomView {
       column.className = 'team-column';
 
       const teamNameInput = document.createElement('input');
-      teamNameInput.id = `team-name-${teamIndex}`;
+      teamNameInput.id = `team-name`;
       teamNameInput.value = team.name;
       teamNameInput.addEventListener('blur', async () => {
         const newName = teamNameInput.value.trim();
@@ -96,10 +99,7 @@ export class RoomView {
       column.appendChild(teamNameInput);
 
       team.playerIds.forEach((id: string) => {
-        const player = document.createElement('div');
-        player.className = 'team-player';
-        player.innerText = id;
-        column.appendChild(player);
+        column.appendChild(this.createPlayerElement(players, id, teamIndex, teams.length));
       });
 
       columnsWrapper.appendChild(column);
@@ -125,7 +125,40 @@ export class RoomView {
     teamsContainer.appendChild(columnsWrapper);
     teamsContainer.appendChild(addDel);
 
-    innerContainer.appendChild(teamsContainer);
+    innerContainer.prepend(teamsContainer);
+  }
+
+  createPlayerElement(players: any[], playerId: string, teamIndex: number, teamAmount: number): HTMLDivElement{
+      const player = document.createElement('div');
+      player.className = 'team-player';
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = players.find((p: any) => p.id === playerId).name;
+
+      const controls = document.createElement("div");
+
+      if (teamIndex > 0) {
+        const leftBtn = document.createElement("button");
+        leftBtn.className = "move-player";
+        leftBtn.textContent = "←";
+        leftBtn.onclick = async () => {
+          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex - 1);
+        };
+        controls.appendChild(leftBtn);
+      }
+
+      if (teamIndex < teamAmount - 1) {
+        const rightBtn = document.createElement("button");
+        rightBtn.className = "move-player";
+        rightBtn.textContent = "→";
+        rightBtn.onclick = async () => {
+          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex + 1);
+        };
+        controls.appendChild(rightBtn);
+      }
+
+      player.appendChild(nameSpan);
+      player.appendChild(controls);
+      return player;
   }
 
   //Loads the Unique content of the game into the UI
@@ -137,7 +170,10 @@ export class RoomView {
 
     await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
   }
-
+  // Expose the game view instance so controllers can wire a game controller to the same view
+  getGameView() {
+    return this.gameView;
+  }
   showWaitingOverlay(show: boolean) {
     const el = document.getElementById('waiting-overlay')!;
     el.style.display = show ? 'flex' : 'none';

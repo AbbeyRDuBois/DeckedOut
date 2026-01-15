@@ -27,10 +27,6 @@ export class CribbageController {
     });
   }
 
-  init() {
-    this.view.renderGameOptions(this.game.getGameOptions());
-  }
-
   private handleDeckChange = (mode: DeckMode) => {
     this.game.setDeckMode(mode);
   };
@@ -42,18 +38,15 @@ export class CribbageController {
   private async onStateChanged() {
     const localId = localStorage.getItem('playerId')!;
 
-    //Update DB
-    if (this.db) {
-      try { this.db.update(this.game.toPlainObject()); } catch (e) { console.warn('DB update failed', e); }
-    }
+    const gameState = this.game.toPlainObject();
 
-    const viewState = this.game.toPlainObject();
-    this.view.render(viewState, localId, 
+    //Render is always called to ensure UI stays in sync
+    this.view.render(gameState, localId, 
       (cardId) => this.game.cardPlayed(this.game.getDeck().deck.find((c: any) => c.id === cardId)!)
     );
 
-    // Freeze or restore the local hand UI depending on whether a selection is pending
-    if (viewState.awaitingJokerSelection) {
+    // Freeze/Restore the local hand UI depending on whether a selection is pending
+    if (gameState.awaitingJokerSelection) {
       this.view.setHandEnabled(false);
     } else {
       // Reset local hand enabled state based on current round and player
@@ -81,7 +74,7 @@ export class CribbageController {
     const cribOwner = this.game.getCribOwner();
     const state = this.game.getRoundState();
 
-    if (viewState.awaitingJokerSelection && (
+    if (gameState.awaitingJokerSelection && (
       (state === RoundState.Pegging && flipped.value === 'JK') ||
       (state === RoundState.Pointing && cribJoker)
     )) {

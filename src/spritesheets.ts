@@ -1,15 +1,15 @@
-import classicSheet from "./SpriteSheets/Classic_Deck.png";
-import catSheet from "./SpriteSheets/Cats_Deck.png";
-import poke1 from "./SpriteSheets/Pokemon1_Deck.png";
-import poke1S from "./SpriteSheets/Pokemon1_Shiny_Deck.png";
-import poke2 from "./SpriteSheets/Pokemon2_Deck.png";
-import poke2S from "./SpriteSheets/Pokemon2_Shiny_Deck.png";
-import pokeQ from "./SpriteSheets/PokemonQ_Deck.png";
-import pokeQS from "./SpriteSheets/PokemonQ_Shiny_Deck.png";
-import shinx from "./SpriteSheets/Shinx_Deck.png";
-import starSheet from "./SpriteSheets/StarWars_Deck.png";
-import genshinSheet from "./SpriteSheets/Genshin_Deck.png";
-import hollowSheet from "./SpriteSheets/Hollow_Deck.png";
+import classicSheet from "./assets/Card_Themes/Classic_Deck.png";
+import catSheet from "./assets/Card_Themes/Cats_Deck.png";
+import poke1 from "./assets/Card_Themes/Pokemon1_Deck.png";
+import poke1S from "./assets/Card_Themes/Pokemon1_Shiny_Deck.png";
+import poke2 from "./assets/Card_Themes/Pokemon2_Deck.png";
+import poke2S from "./assets/Card_Themes/Pokemon2_Shiny_Deck.png";
+import pokeQ from "./assets/Card_Themes/PokemonQ_Deck.png";
+import pokeQS from "./assets/Card_Themes/PokemonQ_Shiny_Deck.png";
+import shinx from "./assets/Card_Themes/Shinx_Deck.png";
+import starSheet from "./assets/Card_Themes/StarWars_Deck.png";
+import genshinSheet from "./assets/Card_Themes/Genshin_Deck.png";
+import hollowSheet from "./assets/Card_Themes/Hollow_Deck.png";
 
 export class SpriteSheet {
     sheet_width = 1300;

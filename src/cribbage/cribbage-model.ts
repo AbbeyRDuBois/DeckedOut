@@ -32,15 +32,14 @@ export class Cribbage extends BaseGame {
   protected peggingCards: Card[] = [];
   protected peggingTotal: number = 0;
   protected awaitingJokerSelection: boolean = false;
-  protected options: CribbageOptions;
+  protected options: CribbageOptions = {
+      deckMode: 'Standard',
+      gameMode: 'Standard',
+    };;
 
   constructor(deck: Deck, players: Player[], roomId: string){
     super(deck, players, roomId);
     this.maxPlayers = 8;
-    this.options = {
-      deckMode: 'Standard',
-      gameMode: 'Standard',
-    };
   }
 
   // --- Basic getter/setup funcitons
@@ -155,7 +154,7 @@ export class Cribbage extends BaseGame {
     this.pointGoal = data.point_goal ?? 121;
     this.skunkLength = data.skunk_length ?? 90;
     this.handSize = data.hand_size ?? 4;
-    this.options = data.options;
+    this.options = data.options ?? { deckMode: 'Standard', gameMode: 'Standard',};
 
     this.events.emit('stateChanged', this.toPlainObject());
   }

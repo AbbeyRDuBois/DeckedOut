@@ -61,7 +61,17 @@ export class Database{
     }
 
     async update(changes = {}){
-        await updateDoc(this.roomRef, changes);
+        if (changes === undefined || changes === null) {
+            console.warn('Database.update called with invalid changes:', changes);
+            return;
+        }
+
+        try {
+            await updateDoc(this.roomRef, changes);
+        } catch (err) {
+            console.error('Database.update failed for changes:', changes, err);
+            throw err;
+        }
     }
 
     listenForUpdates(){

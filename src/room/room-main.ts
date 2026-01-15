@@ -2,6 +2,7 @@ import { CribbageView } from "../cribbage/cribbage-view";
 import { RoomController } from "./room-controller";
 import { Room } from "./room-model";
 import { RoomView } from "./room-view";
+import "../styles.css";
 
 const GameViewMap: Record<string, any> = {
     'cribbage': CribbageView

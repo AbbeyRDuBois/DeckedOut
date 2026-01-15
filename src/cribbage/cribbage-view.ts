@@ -26,14 +26,16 @@ export class CribbageView extends BaseView {
 
   //Cribbage Specific Options when setting up the game
   renderGameOptions(state: any) {
-    const innerContainer = document.getElementById('inner-container');
-    if (!innerContainer) return;
+    const innerContainer = document.getElementById('inner-container')!;
 
-    let modeContainer = document.getElementById('crib-mode-selector');
+    let modeContainer = document.getElementById('mode-container');
     if (!modeContainer) {
       modeContainer = document.createElement('div');
-      modeContainer.id = 'crib-mode-selector';
-      modeContainer.classList.add('mode-selector');
+      modeContainer.id = 'mode-container';
+
+      const divideLine = document.createElement('div');
+      divideLine.classList.add('divide-line');
+      innerContainer.appendChild(divideLine);
       innerContainer.appendChild(modeContainer);
     }
 
@@ -44,13 +46,18 @@ export class CribbageView extends BaseView {
     deckLabel.textContent = 'Deck: ';
 
     const deckSelect = document.createElement('select');
+    deckSelect.classList.add('menu-selector');
     ['Standard', 'Joker'].forEach(mode => {
       const opt = document.createElement('option');
       opt.value = mode;
       opt.textContent = mode;
       deckSelect.appendChild(opt);
     });
-    deckSelect.value = state.options.deckMode;
+
+    // Normalize options: accept either { options: {...} } or options object directly
+    const opts = state?.options ?? { deckMode: 'Standard', gameMode: 'Standard' };
+
+    deckSelect.value = opts.deckMode ?? 'Standard';
     deckSelect.onchange = () =>
       this.onDeckChange?.(deckSelect.value as DeckMode);
 
@@ -59,13 +66,14 @@ export class CribbageView extends BaseView {
     modeLabel.textContent = 'Mode: ';
 
     const modeSelect = document.createElement('select');
+    modeSelect.classList.add('menu-selector');
     ['Standard', 'Mega'].forEach(mode => {
       const opt = document.createElement('option');
       opt.value = mode;
       opt.textContent = mode;
       modeSelect.appendChild(opt);
     });
-    modeSelect.value = state.options.gameMode;
+    modeSelect.value = opts.gameMode ?? 'Standard';
     modeSelect.onchange = () =>
       this.onGameModeChange?.(modeSelect.value as GameMode);
 

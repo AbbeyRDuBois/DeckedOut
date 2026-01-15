@@ -3,11 +3,21 @@ import { Database } from "../services/databases";
 import { BaseView } from "./base-view";
 
 export class BaseController {
+  private lastRenderedState: any = null
+
   constructor(private game: BaseGame, private view: BaseView, private db?: Database) {
     //All (this.game.on) define the events the controller calls
 
     //Updates the DB with the new changes, rerenders the screen
     this.game.on('stateChanged', () => {
+      var gameState = game.toPlainObject();
+
+      // Compare with last rendered state to prevent unnecessary renders
+      if (this.lastRenderedState && JSON.stringify(this.lastRenderedState) === JSON.stringify(gameState)) {
+        return;
+      }
+      this.lastRenderedState = JSON.parse(JSON.stringify(gameState));
+
       const localId = localStorage.getItem('playerId')!;
 
       if (this.db) {

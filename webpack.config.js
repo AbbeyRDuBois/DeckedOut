@@ -18,10 +18,11 @@ const htmlPlugins = require('fs').readdirSync('./public')
   .filter((file) => file.endsWith('.html') && allowedHtmlFiles.includes(file))
   .map((file) => {
     const name = path.parse(file).name;
+    const chunks = Object.keys(entry).filter(k => k.split('/')[0] === name);
     return new HtmlWebpackPlugin({
       template: `./public/${file}`,
       filename: `${file}`,
-      chunks: [name], //inject its matching JS chunk
+      chunks, //inject matching JS chunk(s)
     });
   });
 

@@ -89,6 +89,15 @@ export abstract class BaseGame {
   }
 
   getPlayerOrder(){
+    // If no teams exist, preserve players and just shuffle the player order
+    if (!this.teams || this.teams.length === 0) {
+      this.players = this.shuffle(this.players);
+      for (let i = 0; i < this.players.length; i++) {
+        this.players[i].setOrder(i);
+      }
+      return;
+    }
+
     //Randomize Team Order and Player Order in the teams
     this.teams = this.shuffle(this.teams);
     for(let teamIndex = 0; teamIndex < this.teams.length; teamIndex++){

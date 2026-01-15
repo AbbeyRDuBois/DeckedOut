@@ -39,6 +39,7 @@ export class BaseView {
         onClick: () => onCardClick ? onCardClick(card.id) : undefined
       });
       cardEl.dataset.cardId = String(card.id);
+      handContainer.appendChild(cardEl);
     });
   }
 
@@ -66,16 +67,15 @@ export class BaseView {
   // Render opponents block
   renderOpponents(state: any, localPlayerId: string, spriteSheet?: any) {
     const opponents = state.players.filter((p: PlayerPlain) => p.id !== localPlayerId);
-    const opponentContainer = document.getElementById('opponents');
-    if (!opponentContainer) return;
+    const opponentContainer = document.getElementById('opponents')!;
 
     opponentContainer.innerHTML = '';
-    const rect = opponentContainer.getBoundingClientRect();
+    const rect = opponentContainer.getBoundingClientRect(); //Dividing width equally between opponents
 
     opponents.forEach((opp: PlayerPlain, index: number) => {
       const opponentDiv = document.createElement('div');
       opponentDiv.classList.add('opponent');
-      opponentDiv.style.width = `${rect?.width / Math.ceil(Math.sqrt(opponents.length))}px`;
+      opponentDiv.style.width = `${rect?.width / Math.ceil(Math.sqrt(opponents.length))}px`; //Dividing width equally between opponents
       opponentDiv.style.height = `${rect?.height}px`;
 
       const name = document.createElement('div');
@@ -87,6 +87,8 @@ export class BaseView {
       oppInfo.style.justifyContent = 'center';
       oppInfo.appendChild(name);
 
+      //Indicators not here?
+
       opponentDiv.appendChild(oppInfo);
 
       const oppCards = document.createElement('div');
@@ -96,10 +98,12 @@ export class BaseView {
       opp.hand.forEach((card: CardPlain) => {
         const cardDiv = this.createCardElement(card, { container: oppCards });
         cardDiv.style.pointerEvents = 'none';
+        oppCards.appendChild(cardDiv)
       });
 
       opponentContainer.appendChild(opponentDiv);
 
+      //Adds a line to divide opponents (except after last opponent)
       if (index + 1 !== opponents.length) {
         const divideLine = document.createElement('div');
         divideLine.classList.add('divide-line');
@@ -152,14 +156,14 @@ export class BaseView {
     if (!logBox) return;
     logBox.innerHTML = '';
 
-    state.logs.forEach((log: string) => {
+    const logs = Array.isArray(state?.logs) ? state.logs : [];
+
+    logs.forEach((log: string) => {
       const entry = document.createElement('div');
       entry.className = 'log-entry';
       entry.innerHTML = log;
       logBox.appendChild(entry);
     });
-
-    logBox.scrollTop = logBox.scrollHeight;
   }
 
   //Just add a log to the log box
@@ -170,7 +174,6 @@ export class BaseView {
     entry.className = 'log-entry';
     entry.innerHTML = log;
     logBox.appendChild(entry);
-    logBox.scrollTop = logBox.scrollHeight;
   }
 
   // Render all the different indicators for the game
