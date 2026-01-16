@@ -181,7 +181,9 @@ export class Cribbage extends BaseGame {
     return this.options.deckMode;
   }
 
-  async cardPlayed(card: Card) {
+  async cardPlayed(cardId: number) {
+    const card = (new Deck()).getDeck()[cardId];
+    
     const player = this.players?.find((p) => p.id === localStorage.getItem('playerId')!)!;
     if (!player) return;
 

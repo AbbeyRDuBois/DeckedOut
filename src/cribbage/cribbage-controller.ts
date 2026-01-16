@@ -15,7 +15,7 @@ export class CribbageController {
 
     this.game.on('logAdded', (log) => this.view.renderLog(log));
 
-    this.game.on('cardPlayed', (card) => this.onCardPlayed(card));
+    this.game.on('cardPlayed', async (cardId: number) => await this.onCardPlayed(cardId));
 
     this.view.onDeckChange = this.handleDeckChange;
     this.view.onGameModeChange = this.handleGameModeChange;
@@ -42,8 +42,7 @@ export class CribbageController {
 
     //Render is always called to ensure UI stays in sync
     this.view.render(gameState, localId, 
-      (cardId) => this.game.cardPlayed(this.game.getDeck().deck.find((c: any) => c.id === cardId)!)
-    );
+      async (cardId) => await this.game.cardPlayed(cardId));
 
     // Freeze/Restore the local hand UI depending on whether a selection is pending
     if (gameState.awaitingJokerSelection) {
@@ -131,7 +130,7 @@ const onCardClick = async (cardId: number) => {
   }
 
   // Called by view when a user interacts with a card
-  onCardPlayed(card: Card) {
-    this.game.cardPlayed(card);
+  async onCardPlayed(cardId: number) {
+    await this.game.cardPlayed(cardId);
   }
 }

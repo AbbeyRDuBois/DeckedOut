@@ -3,10 +3,12 @@ import { RoomView, RoomViewHandlers } from "./room-view";
 import { Cribbage } from "../cribbage/cribbage-model";
 import { Deck } from "../deck";
 import { CribbageController } from "../cribbage/cribbage-controller";
+import { CribbageView } from "../cribbage/cribbage-view";
 
 export class RoomController {
   private resizePending = false;
   private game: Cribbage | undefined;
+  private gameController: CribbageController | undefined;
 
   constructor(private model: Room, private view: RoomView) {
     //Connect the listener handlers to actual functions outlined in the model
@@ -96,6 +98,7 @@ export class RoomController {
 
       // Wire the shared game view (so room's game view is used)
       const gameView: any = this.view.getGameView();
+      this.gameController = new CribbageController(this.game, gameView);
 
       // If remote indicates the game started, run guest setup to populate local game state
       const remote = await db.pullState();

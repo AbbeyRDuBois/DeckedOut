@@ -1,4 +1,3 @@
-
 import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
 import { CardPlain, IndicatorPlain,PlayerPlain, TeamPlain } from "../types";
 
@@ -36,9 +35,8 @@ export class BaseView {
         startsFlipped: true,
         clickable: !!onCardClick,
         container: handContainer,
-        onClick: () => onCardClick ? onCardClick(card.id) : undefined
+        onClick: onCardClick
       });
-      cardEl.dataset.cardId = String(card.id);
       handContainer.appendChild(cardEl);
     });
   }
@@ -95,10 +93,13 @@ export class BaseView {
       oppCards.classList.add('opp-cards');
       opponentDiv.appendChild(oppCards);
 
-      opp.hand.forEach((card: CardPlain) => {
-        const cardDiv = this.createCardElement(card, { container: oppCards });
-        cardDiv.style.pointerEvents = 'none';
-        oppCards.appendChild(cardDiv)
+      //Request is here so that oppCards container size is set in order for the cards to be sized correctly
+      requestAnimationFrame(() =>{
+        opp.hand.forEach((card: CardPlain) => {
+          const cardDiv = this.createCardElement(card, { container: oppCards });
+          cardDiv.style.pointerEvents = 'none';
+          oppCards.appendChild(cardDiv)
+        });
       });
 
       opponentContainer.appendChild(opponentDiv);
@@ -242,13 +243,16 @@ export class BaseView {
     }
   }
 
-  createCardElement(card: CardPlain, options: { container?: HTMLElement; startsFlipped?: boolean; clickable?: boolean; onClick?: (card: any, el: HTMLDivElement) => void } = {}) {
+  createCardElement(card: CardPlain, options: { container?: HTMLElement; startsFlipped?: boolean; clickable?: boolean; onClick?: (cardId: number) => void } = {}) {
     const {
       container = document.getElementById('hand')!,
       startsFlipped = false,
       clickable = false,
       onClick
     } = options;
+
+    const cardDiv = document.createElement('div');
+    options.container?.appendChild(cardDiv);
 
     const style = getComputedStyle(container);
     const containerRect = container.getBoundingClientRect();
@@ -282,7 +286,6 @@ export class BaseView {
 
     const colRow = this.spriteSheet.getCardLocation(valueToInt(card.value), getRowFromSuit(card.suit), width, height);
 
-    const cardDiv = document.createElement('div');
     cardDiv.className = 'card' + (startsFlipped || card.isFlipped ? '' : ' flipped');
     cardDiv.setAttribute('card-id', String(card.id));
     cardDiv.style.height = `${height}px`;
@@ -311,12 +314,13 @@ export class BaseView {
     hinge.appendChild(back);
     cardDiv.appendChild(hinge);
 
+    // // Set data attribute for easier reference
+    // cardDiv.dataset.cardId = String(card.id);
+
     if (clickable && onClick) {
-      cardDiv.addEventListener('click', () => onClick(card, cardDiv));
+      cardDiv.addEventListener('click', () => {onClick(card.id);});
       cardDiv.style.cursor = 'pointer';
     }
-
-    if (options.container) options.container.appendChild(cardDiv);
 
     return cardDiv;
   }

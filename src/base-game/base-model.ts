@@ -9,7 +9,7 @@ import { Team } from "../team";
 //Defines event types that can occur in base game
 export type BaseEvents = {
   stateChanged: any;
-  cardPlayed: Card;
+  cardPlayed: number;
   logAdded: string;
   turnChanged: string;
   handStateChanged: { playerId: string; enabled: boolean };
@@ -39,7 +39,7 @@ export abstract class BaseGame {
   abstract start(): void;
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
-  abstract cardPlayed(card: Card): void;
+  abstract cardPlayed(cardId: number): void | Promise<void>;
 
   //Allows the controller/view to subscribe to event
   on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
@@ -217,7 +217,7 @@ export abstract class BaseGame {
     player.playedCards.push(card);
 
     this.addLog(`${player.name} played ${card.toHTML()}`);
-    this.events.emit('cardPlayed', card); //Implemented in the game specific controllers
+    this.events.emit('cardPlayed', cardId); //Implemented in the game specific controllers
     this.events.emit('stateChanged', this.toPlainObject());
   }
 

@@ -31,6 +31,10 @@ export class Deck{
         return this.deck.splice(card, 1)[0];
     }
 
+    getDeck(): Card[]{
+        return this.deck;
+    }
+
     toPlainObject(){
         return this.deck.map(card => card.toPlainObject());
     }
