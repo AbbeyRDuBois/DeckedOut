@@ -142,6 +142,7 @@ export class CribbageView extends BaseView {
       const rowEl = rows.item(Math.floor(index / 13)) as HTMLElement;
 
       const cardDiv = this.createCardElement(card, {
+        container: rows[0] as HTMLElement,
         clickable: true,
         startsFlipped: card.isFlipped,
         onClick: () => onCardClick(card.id) // forward ID to controller

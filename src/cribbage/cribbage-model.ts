@@ -33,7 +33,9 @@ export class Cribbage extends BaseGame {
   }
 
   // --- Basic getter/setup funcitons
-  setFlipped() { this.flipped = this.deck.getCard()!; }
+  setFlipped() { 
+    this.flipped = this.deck.getCard()!; 
+  }
   getFlipped(): Card { return this.flipped; }
   getCrib(): Card[] { return this.crib; }
   getCribOwner(): Player { return this.cribOwner; }
@@ -91,6 +93,7 @@ export class Cribbage extends BaseGame {
     this.getPlayerOrder();
     this.cribOwner = this.players[0];
     this.currentPlayer = this.players[1];
+    this.crib.push(this.deck.deck[this.deck.deck.length - 1]);
     this.deal();
     this.setFlipped();
     this.roundState = RoundState.Throwing;
@@ -161,6 +164,18 @@ export class Cribbage extends BaseGame {
 
   setGameMode(mode: string) {
     this.gameMode = mode;
+
+    if(mode == "Standard"){
+      this.pointGoal = 121;
+      this.skunkLength = 90;
+      this.handSize = 4;
+    }
+    else{
+      this.pointGoal = 241
+      this.skunkLength = 180;
+      this.handSize = 8;
+    }
+
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
@@ -247,13 +262,15 @@ export class Cribbage extends BaseGame {
     if (!player) return;
 
     // Joker in hand
-    const playerJoker = player.hand.findIndex((c: Card) => c.value == "JK");
-    if (playerJoker != -1) {
-      player.hand.splice(playerJoker, 1);
-      card.isFlipped = true;
-      player.hand.push(card);
-      this.events.emit('stateChanged', this.toPlainObject());
-      return;
+    if (this.roundState != RoundState.Pointing){
+      const playerJoker = player.hand.findIndex((c: Card) => c.value == "JK");
+      if (playerJoker != -1) {
+        player.hand.splice(playerJoker, 1);
+        card.isFlipped = true;
+        player.hand.push(card);
+        this.events.emit('stateChanged', this.toPlainObject());
+        return;
+      }
     }
 
     // Joker as flipped card
@@ -273,9 +290,21 @@ export class Cribbage extends BaseGame {
       this.crib.push(card);
       // Selection made, unfreeze and immediately count the crib
       this.awaitingJokerSelection = false;
-      this.events.emit('stateChanged', this.toPlainObject());
-      // Now proceed to count crib (this is async)
+      // Now proceed to count crib and reset round
       this.countCrib();
+
+      if (this.ended) return;
+
+      this.deck.resetDeck();
+      this.deal();
+      this.setFlipped();
+
+      this.roundState = RoundState.Throwing;
+      this.peggingTotal = 0;
+      this.peggingCards = [];
+      
+      this.nextCribOwner();
+      this.events.emit('stateChanged', this.toPlainObject());
       return;
     }
   }

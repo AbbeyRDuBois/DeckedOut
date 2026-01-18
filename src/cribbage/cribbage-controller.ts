@@ -48,8 +48,10 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
 
     const localPlayer = this.game.getPlayers().find(p => p.id === localId);
 
+    const state = this.game.getRoundState();
+
     // Check if local player has a Joker in hand
-    if (localPlayer?.hand.some((c: Card) => c.value === 'JK')) {
+    if (localPlayer?.hand.some((c: Card) => c.value === 'JK') && state != RoundState.Pointing) {
       const fullDeck = new Deck();
       this.view.renderJokerPopup(this.game.getFullPlainDeck(),
         async (cardId: number) => {
@@ -64,15 +66,14 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     const flipped = this.game.getFlipped();
     const cribJoker = this.game.getCrib().some((c: any) => c?.value === 'JK');
     const cribOwner = this.game.getCribOwner();
-    const state = this.game.getRoundState();
 
     if (this.game.waitingForJoker() && (
       (state === RoundState.Pegging && flipped.value === 'JK') ||
       (state === RoundState.Pointing && cribJoker)
     )) {
-      // Show crib to everyone while awaiting selection (if crib case)
+      // set everyone's hands to the crib so they can see it
       if (state === RoundState.Pointing && cribJoker) {
-        this.view.renderCribAsHand(this.game.getCribRenderState());
+        this.game.getPlayers().forEach(player => player.hand = this.game.getCrib());
       }
 
       if (localId === cribOwner.id) {
