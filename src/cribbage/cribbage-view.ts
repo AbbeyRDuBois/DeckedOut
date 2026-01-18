@@ -1,5 +1,5 @@
 import { BaseView } from "../base-game/base-view";
-import { CardPlain } from "../types";
+import { CardPlain, PlayerPlain } from "../types";
 
 export class CribbageView extends BaseView {
   onDeckChange?: (mode: string) => void;
@@ -9,6 +9,7 @@ export class CribbageView extends BaseView {
     super.render(state, localPlayerId, onCardClick);
     this.renderPeggingTotal(state);
     this.renderFlipped(state);
+    this.renderIndicators(state, localPlayerId);
   }
 
   renderPeggingTotal(state: any){
@@ -79,6 +80,45 @@ export class CribbageView extends BaseView {
       modeLabel,
       modeSelect
     );
+  }
+
+  renderIndicators(state: any, localPlayerId: string){
+    //Local indicators first
+    const localTurn = document.getElementById("local-turn")!;
+    const localCrib = document.getElementById("local-owner")!;
+
+    if (state.currentPlayer.id == localPlayerId){
+      localTurn.classList.add('active');
+    } else {
+      localTurn.classList.remove('active');
+    }
+
+    if(state.cribOwner.id == localPlayerId){
+      localCrib.classList.add('active');
+    } else {
+      localCrib.classList.remove('active');
+    }
+
+    //Opponent indicators
+    const opponents = state.players.filter((p: PlayerPlain) => p.id !== localPlayerId);
+
+    opponents.forEach((opponent: PlayerPlain) => {
+      const oppTurn = document.getElementById(`${opponent.name}-turn`)!;
+      const oppCrib = document.getElementById(`${opponent.name}-owner`)!;
+
+      if (state.currentPlayer.id == opponent.id){
+        oppTurn.classList.add('active');
+      } else {
+        oppTurn.classList.remove('active');
+      }
+
+      if(state.cribOwner.id == opponent.id){
+        oppCrib.classList.add('active');
+      } else {
+        oppCrib.classList.remove('active');
+      }
+    })
+
   }
   
   // Call to render the card-select popup for when a joker is available in cribbage

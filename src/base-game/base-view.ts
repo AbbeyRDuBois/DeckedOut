@@ -85,7 +85,9 @@ export abstract class BaseView {
       oppInfo.style.justifyContent = 'center';
       oppInfo.appendChild(name);
 
-      //Indicators not here?
+      this.createIndicators(opp).forEach(indicator => {
+        oppInfo.appendChild(indicator);
+      });
 
       opponentDiv.appendChild(oppInfo);
 
@@ -111,6 +113,22 @@ export abstract class BaseView {
         opponentContainer.appendChild(divideLine);
       }
     });
+  }
+
+  createIndicators(opponent: PlayerPlain){
+    const turn = document.createElement('div');
+    turn.classList.add('indicator');
+    turn.dataset.type = 'turn';
+    turn.innerHTML= "T";
+    turn.id = `${opponent.name}-turn`
+
+    const crib = document.createElement('div');
+    crib.classList.add('indicator');
+    crib.dataset.type = 'crib';
+    crib.innerHTML= "C";
+    crib.id = `${opponent.name}-owner`
+
+    return [turn, crib]
   }
 
   // Render teams and players scores
@@ -175,15 +193,6 @@ export abstract class BaseView {
     entry.className = 'log-entry';
     entry.innerHTML = log;
     logBox.appendChild(entry);
-  }
-
-  // Render all the different indicators for the game
-  renderIndicators(indicators: IndicatorPlain[]) {
-    indicators.forEach(indicator => {
-      const el = document.getElementById(indicator.id);
-      if (!el) return;
-      if (indicator.isActive) el.classList.add('active'); else el.classList.remove('active');
-    });
   }
 
   //Played Animation Placeholder TODO: Implement Later?
