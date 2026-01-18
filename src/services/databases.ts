@@ -1,8 +1,16 @@
+/****************************************************************************
+ * 
+ *  Database
+ *     Handles sending updates and pulling data from FireBase
+ * 
+ ****************************************************************************/
+
 import { addDoc, collection, deleteDoc, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
-import { BaseGame } from "./games/base-game";
-import { Cribbage } from "./games/cribbage";
-import { Room } from "./room";
+import { BaseGame } from "../base-game/base-model";
+import EventEmitter from "events";
+import { Room } from "../room/room-model";
+import { Cribbage } from "../cribbage/cribbage-model";
 
 let currentDB: Database | null = null;
 
@@ -23,6 +31,7 @@ export class Database{
     game: BaseGame | undefined;
     room: Room | undefined;
     db: Firestore;
+    lastLocalUpdateTime: number = 0;
 
     
     constructor(){
@@ -47,7 +56,7 @@ export class Database{
 
     async init(name: string, initialValues = {}): Promise<Database>{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
-        this.roomRef = doc(this.db, name, (this.roomId as any));
+        this.roomRef = doc(this.db, name, this.roomId);
         return this;
     }
 
@@ -59,8 +68,18 @@ export class Database{
         return (await getDoc(this.roomRef))?.data()!;
     }
 
-    async update(changes = {}){
-        await updateDoc(this.roomRef, changes);
+    async update(changes: any = {}){
+        if (changes === undefined || changes === null) {
+            console.warn('Database.update called with invalid changes:', changes);
+            return;
+        }
+
+        try {
+            await updateDoc(this.roomRef, changes);
+        } catch (err) {
+            console.error('Database.update failed for changes:', changes, err);
+            throw err;
+        }
     }
 
     listenForUpdates(){
@@ -75,10 +94,18 @@ export class Database{
             window.location.href = "index.html";
         }
         
-        this.game?.updateLocalState(docSnap.data());
+        // Skip updates that arrive too soon after a local update to prevent flickering
+        const timeSinceLastUpdate = Date.now() - this.lastLocalUpdateTime;
+        if (timeSinceLastUpdate < 100) {
+            return;
+        }
+        const remote = docSnap.data();
+        this.game?.updateLocalState(remote);
+        this.room?.updateLocalState(remote);
 
-        if (this.room?.getUILoaded() && !this.game?.getStarted()){
-            this.room?.handlePopup();
+        // If the room has started and this client hasn't started the game yet, run guest setup
+        if (remote?.started && !this.game?.getStarted()) {
+            this.game?.guestSetup(remote);
         }
     }
 
@@ -93,21 +120,15 @@ export class CribbageDatabase extends Database {
     constructor() {
         super();
     }
-
+    protected events =  new EventEmitter<{stateChanged: any;}>();
+    
     snapFunctionality(docSnap: any){
         super.snapFunctionality(docSnap);
+        const game = (this.game as Cribbage);
 
-        if (!this.game?.getStarted())
+        if (game?.getStarted())
             return;
 
-        const game = (this.game as Cribbage);
-        //Enables your hand if it's your turn
-        if (game.getRoundState() == "Pegging" && game.getCurrentPlayer().id === localStorage.getItem('playerId')){
-            const handContainer = document.getElementById("hand")!;
-            handContainer.classList.remove('hand-disabled');
-            game.setIsTurn(true);
-        }
-        //Rerenders stuff to put the updates on everyones computer
-        game.render();
+        this.events.emit('stateChanged', game.toPlainObject());
     }
 }

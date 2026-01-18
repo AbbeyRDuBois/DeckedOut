@@ -1,5 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-import { Card } from "./deck";
+import { Card } from "./card";
 
 export class Player {
     id: string;
@@ -23,8 +23,7 @@ export class Player {
             isTurn: this.isTurn,
             score: this.score,
             playedCards: this.playedCards?.map(card => card?.toPlainObject()),
-            team: this.team,
-            order: this.order
+            team: this.team
         };
     }
 
@@ -49,8 +48,6 @@ export class Player {
         
         player.team = data.team;
 
-        player.order = data.order;
-
         return player;
     }
 
@@ -60,5 +57,9 @@ export class Player {
 
     getOrder(): number{
         return this.order;
+    }
+
+    getUnplayedCards(): Card[] {
+        return this.hand.filter((card: Card) => !this.playedCards.some((played: Card) => played.id === card.id));
     }
 }

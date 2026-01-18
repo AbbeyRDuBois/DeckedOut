@@ -92,13 +92,13 @@ body[data-theme='navy'] {
 }
 
 body[data-theme='cursed'] {
-  --logs:  url("./Assets/Cursed/Logs.png");
-  --teams:  url("./Assets/Cursed/Teams.png");
-  --scoreboard:  url("./Assets/Cursed/ScoreBoard.png");
-  --hand: url("./Assets/Cursed/Hand.png");
-  --background:  url("./Assets/Cursed/Background.png");
-  --top_bar:  url("./Assets/Cursed/Top_Bar.png");
-  --settings: url("./Assets/Cursed/Settings.png");
+  --logs:  url("./assets/Window_Themes/Cursed/Logs.png");
+  --teams:  url("./assets/Window_Themes/Cursed/Teams.png");
+  --scoreboard:  url("./assets/Window_Themes/Cursed/ScoreBoard.png");
+  --hand: url("./assets/Window_Themes/Cursed/Hand.png");
+  --background:  url("./assets/Window_Themes/Cursed/Background.png");
+  --top_bar:  url("./assets/Window_Themes/Cursed/Top_Bar.png");
+  --settings: url("./assets/Window_Themes/Cursed/Settings.png");
   --border: black;
   --text-bg:black;
   --text-color: white;
