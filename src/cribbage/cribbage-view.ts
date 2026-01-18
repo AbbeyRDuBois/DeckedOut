@@ -1,11 +1,9 @@
 import { BaseView } from "../base-game/base-view";
-import { DeckMode, GameMode } from "./cribbage-model";
 import { CardPlain } from "../types";
-import { Card } from "../card";
 
 export class CribbageView extends BaseView {
-  onDeckChange?: (mode: DeckMode) => void;
-  onGameModeChange?: (mode: GameMode) => void;
+  onDeckChange?: (mode: string) => void;
+  onGameModeChange?: (mode: string) => void;
 
   render(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
     super.render(state, localPlayerId, onCardClick);
@@ -25,7 +23,7 @@ export class CribbageView extends BaseView {
   }
 
   //Cribbage Specific Options when setting up the game
-  renderGameOptions(state: any) {
+  override renderGameOptions(options: any) {
     const innerContainer = document.getElementById('inner-container')!;
 
     let modeContainer = document.getElementById('mode-container');
@@ -54,12 +52,9 @@ export class CribbageView extends BaseView {
       deckSelect.appendChild(opt);
     });
 
-    // Normalize options: accept either { options: {...} } or options object directly
-    const opts = state?.options ?? { deckMode: 'Standard', gameMode: 'Standard' };
-
-    deckSelect.value = opts.deckMode ?? 'Standard';
+    deckSelect.value = options.deckMode;
     deckSelect.onchange = () =>
-      this.onDeckChange?.(deckSelect.value as DeckMode);
+      this.onDeckChange?.(deckSelect.value);
 
     // Game mode selector
     const modeLabel = document.createElement('label');
@@ -73,9 +68,10 @@ export class CribbageView extends BaseView {
       opt.textContent = mode;
       modeSelect.appendChild(opt);
     });
-    modeSelect.value = opts.gameMode ?? 'Standard';
+
+    modeSelect.value = options.gameMode;
     modeSelect.onchange = () =>
-      this.onGameModeChange?.(modeSelect.value as GameMode);
+      this.onGameModeChange?.(modeSelect.value);
 
     modeContainer.append(
       deckLabel,

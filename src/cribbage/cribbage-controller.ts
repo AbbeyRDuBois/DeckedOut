@@ -1,4 +1,4 @@
-import { Cribbage, DeckMode, GameMode, RoundState } from "./cribbage-model";
+import { Cribbage, RoundState } from "./cribbage-model";
 import { CribbageView } from "./cribbage-view";
 import { Database } from "../services/databases";
 import { Card } from "../card";
@@ -16,13 +16,23 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     this.view.onGameModeChange = this.handleGameModeChange;
   }
 
-  private handleDeckChange = (mode: DeckMode) => {
+  private handleDeckChange = (mode: string) => {
     this.game.setDeckMode(mode);
+
   };
 
-  private handleGameModeChange = (mode: GameMode) => {
+  private handleGameModeChange = (mode: string) => {
     this.game.setGameMode(mode);
   };
+
+  override gameOptions() {
+    const options = {
+      deckMode: this.game.getDeckMode(),
+      gameMode: this.game.getGameMode()
+    }
+    
+    this.view.renderGameOptions(options);
+  }
 
   override async onStateChanged() {
     const localId = localStorage.getItem('playerId')!;

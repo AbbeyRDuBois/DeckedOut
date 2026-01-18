@@ -43,14 +43,14 @@ export abstract class BaseController<
 
       await this.onStateChanged();
 
+      let gameObject = this.game.toPlainObject();
+
       if (this.db) {
-        try { this.db.update(this.game.toPlainObject()); } catch (e) { console.warn('DB update failed', e); }
+        try { this.db.update(gameObject); } catch (e) { console.warn('DB update failed', e); }
       }
 
-      const viewState = this.game.toPlainObject();
-
       // Render the view and set up those cardClicks
-      this.view.render(viewState, localId, cardId => this.onCardPlayed(cardId));
+      this.view.render(gameObject, localId, cardId => this.onCardPlayed(cardId));
     });
   }
     
@@ -60,4 +60,5 @@ export abstract class BaseController<
   }
 
   abstract onStateChanged() : Promise<void>;
+  abstract gameOptions() : any;
 }

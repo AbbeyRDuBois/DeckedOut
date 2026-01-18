@@ -1,7 +1,7 @@
 import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
 import { CardPlain, IndicatorPlain,PlayerPlain, TeamPlain } from "../types";
 
-export class BaseView {
+export abstract class BaseView {
   //SpriteSheet is a purely visual class. No knowledge of game rules/logic so it's okay to have in the View
   private spriteSheet: SpriteSheet;
   constructor() {
@@ -17,7 +17,7 @@ export class BaseView {
     this.renderPlayed(state, localPlayerId);
   }
 
-  renderGameOptions(state: any): void {};
+  abstract renderGameOptions(options: any): void;
 
   //Render local player's hand
   renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {

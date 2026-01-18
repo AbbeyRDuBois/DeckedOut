@@ -50,7 +50,6 @@ export class RoomView {
     this.renderPlayerList(state.players);
     this.renderTeams(state.teams, state.players);
     this.showWaitingOverlay(!state.started);
-    this.gameView.renderGameOptions(state);
   }
 
   renderPlayerList(players: any[]) {

@@ -12,14 +12,6 @@ export enum RoundState {
   Pointing = "Pointing"
 }
 
-export type DeckMode = 'Standard' | 'Joker';
-export type GameMode = 'Standard' | 'Mega';
-
-export interface CribbageOptions {
-  deckMode: DeckMode;
-  gameMode: GameMode;
-}
-
 export class Cribbage extends BaseGame {
   protected pointGoal: number = 121;
   protected skunkLength: number = 90;
@@ -32,10 +24,8 @@ export class Cribbage extends BaseGame {
   protected peggingCards: Card[] = [];
   protected peggingTotal: number = 0;
   protected awaitingJokerSelection: boolean = false;
-  protected options: CribbageOptions = {
-      deckMode: 'Standard',
-      gameMode: 'Standard',
-    };
+  protected deckMode: string = 'Standard';
+  protected gameMode: string = 'Standard';
 
   constructor(deck: Deck, players: Player[], roomId: string){
     super(deck, players, roomId);
@@ -62,10 +52,6 @@ export class Cribbage extends BaseGame {
     } else {
       this.events.emit('handStateChanged', { playerId: player.id, enabled: false });
     }
-  }
-
-  getGameOptions(): CribbageOptions{
-    return this.options;
   }
 
   //This renders the crib as plain object to help paste it into hand if you have joker
@@ -95,7 +81,8 @@ export class Cribbage extends BaseGame {
       peggingCards: this.peggingCards.map(c => c.toPlainObject()),
       peggingTotal: this.peggingTotal,
       awaitingJokerSelection: this.awaitingJokerSelection,
-      options: this.options
+      deckMode: this.deckMode,
+      gameMode: this.gameMode
     }
   }
 
@@ -156,13 +143,14 @@ export class Cribbage extends BaseGame {
     this.pointGoal = data.pointGoal ?? 121;
     this.skunkLength = data.skunkLength ?? 90;
     this.handSize = data.handSize ?? 4;
-    this.options = data.options ?? { deckMode: 'Standard', gameMode: 'Standard',};
+    this.deckMode = data.deckMode ?? 'Standard';
+    this.gameMode = data.gameMode ?? 'Standard';
 
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
-  setDeckMode(mode: DeckMode) {
-    this.options.deckMode = mode;
+  setDeckMode(mode: string) {
+    this.deckMode = mode;
     if (mode === 'Joker') {
       this.deck = new JokerDeck();
     } else {
@@ -171,16 +159,17 @@ export class Cribbage extends BaseGame {
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
-  setGameMode(mode: GameMode) {
-    this.options.gameMode = mode;
+  setGameMode(mode: string) {
+    this.gameMode = mode;
+    this.events.emit('stateChanged', this.toPlainObject());
   }
 
   getGameMode():string {
-    return this.options.gameMode;
+    return this.gameMode;
   }
 
   getDeckMode(): string {
-    return this.options.deckMode;
+    return this.deckMode;
   }
 
   async cardPlayed(cardId: number) {
@@ -480,7 +469,7 @@ export class Cribbage extends BaseGame {
 
     const suitSet = new Set(cards.map(card => card.suit));
 
-    if (this.options.gameMode == "Mega" && 
+    if (this.gameMode == "Mega" && 
       suitSet.size === 2 &&
       ((suitSet.has("Hearts") && suitSet.has("Diamonds")) || (suitSet.has("Clubs") && suitSet.has("Spades")))){
         return suitSet.has(this.flipped.suit) && !crib ? cards.length + 1 : cards.length;

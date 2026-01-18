@@ -53,7 +53,11 @@ export class RoomController {
 
     this.view.setHandlers(handlers);
 
-    this.model.events.on('stateChanged', (s) => this.view.render(s));
+    this.model.events.on('stateChanged', (s) => {
+      this.view.render(s);
+      this.gameController?.gameOptions();
+    });
+    
     this.model.events.on('error', (msg) => console.error('RoomModel error:', msg));
 
     // Resizes elements on page when window resizes (throttled with rAF)
