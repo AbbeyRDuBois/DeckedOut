@@ -3,28 +3,17 @@ import { CribbageView } from "./cribbage-view";
 import { Database } from "../services/databases";
 import { Card } from "../card";
 import { Deck } from "../deck";
+import { BaseController } from "../base-game/base-controller";
 
-export class CribbageController {
-  constructor(private game: Cribbage, private view: CribbageView, private db?: Database) {
-    this.game.on('stateChanged', () => this.onStateChanged());
+export class CribbageController extends BaseController<Cribbage, CribbageView>{
+  constructor(game: Cribbage, view: CribbageView, db: Database) {
+    super(game, view, db);
 
-    this.game.on('playRequested', ({ playerId, card }) => {
-      const plain = card.toPlainObject();
-      view.animatePlay(playerId, plain);
-    });
-
-    this.game.on('logAdded', (log) => this.view.renderLog(log));
-
+    // Only add Cribbage-specific event listeners not in BaseController
     this.game.on('cardPlayed', async (cardId: number) => await this.onCardPlayed(cardId));
 
     this.view.onDeckChange = this.handleDeckChange;
     this.view.onGameModeChange = this.handleGameModeChange;
-
-    // Re-render when room triggers a resize (throttled by RoomController)
-    window.addEventListener('room:resize', () => {
-      // Call onStateChanged which will re-render the game view with current state
-      void this.onStateChanged();
-    });
   }
 
   private handleDeckChange = (mode: DeckMode) => {
@@ -35,17 +24,11 @@ export class CribbageController {
     this.game.setGameMode(mode);
   };
 
-  private async onStateChanged() {
+  override async onStateChanged() {
     const localId = localStorage.getItem('playerId')!;
 
-    const gameState = this.game.toPlainObject();
-
-    //Render is always called to ensure UI stays in sync
-    this.view.render(gameState, localId, 
-      async (cardId) => await this.game.cardPlayed(cardId));
-
     // Freeze/Restore the local hand UI depending on whether a selection is pending
-    if (gameState.awaitingJokerSelection) {
+    if (this.game.waitingForJoker()) {
       this.view.setHandEnabled(false);
     } else {
       // Reset local hand enabled state based on current round and player
@@ -73,7 +56,7 @@ export class CribbageController {
     const cribOwner = this.game.getCribOwner();
     const state = this.game.getRoundState();
 
-    if (gameState.awaitingJokerSelection && (
+    if (this.game.waitingForJoker() && (
       (state === RoundState.Pegging && flipped.value === 'JK') ||
       (state === RoundState.Pointing && cribJoker)
     )) {
@@ -116,7 +99,7 @@ export class CribbageController {
   async showJokerPopup(selectingPlayerId?: string) {
     const cards = this.game.getFullPlainDeck();
 
-const onCardClick = async (cardId: number) => {
+  const onCardClick = async (cardId: number) => {
       const deck = new Deck();
       const card = deck.deck.find(c => c.id === cardId);
       if (!card) return;
@@ -127,10 +110,5 @@ const onCardClick = async (cardId: number) => {
     };
 
     this.view.renderJokerPopup(cards, onCardClick);
-  }
-
-  // Called by view when a user interacts with a card
-  async onCardPlayed(cardId: number) {
-    await this.game.cardPlayed(cardId);
   }
 }

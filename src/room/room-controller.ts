@@ -3,7 +3,6 @@ import { RoomView, RoomViewHandlers } from "./room-view";
 import { Cribbage } from "../cribbage/cribbage-model";
 import { Deck } from "../deck";
 import { CribbageController } from "../cribbage/cribbage-controller";
-import { CribbageView } from "../cribbage/cribbage-view";
 
 export class RoomController {
   private resizePending = false;
@@ -98,7 +97,7 @@ export class RoomController {
 
       // Wire the shared game view (so room's game view is used)
       const gameView: any = this.view.getGameView();
-      this.gameController = new CribbageController(this.game, gameView);
+      this.gameController = new CribbageController((this.game as Cribbage), gameView, db);
 
       // If remote indicates the game started, run guest setup to populate local game state
       const remote = await db.pullState();
@@ -119,9 +118,7 @@ export class RoomController {
     }
 
     this.model.getState().players = result.state.players;
-    this.model.updateTeams = result.state.teams;
-
-    this.model.events.on('stateChanged', (s) => this.view.render(s));
+    await this.model.updateTeams(result.state.teams);
     this.view.navigateToHome();
   }
 
@@ -131,42 +128,19 @@ export class RoomController {
       return;
     }
 
-    const localId = localStorage.getItem('playerId')!;
-    const state = this.model.getState();
-
-    // Host starts the actual game logic; guests will receive updates via DB snapshots
-    if (localId === state.hostId) {
-      // Ensure game instance and controller exist
-      await this.setupGameIfNeeded();
-
-      if (!this.game) {
-        console.error('Failed to initialize game instance.');
-        return;
-      }
-
+    if (!this.game?.getStarted()){
       // Start the game model (deal cards, set flipped, etc.) and persist game state
-      await this.game.start();
-      // Debug: log players after start
-      console.log('RoomController.onStartGame - after start, players', this.game.getPlayers().map(p => ({ id: p.id, name: p.name, handLength: p.hand.length })));
-      const gameState = this.game.toPlainObject();
-      console.log('RoomController.onStartGame - gameState.players', gameState.players?.map((p: any) => ({ id: p.id, name: p.name, handLength: (p.hand || []).length })));
-      if (!gameState) {
-        console.error('game.toPlainObject() returned undefined; aborting DB persist.');
-      } else {
-        try {
-          await this.model.getDbInstance().update(gameState);
-        } catch (e) {
-          console.warn('Failed to persist initial game state', e);
-        }
+      await this.game?.start();
+      
+      const gameState = this.game?.toPlainObject()!;
+      try {
+        await this.model.getDbInstance().update(gameState);
+      } catch (e) {
+        console.warn('Failed to persist initial game state', e);
       }
 
       // Mark room as started (this will be observed by guests)
       await this.model.startGame();
-    } else {
-      // Non-hosts simply mark started locally; DB snapshot will trigger guest setup
-      await this.model.startGame();
     }
-
-    this.model.events.on('stateChanged', (s) => this.view.render(s));
   }
 }

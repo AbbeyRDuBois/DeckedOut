@@ -107,22 +107,15 @@ export class CribbageDatabase extends Database {
     constructor() {
         super();
     }
-    protected events = new EventEmitter<{stateChanged: any;}>();
+    protected events =  new EventEmitter<{stateChanged: any;}>();
     
     snapFunctionality(docSnap: any){
         super.snapFunctionality(docSnap);
+        const game = (this.game as Cribbage);
 
-        if (!this.game?.getStarted())
+        if (game?.getStarted())
             return;
 
-        const game = (this.game as Cribbage);
-        //Enables your hand if it's your turn
-        if (game.getRoundState() == "Pegging" && game.getCurrentPlayer().id === localStorage.getItem('playerId')){
-            const handContainer = document.getElementById("hand")!;
-            handContainer.classList.remove('hand-disabled');
-            game.setIsTurn(true);
-        }
-
-        this.events.emit('stateChanged', this.game.toPlainObject());
+        this.events.emit('stateChanged', game.toPlainObject());
     }
 }

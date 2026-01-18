@@ -55,9 +55,9 @@ export class Cribbage extends BaseGame {
 
   setHandState(player: Player){
     // Model emits that the hand state should be enabled or disabled; Controller will decide how to present it
-    if (this.roundState == RoundState.Pegging && this.currentPlayer.name == player.name){
+    if (this.roundState === RoundState.Pegging && this.currentPlayer.id === player.id){
       this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
-    } else if (this.roundState == RoundState.Throwing && player.hand.length > this.handSize){
+    } else if (this.roundState === RoundState.Throwing && player.hand.length > this.handSize){
       this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
     } else {
       this.events.emit('handStateChanged', { playerId: player.id, enabled: false });
@@ -76,6 +76,10 @@ export class Cribbage extends BaseGame {
       suit: card.suit,
       isFlipped: true
     }));
+  }
+
+  waitingForJoker(): boolean {
+    return this.awaitingJokerSelection;
   }
 
   override toPlainObject() {
@@ -127,9 +131,8 @@ export class Cribbage extends BaseGame {
 
   //Pushes the start of game changes to the other computers
   async guestSetup(data: DocumentData) {
-    this.updateLocalState(data);
-    this.events.emit('stateChanged', this.toPlainObject());
     this.setStarted(true);
+    this.updateLocalState(data);
   }
 
   //Updates the local state from DB values
@@ -195,8 +198,13 @@ export class Cribbage extends BaseGame {
       this.crib.push(card);
       this.addLog(`${player.name} has thrown a card to the crib.`);
 
+      //Log if they've thrown all their cards
+      if (player.hand.length === this.handSize){
+        this.addLog(`${player.name} has thrown all their cards.`);
+      }
+
       // If all players have thrown, move to pegging
-        if (this.players.every(p => p.hand.length == this.handSize)){
+      if (this.players.every(p => p.hand.length === this.handSize)){
         this.roundState = RoundState.Pegging;
         this.flipped.isFlipped = true;
 
@@ -205,6 +213,7 @@ export class Cribbage extends BaseGame {
           this.awaitingJokerSelection = true;
         }
       }
+
       this.events.emit('stateChanged', this.toPlainObject());
     } else {
       // Pegging: if we're waiting for a joker selection, block all plays

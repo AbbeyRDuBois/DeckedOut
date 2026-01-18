@@ -22,7 +22,6 @@ export class RoomView {
   //Set up the Listeners for events
   constructor(gameView: BaseView) {
     this.gameView = gameView;
-    this.attachBasicControls();
   }
 
   //Outer call to set up listeners

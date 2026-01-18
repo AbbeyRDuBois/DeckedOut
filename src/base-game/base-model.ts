@@ -168,7 +168,7 @@ export abstract class BaseGame {
       players: this.players.map(p => p.toPlainObject()),
       teams: this.teams.map(t => t.toPlainObject()),
       deck: this.deck.toPlainObject(),
-      currentPlayerId: this.currentPlayer?.id ?? null,
+      currentPlayer: this.currentPlayer.toPlainObject(),
       started: this.started,
       ended: this.ended,
       logs: this.logs

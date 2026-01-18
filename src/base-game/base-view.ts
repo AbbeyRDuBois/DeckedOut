@@ -193,9 +193,8 @@ export class BaseView {
 
   // Enables/disables the local hand UI
   setHandEnabled(enabled: boolean) {
-    const hand = document.getElementById('hand');
-    if (!hand) return;
-    if (!enabled) hand.classList.add('hand-disabled'); else hand.classList.remove('hand-disabled');
+    const hand = document.getElementById("hand")!;
+    enabled ? hand.classList.remove('hand-disabled') : hand.classList.add('hand-disabled');
   }
 
   //Render the Winner! (and the losers I suppose)
