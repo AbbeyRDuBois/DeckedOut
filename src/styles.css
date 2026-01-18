@@ -107,6 +107,23 @@ body[data-theme='cursed'] {
   --gn-btn:#01b401;
 }
 
+body[data-theme='blessed'] {
+  --logs:  #2FE600;
+  --teams:  #39FF14;
+  --scoreboard: #2FE600;
+  --hand: #39FF14;
+  --background: #66FF4D;
+  --top_bar: #26CC00;
+  --settings:#39FF14;
+  --border:  white;
+  --text-bg: #39FF14;
+  --text-color: tomato;
+  --bl-btn:#39FF14;
+  --rd-btn:#39FF14;
+  --gn-btn:#39FF14;
+}
+
+
 
 /**************************************
   *
