@@ -1,4 +1,11 @@
-// entry-view.ts
+/****************************************************************************
+ * 
+ *  Entry View of DeckedOut
+ * 
+ *      Renders the "Amazing" look of the create/join room section of the app (it needs work)
+ * 
+ ****************************************************************************/
+
 export class EntryView {
   getUsername(): string {
     return (document.getElementById("username") as HTMLInputElement).value;

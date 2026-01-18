@@ -1,3 +1,11 @@
+/****************************************************************************
+ * 
+ *  Cribbage Controller (Extends the Base Controller)
+ * 
+ *      Implements the Cribbage specific event handlers
+ * 
+ ****************************************************************************/
+
 import { Cribbage, RoundState } from "./cribbage-model";
 import { CribbageView } from "./cribbage-view";
 import { Database } from "../services/databases";

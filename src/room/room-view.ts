@@ -1,3 +1,12 @@
+/****************************************************************************
+ * 
+ *  Room View
+ * 
+ *      Renders Room elements
+ *        Waiting Overlay, Settings Panel, So on ...
+ * 
+ ****************************************************************************/
+
 import { BaseView } from "../base-game/base-view";
 
 //These will have functionality set up to them in Controller

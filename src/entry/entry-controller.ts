@@ -1,4 +1,11 @@
-// entry-controller.ts
+/****************************************************************************
+ * 
+ *  Entry Controller of DeckedOut
+ * 
+ *      Handles the entry events like joining and hosting a room
+ * 
+ ****************************************************************************/
+
 import { EntryModel } from "./entry-model";
 import { EntryView } from "./entry-view";
 import { signInWithGoogle } from "../services/authentication";

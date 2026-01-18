@@ -1,3 +1,15 @@
+/****************************************************************************
+ * 
+ *  Base Model (Parent of all Games)
+ * 
+ *      Implements core functionality all games should have to play their game
+ *          Basic getters/setters
+ *          Player order/teams
+ *      Sets/updates the game state as events happen through the game
+ *      Emits these new state updates out so controller recieves and does next steps if necessary
+ * 
+ ****************************************************************************/
+
 import { DocumentData } from "firebase/firestore";
 import { EventEmitter } from "../event-emitter";
 import { Card } from "../card";
@@ -186,17 +198,18 @@ export abstract class BaseGame {
   }
 
   setHandState(player: Player){
-    // Model informs subscribers that the hand/state should change.
+    // Model informs that the hand/state should change.
     this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
   }
 
+  //Basic next player, get's overridden by games if needed
   nextPlayer(){
     const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
     this.currentPlayer = this.players[(index + 1) % this.players.length];
     
     this.isTurn = this.currentPlayer.id === localStorage.getItem('playerId');
 
-    // Notify subscribers of the turn change and new state
+    // Notify the turn change and new state
     this.events.emit('turnChanged', this.currentPlayer.id);
     this.events.emit('stateChanged', this.toPlainObject());
   }

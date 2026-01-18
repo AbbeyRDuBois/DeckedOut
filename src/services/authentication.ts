@@ -1,3 +1,9 @@
+/****************************************************************************
+ * 
+ *  Set's up the connection to the FireBase database
+ * 
+ ****************************************************************************/
+
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 

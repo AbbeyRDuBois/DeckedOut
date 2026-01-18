@@ -1,3 +1,12 @@
+/****************************************************************************
+ * 
+ *  Room Model
+ * 
+ *      Handles the initialization of room
+ *      Handles the roomState that controller/view use to handle events and render
+ * 
+ ****************************************************************************/
+
 import { EventEmitter } from "../event-emitter";
 import { CribbageDatabase, Database } from "../services/databases";
 import { Player } from "../player";

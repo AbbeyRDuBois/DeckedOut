@@ -1,3 +1,11 @@
+/****************************************************************************
+ * 
+ *  Cribbage (Extends Base Game)
+ * 
+ *      Handles Cribbage specific data and updates
+ * 
+ ****************************************************************************/
+
 import { DocumentData } from "firebase/firestore";
 import { BaseGame } from "../base-game/base-model";
 import { Card } from "../card";
@@ -118,7 +126,7 @@ export class Cribbage extends BaseGame {
     }
   }
 
-  //Pushes the start of game changes to the other computers
+  //Pushes the start of game changes to the other clients
   async guestSetup(data: DocumentData) {
     this.setStarted(true);
     this.updateLocalState(data);
@@ -257,7 +265,7 @@ export class Cribbage extends BaseGame {
   }
 
 //Handle a joker being turned into another card
-    async applyJokerCard(card: Card, playerId: string) {
+  async applyJokerCard(card: Card, playerId: string) {
     const player = this.players.find(p => p.id === playerId);
     if (!player) return;
 
@@ -310,7 +318,6 @@ export class Cribbage extends BaseGame {
   }
 
   // Counting / scoring and round transitions
-
   calculatePeggingPoints(card: Card): number {
     let points = 0;
     // Find longest run if enough cards

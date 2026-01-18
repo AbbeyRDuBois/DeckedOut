@@ -1,3 +1,11 @@
+/****************************************************************************
+ * 
+ *  Entry Model of DeckedOut
+ * 
+ *      Handles the nitty gritty of actually joining or creating the room and updates/creates the db accordingly
+ * 
+ ****************************************************************************/
+
 import { arrayUnion } from "firebase/firestore";
 import { v4 } from "uuid";
 import { Player } from "../player";

@@ -19,9 +19,3 @@ export type TeamPlain = {
   score: number;
   playerIds: string[];
 };
-
-export type IndicatorPlain = {
-  id: string;
-  label?: string;
-  isActive: boolean;
-};

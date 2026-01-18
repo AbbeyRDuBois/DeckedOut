@@ -1,3 +1,10 @@
+/****************************************************************************
+ * 
+ *  Database
+ *     Handles sending updates and pulling data from FireBase
+ * 
+ ****************************************************************************/
+
 import { addDoc, collection, deleteDoc, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";

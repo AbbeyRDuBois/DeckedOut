@@ -1,3 +1,12 @@
+/****************************************************************************
+ * 
+ *  Room Entry (Called when the user navigates to the room)
+ * 
+ *    This handles setting up the room on load and renders everything on first entry.
+ *    Need this so people can actually see what's going on
+ * 
+ ****************************************************************************/
+
 import { CribbageView } from "../cribbage/cribbage-view";
 import { RoomController } from "./room-controller";
 import { Room } from "./room-model";

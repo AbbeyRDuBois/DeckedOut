@@ -1,3 +1,12 @@
+/****************************************************************************
+ * 
+ *  Cribbage View (Extends Base View )
+ * 
+ *     Renders the Cribbage specific elements onto the page
+ *        Flipped card, joker popups so on
+ * 
+ ****************************************************************************/
+
 import { BaseView } from "../base-game/base-view";
 import { CardPlain, PlayerPlain } from "../types";
 
@@ -6,7 +15,7 @@ export class CribbageView extends BaseView {
   onGameModeChange?: (mode: string) => void;
 
   render(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
-    super.render(state, localPlayerId, onCardClick);
+    super.render(state, localPlayerId, onCardClick); //Calls base first then does specific game renders
     this.renderPeggingTotal(state);
     this.renderFlipped(state);
     this.renderIndicators(state, localPlayerId);
@@ -119,12 +128,30 @@ export class CribbageView extends BaseView {
       }
     })
 
+    //Show if throwing round or not
     if(state.roundState == "Throwing"){
       document.getElementById('throwing')!.style.display = "flex";
     }
     else{
       document.getElementById('throwing')!.style.display = "none";
     }
+  }
+
+  //The turn and crib indicators for the opponents
+  override createIndicators(opponent: PlayerPlain){
+    const turn = document.createElement('div');
+    turn.classList.add('indicator');
+    turn.dataset.type = 'turn';
+    turn.innerHTML= "T";
+    turn.id = `${opponent.name}-turn`
+
+    const crib = document.createElement('div');
+    crib.classList.add('indicator');
+    crib.dataset.type = 'crib';
+    crib.innerHTML= "C";
+    crib.id = `${opponent.name}-owner`
+
+    return [turn, crib]
   }
   
   // Call to render the card-select popup for when a joker is available in cribbage
@@ -154,18 +181,5 @@ export class CribbageView extends BaseView {
 
   hideJokerPopup() {
     document.getElementById("joker-overlay")!.style.display = "none";
-  }
-
-  renderCribAsHand(cards: CardPlain[]) {
-    const handContainer = document.getElementById("hand")!;
-    handContainer.innerHTML = "";
-
-    cards.forEach(card => {
-      const cardEl = this.createCardElement(card, {
-        startsFlipped: card.isFlipped,
-        clickable: false // crib cards are not clickable
-      });
-      handContainer.appendChild(cardEl);
-    });
   }
 }

@@ -1,3 +1,12 @@
+/****************************************************************************
+ * 
+ *  Room Controller
+ * 
+ *      Handles the room specific events like starting, leaving
+ *      A big part of this is the waiting overlay events where people choose their team/names and game options
+ * 
+ ****************************************************************************/
+
 import { Room } from "./room-model";
 import { RoomView, RoomViewHandlers } from "./room-view";
 import { Cribbage } from "../cribbage/cribbage-model";

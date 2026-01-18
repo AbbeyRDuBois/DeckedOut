@@ -1,5 +1,15 @@
+/****************************************************************************
+ * 
+ *  Base View (Parent of all game Views)
+ * 
+ *      Handles all game elements and renders them according to the state they were sent from controller
+ *      Implements the render for core elements each game has in their game
+ *          hand, opponents so on
+ * 
+ ****************************************************************************/
+
 import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
-import { CardPlain, IndicatorPlain,PlayerPlain, TeamPlain } from "../types";
+import { CardPlain, PlayerPlain, TeamPlain } from "../types";
 
 export abstract class BaseView {
   //SpriteSheet is a purely visual class. No knowledge of game rules/logic so it's okay to have in the View
@@ -18,6 +28,7 @@ export abstract class BaseView {
   }
 
   abstract renderGameOptions(options: any): void;
+  abstract createIndicators(opponent: PlayerPlain): HTMLDivElement[];
 
   //Render local player's hand
   renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
@@ -68,7 +79,7 @@ export abstract class BaseView {
     const opponentContainer = document.getElementById('opponents')!;
 
     opponentContainer.innerHTML = '';
-    const rect = opponentContainer.getBoundingClientRect(); //Dividing width equally between opponents
+    const rect = opponentContainer.getBoundingClientRect();
 
     opponents.forEach((opp: PlayerPlain, index: number) => {
       const opponentDiv = document.createElement('div');
@@ -95,7 +106,7 @@ export abstract class BaseView {
       oppCards.classList.add('opp-cards');
       opponentDiv.appendChild(oppCards);
 
-      //Request is here so that oppCards container size is set in order for the cards to be sized correctly
+      //Request is here so that oppCards container size is set in order for the cards to be sized correctly (otherwise they are invisible)
       requestAnimationFrame(() =>{
         opp.hand.forEach((card: CardPlain) => {
           const cardDiv = this.createCardElement(card, { container: oppCards });
@@ -113,22 +124,6 @@ export abstract class BaseView {
         opponentContainer.appendChild(divideLine);
       }
     });
-  }
-
-  createIndicators(opponent: PlayerPlain){
-    const turn = document.createElement('div');
-    turn.classList.add('indicator');
-    turn.dataset.type = 'turn';
-    turn.innerHTML= "T";
-    turn.id = `${opponent.name}-turn`
-
-    const crib = document.createElement('div');
-    crib.classList.add('indicator');
-    crib.dataset.type = 'crib';
-    crib.innerHTML= "C";
-    crib.id = `${opponent.name}-owner`
-
-    return [turn, crib]
   }
 
   // Render teams and players scores
@@ -195,7 +190,7 @@ export abstract class BaseView {
     logBox.appendChild(entry);
   }
 
-  //Played Animation Placeholder TODO: Implement Later?
+  //Played Animation Placeholder TODO: Implement Later? eventually.....
   animatePlay(playerId: string, card: CardPlain) {
     console.log(`Animate play for ${playerId} ${card.id}`);
   }
@@ -321,9 +316,6 @@ export abstract class BaseView {
     hinge.appendChild(face);
     hinge.appendChild(back);
     cardDiv.appendChild(hinge);
-
-    // // Set data attribute for easier reference
-    // cardDiv.dataset.cardId = String(card.id);
 
     if (clickable && onClick) {
       cardDiv.addEventListener('click', () => {onClick(card.id);});
