@@ -42,7 +42,7 @@ export class BaseView {
   }
 
   // Render played cards for local player
-  renderPlayed(state: any, localPlayerId: string, spriteSheet?: any) {
+  renderPlayed(state: any, localPlayerId: string) {
     const player = state.players.find((p: PlayerPlain) => p.id === localPlayerId);
     if (!player) return;
     const playedContainer = document.getElementById('played-container');
@@ -63,7 +63,7 @@ export class BaseView {
   }
 
   // Render opponents block
-  renderOpponents(state: any, localPlayerId: string, spriteSheet?: any) {
+  renderOpponents(state: any, localPlayerId: string) {
     const opponents = state.players.filter((p: PlayerPlain) => p.id !== localPlayerId);
     const opponentContainer = document.getElementById('opponents')!;
 

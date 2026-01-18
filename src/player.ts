@@ -58,4 +58,8 @@ export class Player {
     getOrder(): number{
         return this.order;
     }
+
+    getUnplayedCards(): Card[] {
+        return this.hand.filter((card: Card) => !this.playedCards.some((played: Card) => played.id === card.id));
+    }
 }

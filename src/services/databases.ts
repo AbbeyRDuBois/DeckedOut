@@ -24,6 +24,7 @@ export class Database{
     game: BaseGame | undefined;
     room: Room | undefined;
     db: Firestore;
+    lastLocalUpdateTime: number = 0;
 
     
     constructor(){
@@ -60,7 +61,7 @@ export class Database{
         return (await getDoc(this.roomRef))?.data()!;
     }
 
-    async update(changes = {}){
+    async update(changes: any = {}){
         if (changes === undefined || changes === null) {
             console.warn('Database.update called with invalid changes:', changes);
             return;
@@ -86,6 +87,11 @@ export class Database{
             window.location.href = "index.html";
         }
         
+        // Skip updates that arrive too soon after a local update to prevent flickering
+        const timeSinceLastUpdate = Date.now() - this.lastLocalUpdateTime;
+        if (timeSinceLastUpdate < 100) {
+            return;
+        }
         const remote = docSnap.data();
         this.game?.updateLocalState(remote);
         this.room?.updateLocalState(remote);

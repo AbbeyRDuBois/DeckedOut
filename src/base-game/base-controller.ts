@@ -6,7 +6,6 @@ export abstract class BaseController<
   TGame extends BaseGame,
   TView extends BaseView
 > {
-  private lastRenderedState: any = null;
 
   constructor(protected game: TGame, protected view: TView, protected db: Database) {
     //All (this.game.on) define the events the controller calls
@@ -39,14 +38,6 @@ export abstract class BaseController<
     });
 
     this.game.on('stateChanged', async () => {
-      var gameState = game.toPlainObject();
-
-      // Compare with last rendered state to prevent unnecessary renders
-      if (this.lastRenderedState && JSON.stringify(this.lastRenderedState) === JSON.stringify(gameState)) {
-        return;
-      }
-      
-      this.lastRenderedState = JSON.parse(JSON.stringify(gameState));
 
       const localId = localStorage.getItem('playerId')!;
 
