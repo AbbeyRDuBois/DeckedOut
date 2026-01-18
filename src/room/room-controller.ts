@@ -38,12 +38,12 @@ export class RoomController {
         teams[toIndex].playerIds.push(playerId);
         await this.model.updateTeams(teams);
       },
-      onThemeChange: async (theme: string) => {
-        await this.model.setTheme(theme);
+      onThemeChange: (theme: string) => {
+        this.model.setTheme(theme);
         document.body.setAttribute('data-theme', theme);
       },
-      onCardThemeChange: async (theme: string) => {
-        await this.model.setCardTheme(theme);
+      onCardThemeChange: (theme: string) => {
+        this.model.setCardTheme(theme);
       },
       onSettingsToggle: () =>  {
         // Toggle and persist settings panel state
@@ -56,6 +56,7 @@ export class RoomController {
     this.model.events.on('stateChanged', (s) => {
       this.view.render(s);
       this.gameController?.gameOptions();
+      this.gameController?.gameRerender();
     });
     
     this.model.events.on('error', (msg) => console.error('RoomModel error:', msg));

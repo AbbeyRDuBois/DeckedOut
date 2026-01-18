@@ -75,12 +75,12 @@ export class Room {
     this.events.emit('stateChanged', this.getState());
   }
 
-  async setTheme(theme: string) {
+  setTheme(theme: string) {
     this.state.theme = theme;
     this.events.emit('stateChanged', this.getState());
   }
 
-  async setCardTheme(theme: string) {
+  setCardTheme(theme: string) {
     this.state.cardTheme = theme;
     this.events.emit('stateChanged', this.getState());
   }

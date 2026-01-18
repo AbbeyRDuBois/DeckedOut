@@ -9,9 +9,9 @@ export type RoomViewHandlers = {
   onAddTeam: () => Promise<void> | void;
   onRemoveTeam: () => Promise<void> | void;
   onRandomize: (size: number) => Promise<void> | void;
-  onThemeChange?: (theme: string) => void;
-  onCardThemeChange?: (theme: string) => void;
-  onSettingsToggle?: () => Promise<void> | void;
+  onThemeChange: (theme: string) => void;
+  onCardThemeChange: (theme: string) => void;
+  onSettingsToggle: () => Promise<void> | void;
   onMovePlayer: (playerId: string, fromIndex: number, toIndex: number) => Promise<void> | void;
 };
 
@@ -30,22 +30,22 @@ export class RoomView {
     this.attachBasicControls();
   }
 
-  renderSettingsPanel(isOpen: boolean) {
+  renderSettingsPanel(state: any) {
     const panel = document.getElementById('settings-panel')!
-    panel.classList.toggle('closed', !isOpen);
-  }
-
-  render(state: any) {
-    // Apply persisted theme and card theme immediately
-    document.body.setAttribute('data-theme', state.theme || 'dark');
-    this.gameView.setSpriteSheet(state.cardTheme || 'Classic');
-    this.renderSettingsPanel(state.settingsOpen);
+    panel.classList.toggle('closed', !state.settingsOpen);
 
     // Ensure selectors reflect the current state
     const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement | null;
     if (themeSelector) themeSelector.value = state.theme || 'dark';
     const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
     if (cardThemeSelector) cardThemeSelector.value = state.cardTheme || 'Classic';
+  }
+
+  render(state: any) {
+    // Apply persisted theme and card theme immediately
+    document.body.setAttribute('data-theme', state.theme || 'dark');
+    this.gameView.setSpriteSheet(state.cardTheme || 'Classic');
+    this.renderSettingsPanel(state);
 
     this.renderPlayerList(state.players);
     this.renderTeams(state.teams, state.players);
@@ -196,13 +196,13 @@ export class RoomView {
     });
 
     const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement | null;
-    themeSelector?.addEventListener('change', () => this.handlers.onThemeChange?.(themeSelector.value));
+    themeSelector?.addEventListener('change', () => this.handlers.onThemeChange(themeSelector.value));
 
     const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
-    cardThemeSelector?.addEventListener('change', () => this.handlers.onCardThemeChange?.(cardThemeSelector.value));
+    cardThemeSelector?.addEventListener('change', () => this.handlers.onCardThemeChange(cardThemeSelector.value));
 
     const toggle = document.getElementById('settings-toggle')!;
-    toggle.addEventListener('click', () => this.handlers.onSettingsToggle?.());
+    toggle.addEventListener('click', () => this.handlers.onSettingsToggle());
   }
 
   navigateToHome() {

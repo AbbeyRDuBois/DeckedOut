@@ -119,6 +119,12 @@ export class CribbageView extends BaseView {
       }
     })
 
+    if(state.roundState == "Throwing"){
+      document.getElementById('throwing')!.style.display = "flex";
+    }
+    else{
+      document.getElementById('throwing')!.style.display = "none";
+    }
   }
   
   // Call to render the card-select popup for when a joker is available in cribbage

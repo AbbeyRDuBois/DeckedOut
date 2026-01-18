@@ -54,6 +54,11 @@ export abstract class BaseController<
     });
   }
     
+  gameRerender(){
+    const localId = localStorage.getItem('playerId')!;
+    this.view.render(this.game.toPlainObject(), localId, cardId => this.onCardPlayed(cardId));
+  }
+
   // Called by View when a user clicks a card, Model then is called to handle it
   async onCardPlayed(cardId: number) {
     await this.game.cardPlayed(cardId);
