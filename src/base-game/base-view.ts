@@ -32,7 +32,7 @@ export abstract class BaseView {
 
   //Render local player's hand
   renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
-    const player = state.players.find((p: PlayerPlain) => p.id === localPlayerId);
+    const player = state.players[localPlayerId];
     if (!player) return;
 
     const handContainer = document.getElementById('hand');
@@ -54,7 +54,7 @@ export abstract class BaseView {
 
   // Render played cards for local player
   renderPlayed(state: any, localPlayerId: string) {
-    const player = state.players.find((p: PlayerPlain) => p.id === localPlayerId);
+    const player = state.players[localPlayerId];
     if (!player) return;
     const playedContainer = document.getElementById('played-container');
     if (!playedContainer) return;
@@ -75,16 +75,16 @@ export abstract class BaseView {
 
   // Render opponents block
   renderOpponents(state: any, localPlayerId: string) {
-    const opponents = state.players.filter((p: PlayerPlain) => p.id !== localPlayerId);
+    const opponents = Object.fromEntries(Object.entries(state.players).filter(([id]) => id !== localPlayerId)) as Record<string, PlayerPlain>;
     const opponentContainer = document.getElementById('opponents')!;
 
     opponentContainer.innerHTML = '';
     const rect = opponentContainer.getBoundingClientRect();
 
-    opponents.forEach((opp: PlayerPlain, index: number) => {
+    Object.values(opponents).forEach((opp: PlayerPlain, index: number) => {
       const opponentDiv = document.createElement('div');
       opponentDiv.classList.add('opponent');
-      opponentDiv.style.width = `${rect?.width / Math.ceil(Math.sqrt(opponents.length))}px`; //Dividing width equally between opponents
+      opponentDiv.style.width = `${rect?.width / Math.ceil(Math.sqrt(Object.keys(opponents).length))}px`; //Dividing width equally between opponents
       opponentDiv.style.height = `${rect?.height}px`;
 
       const name = document.createElement('div');
@@ -118,7 +118,7 @@ export abstract class BaseView {
       opponentContainer.appendChild(opponentDiv);
 
       //Adds a line to divide opponents (except after last opponent)
-      if (index + 1 !== opponents.length) {
+      if (index + 1 !== Object.keys(opponents).length) {
         const divideLine = document.createElement('div');
         divideLine.classList.add('divide-line');
         opponentContainer.appendChild(divideLine);
@@ -132,7 +132,9 @@ export abstract class BaseView {
     if (!container) return;
     container.innerHTML = '';
 
-    state.teams.forEach((team: TeamPlain) => {
+    var teams = state.teams as Record<string, TeamPlain>;
+
+    Object.values(teams).forEach((team: TeamPlain) => {
       const teamDiv = document.createElement('div');
       teamDiv.className = 'team';
 
@@ -148,7 +150,7 @@ export abstract class BaseView {
       playersDiv.className = 'players';
 
       team.playerIds.forEach((id: string) => {
-        const player = state.players.find((p: PlayerPlain) => p.id === id);
+        const player = state.players[id];
         if (!player) return;
         const playerDiv = document.createElement('div');
         playerDiv.className = 'player';

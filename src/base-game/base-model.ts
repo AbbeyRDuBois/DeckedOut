@@ -63,7 +63,23 @@ export abstract class BaseGame {
     this.events.off(event, listener);
   }
 
-  updateLocalState(roomData: any){}
+  updateLocalState(data: any){
+    this.players = [];
+    for (const [id, player] of Object.entries(data.players)) {
+      this.players.push(Player.fromPlainObject(player as DocumentData));
+    }
+    this.players.sort((a, b) => a.getOrder() - b.getOrder());
+
+    this.teams = [];
+    for (const [id, team] of Object.entries(data.teams)) {
+      this.teams.push(Team.fromPlainObject(team as DocumentData));
+    }
+
+    this.logs = data.logs ?? [];
+    this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
+
+    this.events.emit('stateChanged', this.toPlainObject());
+  }
 
   getDeck(): Deck{
     return this.deck;
@@ -171,18 +187,17 @@ export abstract class BaseGame {
   addLog(log: string){
     this.logs.push(log);
     this.events.emit('logAdded', log);
-    this.events.emit('stateChanged', this.toPlainObject());
+    this.events.emit('stateChanged', {logs: this.logs});
   }
 
   //Have to do this to send the state to Firebase (they only like plain objects)
   toPlainObject() {
     return {
-      players: this.players.map(p => p.toPlainObject()),
-      teams: this.teams.map(t => t.toPlainObject()),
+      players: Object.fromEntries(this.players.map(p => [p.id, p.toPlainObject()])),
+      teams: Object.fromEntries(this.teams.map(t => [t.name, t.toPlainObject()])),
       deck: this.deck.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       started: this.started,
-      ended: this.ended,
       logs: this.logs
     };
   }
@@ -211,7 +226,7 @@ export abstract class BaseGame {
 
     // Notify the turn change and new state
     this.events.emit('turnChanged', this.currentPlayer.id);
-    this.events.emit('stateChanged', this.toPlainObject());
+    this.events.emit('stateChanged', {currentPlayer: this.currentPlayer});
   }
 
   findTeamByPlayer(player: Player): Team {
@@ -231,7 +246,10 @@ export abstract class BaseGame {
 
     this.addLog(`${player.name} played ${card.toHTML()}`);
     this.events.emit('cardPlayed', cardId); //Implemented in the game specific controllers
-    this.events.emit('stateChanged', this.toPlainObject());
+
+    this.events.emit('stateChanged', {
+      [`players.${player.id}`]: player.toPlainObject()
+    });
   }
 
   //Shuffles the player/team order

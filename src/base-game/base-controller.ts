@@ -49,19 +49,14 @@ export abstract class BaseController<
 
     //Basic stateChange, basically updates the db and rerenders. Calls the onStateChange() for specific game logic.
     this.game.on('stateChanged', async () => {
-
-      const localId = localStorage.getItem('playerId')!;
-
       await this.onStateChanged();
 
-      let gameObject = this.game.toPlainObject();
-
-      if (this.db) {
-        try { this.db.update(gameObject); } catch (e) { console.warn('DB update failed', e); }
+      if (!this.game.getStarted()){
+        let gameObject = this.game.toPlainObject();
+        const localId = localStorage.getItem('playerId')!;
+        // Render the view and set up those cardClicks
+        this.view.render(gameObject, localId, cardId => this.onCardPlayed(cardId));
       }
-
-      // Render the view and set up those cardClicks
-      this.view.render(gameObject, localId, cardId => this.onCardPlayed(cardId));
     });
   }
   

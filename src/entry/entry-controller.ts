@@ -52,12 +52,8 @@ export class EntryController {
       return;
     }
 
-    try {
-      const gameType = await this.model.joinRoom(roomId, username);
-      this.view.navigateToRoom(roomId, gameType);
-    } catch (e: any) {
-      this.view.showError(e.message);
-    }
+    const gameType = await this.model.joinRoom(roomId, username);
+    this.view.navigateToRoom(roomId, gameType);
   };
 
   private handleSignIn = async () => {

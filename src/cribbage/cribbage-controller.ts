@@ -27,10 +27,15 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
   private handleDeckChange = (mode: string) => {
     this.game.setDeckMode(mode);
 
+    this.db.update({deckMode: mode});
+    this.gameOptions();
   };
 
   private handleGameModeChange = (mode: string) => {
     this.game.setGameMode(mode);
+
+    this.db.update({gameMode: mode});
+    this.gameOptions();
   };
 
   override gameOptions() {
@@ -43,6 +48,11 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
   }
 
   override async onStateChanged() {
+    if (!this.game.getStarted()){
+      this.gameOptions();
+      return;
+    }
+    
     const localId = localStorage.getItem('playerId')!;
 
     // Freeze/Restore the local hand UI depending on whether a selection is pending

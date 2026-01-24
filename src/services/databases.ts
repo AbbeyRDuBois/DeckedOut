@@ -5,12 +5,15 @@
  * 
  ****************************************************************************/
 
-import { addDoc, collection, deleteDoc, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, serverTimestamp, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
 import EventEmitter from "events";
 import { Room } from "../room/room-model";
 import { Cribbage } from "../cribbage/cribbage-model";
+import { RoomAction } from "../types";
+import { Player } from "../player";
+import { Team } from "../team";
 
 let currentDB: Database | null = null;
 
@@ -31,11 +34,20 @@ export class Database{
     game: BaseGame | undefined;
     room: Room | undefined;
     db: Firestore;
-    lastLocalUpdateTime: number = 0;
+    applyingRemoteState: boolean = true;
+    events =  new EventEmitter<{stateChanged: any;}>();
 
     
     constructor(){
         this.db = getFirestore(app);
+    }
+
+    isHost(): boolean {
+        return this.room?.getState().hostId === localStorage.getItem('playerId')!;
+    }
+
+    actionsRef() {
+        return collection(this.roomRef, "actions");
     }
 
     getRoomRef(): any{
@@ -54,7 +66,7 @@ export class Database{
         this.room = room;
     }
 
-    async init(name: string, initialValues = {}): Promise<Database>{
+    async init(name: string, initialValues: any): Promise<Database>{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
         this.roomRef = doc(this.db, name, this.roomId);
         return this;
@@ -68,18 +80,127 @@ export class Database{
         return (await getDoc(this.roomRef))?.data()!;
     }
 
-    async update(changes: any = {}){
-        if (changes === undefined || changes === null) {
-            console.warn('Database.update called with invalid changes:', changes);
+    //Only allows host to do the writing, the others just sent the intent.
+    //Prevents race conditions/flickering
+    async update(changes: any = {}) {
+        if (!changes || Object.keys(changes).length === 0|| this.applyingRemoteState) return;
+
+        console.group("DB.update");
+        console.trace("called from");
+        console.log("changes:", changes);
+        console.groupEnd();
+
+        const playerId = localStorage.getItem("playerId")!;
+        if (!this.room?.getState().players.find(p => p.id == playerId)) {
+            return; // Not officially joined yet
+        }
+
+        if (this.isHost()) {
+            await updateDoc(this.roomRef, changes);
             return;
         }
 
-        try {
-            await updateDoc(this.roomRef, changes);
-        } catch (err) {
-            console.error('Database.update failed for changes:', changes, err);
-            throw err;
+        // Guests send a GAME_ACTION intent
+        await this.sendAction({
+            type: "GAME_ACTION",
+            playerId: localStorage.getItem("playerId")!,
+            payload: changes
+        });
+    }
+
+    /**
+     * Guest Only function
+     */
+    async sendAction(action: RoomAction) {
+        await addDoc(this.actionsRef(), {
+            ...action,
+            timestamp: serverTimestamp()
+        });
+    }
+
+    /**
+    * Host-only action processor
+    */
+    async processAction(action: RoomAction) {
+        console.trace("processAction called with:", action);
+        const snap = await this.pullState();
+        if (!snap) return;
+
+        let patch: any = {};
+
+        switch (action.type) {
+            case "JOIN_ROOM": {
+                if (snap.started) return;
+                if (snap.players?.[action.playerId]) return;
+
+                var player = new Player(action.playerId, action.name);
+
+                patch = { 
+                    [`players.${action.playerId}`]: player.toPlainObject(),
+                    [`teams.${action.name}`]:(new Team(player.name, [player.id])).toPlainObject() 
+                };
+                break;
+            }
+
+            case "LEAVE_ROOM": {
+
+                const player = snap.players?.[action.playerId];
+                if (!player) return;
+
+                const patch: any = {
+                    [`players.${action.playerId}`]: deleteField()
+                };
+
+                // Remove player from teams
+                const updatedTeams = Object.fromEntries(
+                    Object.entries(snap.teams).map(([teamName, teamObj]: [string, any]) => {
+                        return [
+                        teamName,
+                        {
+                            ...teamObj,
+                            playerIds: teamObj.playerIds.filter((id: string) => id !== action.playerId)
+                        }
+                        ];
+                    })
+                );
+
+                patch.teams = updatedTeams;
+
+                // If host leaves or game started -> delete room
+                if (action.playerId === snap.hostId || snap.started) {
+                    this.delete();
+                    return;
+                }
+
+                this.update(patch);
+                break;
+            }
+
+            case "GAME_ACTION": {
+                if (!snap.players?.[action.playerId]) return;
+
+                patch = { ...action.payload };
+                break;
+            }
         }
+
+        await updateDoc(this.roomRef, patch);
+    }
+
+    /**
+    * Host listens to incoming actions
+    */
+    listenForActions() {
+        if (!this.isHost()) return;
+
+        return onSnapshot(this.actionsRef(), snap => {
+            snap.docChanges().forEach(async change => {
+            if (change.type !== "added") return;
+
+            await this.processAction(change.doc.data() as RoomAction);
+            deleteDoc(change.doc.ref);
+            });
+        });
     }
 
     listenForUpdates(){
@@ -93,15 +214,15 @@ export class Database{
             alert("Room deleted or closed.");
             window.location.href = "index.html";
         }
-        
-        // Skip updates that arrive too soon after a local update to prevent flickering
-        const timeSinceLastUpdate = Date.now() - this.lastLocalUpdateTime;
-        if (timeSinceLastUpdate < 100) {
-            return;
-        }
+
         const remote = docSnap.data();
+
+        this.applyingRemoteState = true;
+
         this.game?.updateLocalState(remote);
         this.room?.updateLocalState(remote);
+
+        this.applyingRemoteState = false;
 
         // If the room has started and this client hasn't started the game yet, run guest setup
         if (remote?.started && !this.game?.getStarted()) {
@@ -120,7 +241,6 @@ export class CribbageDatabase extends Database {
     constructor() {
         super();
     }
-    protected events =  new EventEmitter<{stateChanged: any;}>();
     
     snapFunctionality(docSnap: any){
         super.snapFunctionality(docSnap);
@@ -130,5 +250,6 @@ export class CribbageDatabase extends Database {
             return;
 
         this.events.emit('stateChanged', game.toPlainObject());
+        this.room?.updateLocalState(docSnap.data());
     }
 }

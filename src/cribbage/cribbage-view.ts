@@ -63,7 +63,7 @@ export class CribbageView extends BaseView {
     });
 
     deckSelect.value = options.deckMode;
-    deckSelect.onchange = () =>
+    deckSelect.onchange = () => 
       this.onDeckChange?.(deckSelect.value);
 
     // Game mode selector
@@ -109,9 +109,9 @@ export class CribbageView extends BaseView {
     }
 
     //Opponent indicators
-    const opponents = state.players.filter((p: PlayerPlain) => p.id !== localPlayerId);
+    const opponents = Object.fromEntries(Object.entries(state.players).filter(([id]) => id !== localPlayerId)) as Record<string, PlayerPlain>;
 
-    opponents.forEach((opponent: PlayerPlain) => {
+     Object.values(opponents).forEach((opponent: PlayerPlain, index: number) => {
       const oppTurn = document.getElementById(`${opponent.name}-turn`)!;
       const oppCrib = document.getElementById(`${opponent.name}-owner`)!;
 

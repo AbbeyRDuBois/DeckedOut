@@ -32,7 +32,14 @@
     ]
   },
   "firestore": {
-    "rules": "firestore.rules"
+    "rules": {
+      "rooms": {
+        "$roomId": {
+          ".read": "auth != null",
+          ".write": "auth.uid === data.child('hostId').val()"
+        }
+      }
   }
+}
 }
 
