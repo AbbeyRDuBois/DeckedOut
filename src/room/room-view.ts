@@ -22,6 +22,7 @@ export type RoomViewHandlers = {
   onCardThemeChange: (theme: string) => void;
   onSettingsToggle: () => Promise<void> | void;
   onMovePlayer: (playerId: string, fromIndex: number, toIndex: number) => Promise<void> | void;
+  onGenderChange: (gender: string) => void;
 };
 
 export class RoomView {
@@ -177,6 +178,7 @@ export class RoomView {
 
     await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
   }
+
   // Expose the game view instance so controllers can wire a game controller to the same view
   getGameView() {
     return this.gameView;
@@ -212,6 +214,14 @@ export class RoomView {
 
     const toggle = document.getElementById('settings-toggle')!;
     toggle.addEventListener('click', () => this.handlers.onSettingsToggle());
+
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.gender-btn');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.handlers.onGenderChange(btn.dataset.color!);
+      });
+    });
   }
 
   navigateToHome() {

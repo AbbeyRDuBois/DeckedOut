@@ -136,4 +136,15 @@ export class Room {
 
     return true
   }
+
+  async setPlayerGender(gender: string) {
+    const player = this.state.players.find(p => p.id === localStorage.getItem('playerId')!)!;
+
+    if(player.genderColor === gender){
+      await this.db.update({[`players.${player.id}.genderColor`]: "neutral"});
+    }
+    else{
+      await this.db.update({[`players.${player.id}.genderColor`]: gender});
+    }
+  }
 }

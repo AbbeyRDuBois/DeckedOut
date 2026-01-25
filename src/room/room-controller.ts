@@ -75,6 +75,9 @@ export class RoomController {
       onSettingsToggle: () =>  {
         // Toggle and persist settings panel state
         this.model.toggleSettings();
+      },
+      onGenderChange: (gender: string) => {
+        this.model.setPlayerGender(gender);
       }
     };
 
