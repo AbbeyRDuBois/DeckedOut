@@ -17,16 +17,14 @@ import { CardPlain } from "../types";
 import { Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
+import { Database } from "../services/databases";
 
 //Defines event types that can occur in base game
 export type BaseEvents = {
   stateChanged: any;
   cardPlayed: number;
-  logAdded: string;
-  turnChanged: string;
   handStateChanged: { playerId: string; enabled: boolean };
   playRequested: { playerId: string; card: Card };
-  gameEnded:{ winner: any; losers?: any[] };
 };
 
 export abstract class BaseGame {
@@ -42,16 +40,20 @@ export abstract class BaseGame {
   protected logs: string[] = [];
   protected playedOffset: number = -65; //How much the cards cover the past played
   protected events = new EventEmitter<BaseEvents>();
+  protected db: Database;
 
-  constructor( deck: Deck, players: Player[], roomId: string){
+  constructor( deck: Deck, players: Player[], db: Database){
     this.deck = deck;
     this.players = players;
+    this.db = db;
   }
 
   abstract start(): void;
   abstract deal(): void;
   abstract guestSetup(data: DocumentData): void;
-  abstract cardPlayed(cardId: number): void | Promise<void>;
+  abstract cardPlayed(playerId: string, cardId: number): void | Promise<void>;
+
+  getEnded(): boolean { return this.ended; }
 
   //Allows the controller/view to subscribe to event
   on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
@@ -184,10 +186,8 @@ export abstract class BaseGame {
     return this.logs;
   }
 
-  addLog(log: string){
+  async addLog(log: string){
     this.logs.push(log);
-    this.events.emit('logAdded', log);
-    this.events.emit('stateChanged', {logs: this.logs});
   }
 
   //Have to do this to send the state to Firebase (they only like plain objects)
@@ -198,7 +198,8 @@ export abstract class BaseGame {
       deck: this.deck.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       started: this.started,
-      logs: this.logs
+      logs: this.logs,
+      ended: this.ended
     };
   }
 
@@ -218,38 +219,18 @@ export abstract class BaseGame {
   }
 
   //Basic next player, get's overridden by games if needed
-  nextPlayer(){
+  async nextPlayer(): Promise<any>{
     const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
     this.currentPlayer = this.players[(index + 1) % this.players.length];
     
     this.isTurn = this.currentPlayer.id === localStorage.getItem('playerId');
-
-    // Notify the turn change and new state
-    this.events.emit('turnChanged', this.currentPlayer.id);
-    this.events.emit('stateChanged', {currentPlayer: this.currentPlayer});
+    return { currentPlayer: this.currentPlayer.toPlainObject};
   }
 
   findTeamByPlayer(player: Player): Team {
     return this.teams.find(team =>
         team.playerIds.some((id: string) => id === player.id)
     )!;
-  }
-
-  //Play card and update state
-  playCard(playerId: string, cardId: number) {
-    const player = this.players.find((p) => p.id === playerId)!;
-    const card = player.hand.find((c: Card) => c.id === cardId)!;
-
-    // remove card from hand and add to played cards
-    player.hand = player.hand.filter((c: Card) => c.id !== cardId);
-    player.playedCards.push(card);
-
-    this.addLog(`${player.name} played ${card.toHTML()}`);
-    this.events.emit('cardPlayed', cardId); //Implemented in the game specific controllers
-
-    this.events.emit('stateChanged', {
-      [`players.${player.id}`]: player.toPlainObject()
-    });
   }
 
   //Shuffles the player/team order

@@ -29,11 +29,6 @@ export abstract class BaseController<
       this.view.animatePlay(playerId, plainCard);
     });
 
-    //Adding Logs!!!!
-    this.game.on('logAdded', (log) => {
-      this.view.renderLog(log);
-    });
-
     //Enable/Disable player hand
     this.game.on('handStateChanged', (payload) => {
       const localId = localStorage.getItem('playerId')!;
@@ -41,12 +36,6 @@ export abstract class BaseController<
         this.view.setHandEnabled(payload.enabled);
       }
     });
-
-    //Winner has been found!
-    this.game.on('gameEnded', (payload: any) => {
-        this.view.renderWinner(payload?.winner, payload?.losers);
-    });
-
     //Basic stateChange, basically updates the db and rerenders. Calls the onStateChange() for specific game logic.
     this.game.on('stateChanged', async () => {
       await this.onStateChanged();
@@ -55,7 +44,7 @@ export abstract class BaseController<
         let gameObject = this.game.toPlainObject();
         const localId = localStorage.getItem('playerId')!;
         // Render the view and set up those cardClicks
-        this.view.render(gameObject, localId, cardId => this.onCardPlayed(cardId));
+        this.view.render(gameObject, localId, cardId => this.onCardPlayed(localId, cardId));
       }
     });
   }
@@ -63,12 +52,12 @@ export abstract class BaseController<
   //Need this to trigger rerender to game when changes happen in the room (like changing card theme)
   gameRerender(){
     const localId = localStorage.getItem('playerId')!;
-    this.view.render(this.game.toPlainObject(), localId, cardId => this.onCardPlayed(cardId));
+    this.view.render(this.game.toPlainObject(), localId, cardId => this.onCardPlayed(localId, cardId));
   }
 
   // Called by View when a user clicks a card, Model then is called to handle it
-  async onCardPlayed(cardId: number) {
-    await this.game.cardPlayed(cardId);
+  async onCardPlayed(localId: string, cardId: number) {
+    await this.game.cardPlayed(localId, cardId);
   }
 
   abstract onStateChanged() : Promise<void>;

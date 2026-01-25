@@ -26,7 +26,8 @@ export type TeamPlain = {
 export type RoomAction =
 | { type: "JOIN_ROOM"; playerId: string; name: string;}
 | { type: "LEAVE_ROOM"; playerId: string;}
-| { type: "GAME_ACTION"; playerId: string; payload: any;};
+| { type: "GAME_ACTION"; playerId: string; payload: any;}
+| { type: "PLAY_CARD"; playerId: string; cardId: number;};
 
 export type RoomState = {
   roomId: string;

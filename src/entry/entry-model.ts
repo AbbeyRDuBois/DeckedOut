@@ -10,11 +10,7 @@ import { DocumentData } from "firebase/firestore";
 import { v4 } from "uuid";
 import { Player } from "../player";
 import { Team } from "../team";
-import { CribbageDatabase, Database, getDBInstance, setDBInstance } from "../services/databases";
-
-const DBMap: Record<string, any> = {
-  cribbage: CribbageDatabase
-};
+import { Database, getDBInstance, setDBInstance } from "../services/databases";
 
 export class EntryModel {
   private db!: Database;
@@ -29,7 +25,7 @@ export class EntryModel {
     const player = new Player(playerId, username);
 
     setDBInstance(
-      await new DBMap[gameType]().init("rooms", {
+      await new Database().init("rooms", {
         hostId: playerId,
         gameType,
         players: { [playerId]: player.toPlainObject() },

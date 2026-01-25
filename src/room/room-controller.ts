@@ -135,7 +135,7 @@ export class RoomController {
 
       // Default deck - can be changed via game options UI
       const deck = new Deck();
-      this.game = new Cribbage(deck, players, state.roomId);
+      this.game = new Cribbage(deck, players, db);
 
       // Make sure DB knows about this game instance so snapshot handling can call guestSetup
       db.setGame(this.game);

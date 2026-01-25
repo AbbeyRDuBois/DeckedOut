@@ -5,7 +5,7 @@
  * 
  ****************************************************************************/
 
-import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, getFirestore, onSnapshot, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, initializeFirestore, onSnapshot, persistentLocalCache, persistentSingleTabManager, serverTimestamp, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
 import EventEmitter from "events";
@@ -34,12 +34,16 @@ export class Database{
     game: BaseGame | undefined;
     room: Room | undefined;
     db: Firestore;
-    applyingRemoteState: boolean = true;
+    guestActionTimeout: NodeJS.Timeout | null = null;
     events =  new EventEmitter<{stateChanged: any;}>();
 
     
     constructor(){
-        this.db = getFirestore(app);
+        this.db = initializeFirestore(app, {
+          localCache: persistentLocalCache({
+            tabManager: persistentSingleTabManager({})
+          })
+        });
     }
 
     isHost(): boolean {
@@ -83,12 +87,7 @@ export class Database{
     //Only allows host to do the writing, the others just sent the intent.
     //Prevents race conditions/flickering
     async update(changes: any = {}) {
-        if (!changes || Object.keys(changes).length === 0|| this.applyingRemoteState) return;
-
-        console.group("DB.update");
-        console.trace("called from");
-        console.log("changes:", changes);
-        console.groupEnd();
+        if (!changes || Object.keys(changes).length === 0) return;
 
         const playerId = localStorage.getItem("playerId")!;
         if (!this.room?.getState().players.find(p => p.id == playerId)) {
@@ -129,6 +128,12 @@ export class Database{
         let patch: any = {};
 
         switch (action.type) {
+            case "PLAY_CARD": {
+                if (this.isHost()) {
+                await this.game?.cardPlayed(action.playerId, action.cardId);
+                }
+                break;
+            }
             case "JOIN_ROOM": {
                 if (snap.started) return;
                 if (snap.players?.[action.playerId]) return;
@@ -217,12 +222,9 @@ export class Database{
 
         const remote = docSnap.data();
 
-        this.applyingRemoteState = true;
-
         this.game?.updateLocalState(remote);
         this.room?.updateLocalState(remote);
-
-        this.applyingRemoteState = false;
+        this.events.emit('stateChanged', this.room?.getState());
 
         // If the room has started and this client hasn't started the game yet, run guest setup
         if (remote?.started && !this.game?.getStarted()) {
@@ -234,22 +236,5 @@ export class Database{
         this.roomId = roomId;
         this.roomRef = doc(this.db, name, roomId);
         return this;
-    }
-}
-
-export class CribbageDatabase extends Database {
-    constructor() {
-        super();
-    }
-    
-    snapFunctionality(docSnap: any){
-        super.snapFunctionality(docSnap);
-        const game = (this.game as Cribbage);
-
-        if (game?.getStarted())
-            return;
-
-        this.events.emit('stateChanged', game.toPlainObject());
-        this.room?.updateLocalState(docSnap.data());
     }
 }

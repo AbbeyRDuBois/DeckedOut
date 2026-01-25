@@ -18,23 +18,19 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     super(game, view, db);
 
     // Only add Cribbage-specific event listeners not in BaseController
-    this.game.on('cardPlayed', async (cardId: number) => await this.onCardPlayed(cardId));
+    this.game.on('cardPlayed', async (cardId: number) => await this.onCardPlayed(localStorage.getItem("playerId")!, cardId));
 
     this.view.onDeckChange = this.handleDeckChange;
     this.view.onGameModeChange = this.handleGameModeChange;
   }
 
-  private handleDeckChange = (mode: string) => {
-    this.game.setDeckMode(mode);
-
-    this.db.update({deckMode: mode});
+  private handleDeckChange = async (mode: string) => {
+    await this.game.setDeckMode(mode);
     this.gameOptions();
   };
 
-  private handleGameModeChange = (mode: string) => {
-    this.game.setGameMode(mode);
-
-    this.db.update({gameMode: mode});
+  private handleGameModeChange = async (mode: string) => {
+    await this.game.setGameMode(mode);
     this.gameOptions();
   };
 
@@ -50,6 +46,14 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
   override async onStateChanged() {
     if (!this.game.getStarted()){
       this.gameOptions();
+      return;
+    }
+
+    if(this.game.getEnded()){
+      const winner = this.game.getTeams().find(t => t.score >= this.game.getPointGoal());
+      const losers = this.game.getTeams().filter(t => t.name != winner?.name);
+
+      this.view.renderWinner(winner, losers);
       return;
     }
     

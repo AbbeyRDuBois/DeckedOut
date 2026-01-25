@@ -8,20 +8,16 @@
  ****************************************************************************/
 
 import { EventEmitter } from "../event-emitter";
-import { CribbageDatabase, Database } from "../services/databases";
+import { Database } from "../services/databases";
 import { Player } from "../player";
 import { Team } from "../team";
 import { DocumentData } from "firebase/firestore";
 import { RoomState } from "../types";
 
-const DBMap: Record<string, any> = {
-    'cribbage': CribbageDatabase
-}
-  
 export class Room {
   private db!: Database;
   private state: RoomState;
-  public events = new EventEmitter<{ stateChanged: RoomState; error: string }>();
+  public events = new EventEmitter<{ stateChanged: {}; error: string }>();
 
   constructor(gameType: string, roomId: string) {
     this.state = { roomId, gameType, players: [], teams: [], started: false, settingsOpen: false, theme: 'dark', cardTheme: 'Classic', hostId: ''};
@@ -29,7 +25,7 @@ export class Room {
 
   async init() {
     try {
-      this.db = new DBMap[this.state.gameType]();
+      this.db = new Database();
       await this.db.join("rooms", this.state.roomId);
       this.db.setRoom(this);
 
@@ -62,20 +58,39 @@ export class Room {
 
   //Updates state from Database values
   updateLocalState(remote: any) {
-    this.state.players = [];
-    for (const [id, player] of Object.entries(remote.players)) {
-      this.state.players.push(Player.fromPlainObject(player as DocumentData));
-    }
-    this.state.players.sort((a, b) => a.order - b.order);
+    if (remote.players) {
+      const nextPlayers: Player[] = [];
 
-    this.state.teams = [];
-    for (const [id, team] of Object.entries(remote.teams)) {
-      this.state.teams.push(Team.fromPlainObject(team as DocumentData));
+      for (const [id, player] of Object.entries(remote.players)) {
+        nextPlayers.push(Player.fromPlainObject(player as DocumentData));
+      }
+
+      nextPlayers.sort((a, b) => a.order - b.order);
+      this.state.players = nextPlayers;
     }
 
-    this.state.started = remote.started;
-    this.state.settingsOpen = remote.settingsOpen;
-    this.state.hostId = remote.hostId;
+    if (remote.teams) {
+      const nextTeams: Team[] = [];
+
+      for (const [, team] of Object.entries(remote.teams)) {
+        nextTeams.push(Team.fromPlainObject(team as DocumentData));
+      }
+
+      this.state.teams = nextTeams;
+    }
+
+    if (typeof remote.started === 'boolean') {
+      this.state.started = remote.started;
+    }
+
+    if (typeof remote.settingsOpen === 'boolean') {
+      this.state.settingsOpen = remote.settingsOpen;
+    }
+
+    if (typeof remote.hostId === 'string') {
+      this.state.hostId = remote.hostId;
+    }
+
     this.events.emit('stateChanged', this.getState());
   }
 
@@ -94,21 +109,18 @@ export class Room {
   }
 
   async updateTeams(teams: Team[]) {
-    this.state.teams = teams;
     await this.db.update({ teams: teams.map(t => t.toPlainObject()) });
-    this.events.emit('stateChanged', this.getState());
   }
 
   async startGame() {
-    this.state.started = true;
     await this.db.update({ started: true });
-    this.events.emit('stateChanged', this.getState());
   }
 
   async addTeam(team: Team) {
     if (this.state.teams.length < this.state.players.length) {
-      this.state.teams.push(team);
-      this.updateTeams(this.state.teams);
+      await this.db.update({
+        [`teams.${team.name}`]: team.toPlainObject()
+      });
     }
   }
 
