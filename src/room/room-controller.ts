@@ -12,6 +12,8 @@ import { RoomView, RoomViewHandlers } from "./room-view";
 import { Cribbage } from "../cribbage/cribbage-model";
 import { Deck } from "../deck";
 import { CribbageController } from "../cribbage/cribbage-controller";
+import { Player } from "../player";
+import { Team } from "../team";
 
 export class RoomController {
   private resizePending = false;
@@ -24,8 +26,24 @@ export class RoomController {
       onStart: async () => { await this.onStartGame();},
       onLeave: async () => { await this.onLeaveRoom(); },
       onCopyId: async () => { await navigator.clipboard.writeText(this.model.getState().roomId); },
-      onAddTeam: async () => { await this.model.addTeam({ name: `Team ${this.model.getState().teams.length + 1}`, playerIds: [] } as any); },
-      onRemoveTeam: async () => { const teams = this.model.getState().teams; if (teams.length > 1) { teams.pop(); await this.model.updateTeams(teams); } },
+      onAddTeam: async () => { 
+        await this.model.addTeam( new Team(`Team ${this.model.getState().teams.length + 1}`, [], 0 ))
+      },
+      onRemoveTeam: async () => { 
+        const teams = this.model.getState().teams; 
+        if (teams.length > 1) { 
+          var removed = teams.pop(); 
+
+          // Push players from removed team back into remaining teams
+          if (removed){
+            removed.playerIds.forEach((id, i) => {
+              teams[i % teams.length].playerIds.push(id);
+            });
+          }
+
+          await this.model.updateTeams(teams); 
+        } 
+      },
       onTeamNameChange: async (idx, name) => { const teams = this.model.getState().teams; teams[idx].name = name; await this.model.updateTeams(teams); },
       onRandomize: async (size) => {
         //Randomizes the teams
@@ -77,11 +95,23 @@ export class RoomController {
         requestAnimationFrame(() => {
           // Re-render room view (will apply theme, settings panel, options)
           this.view.render(this.model.getState());
+          this.gameController?.gameOptions();
+          this.gameController?.gameRerender();
           // Let game-specific controllers re-render if they want
           window.dispatchEvent(new CustomEvent('room:resize'));
           this.resizePending = false;
         });
       }
+    });
+
+    window.addEventListener("beforeunload", async () => {
+      const playerId = localStorage.getItem("playerId");
+      if (!playerId) return;
+
+      await this.model.getDbInstance().sendAction({
+        type: "LEAVE_ROOM",
+        playerId
+      });
     });
   }
 
@@ -101,10 +131,11 @@ export class RoomController {
       // If already setup, skip
       if (this.game) return;
 
-      const players = state.players;
+      const players = state.players.map(p => Player.fromPlainObject(p));
+
       // Default deck - can be changed via game options UI
       const deck = new Deck();
-      this.game = new Cribbage(deck, players, state.roomId);
+      this.game = new Cribbage(deck, players, db);
 
       // Make sure DB knows about this game instance so snapshot handling can call guestSetup
       db.setGame(this.game);
@@ -122,17 +153,13 @@ export class RoomController {
   }
 
   async onLeaveRoom() {
-    const playerId = localStorage.getItem('playerId')!;
-    const result = await this.model.leaveRoom(playerId);
+    const playerId = localStorage.getItem("playerId")!;
 
-    if (result.type === 'DELETE_ROOM') {
-      await this.model.closeRoom();
-      this.view.navigateToHome();
-      return;
-    }
-
-    this.model.getState().players = result.state.players;
-    await this.model.updateTeams(result.state.teams);
+    // Tell host you're leaving
+    await this.model.getDbInstance().sendAction({
+      type: "LEAVE_ROOM",
+      playerId
+    });
     this.view.navigateToHome();
   }
 

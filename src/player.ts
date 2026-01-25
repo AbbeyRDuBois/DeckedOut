@@ -60,6 +60,7 @@ export class Player {
     }
 
     getUnplayedCards(): Card[] {
-        return this.hand.filter((card: Card) => !this.playedCards.some((played: Card) => played.id === card.id));
+        const playedIds = new Set(this.playedCards.map(c => c.id));
+        return this.hand.filter(c => !playedIds.has(c.id));
     }
 }

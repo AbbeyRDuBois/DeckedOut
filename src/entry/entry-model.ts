@@ -6,15 +6,11 @@
  * 
  ****************************************************************************/
 
-import { arrayUnion } from "firebase/firestore";
+import { DocumentData } from "firebase/firestore";
 import { v4 } from "uuid";
 import { Player } from "../player";
 import { Team } from "../team";
-import { CribbageDatabase, Database, getDBInstance, setDBInstance } from "../services/databases";
-
-const DBMap: Record<string, any> = {
-  cribbage: CribbageDatabase
-};
+import { Database, getDBInstance, setDBInstance } from "../services/databases";
 
 export class EntryModel {
   private db!: Database;
@@ -22,19 +18,18 @@ export class EntryModel {
   async createRoom(gameType: string, username: string): Promise<string> {
     const playerId = v4();  //Generates a unique playerId
 
-    // Saves the player's Id and username in storage
+    // Saves the player's Id in storage
     // This helps us be able to tell who is making actions later on in the application
     localStorage.setItem("playerId", playerId);
-    localStorage.setItem("username", username);
 
     const player = new Player(playerId, username);
 
     setDBInstance(
-      await new DBMap[gameType]().init("rooms", {
+      await new Database().init("rooms", {
         hostId: playerId,
         gameType,
-        players: [player.toPlainObject()],
-        teams: [new Team(player.name, [player.id]).toPlainObject()],
+        players: { [playerId]: player.toPlainObject() },
+        teams: {[username]: new Team(player.name, [player.id]).toPlainObject()},
         started: false
       })
     );
@@ -43,32 +38,52 @@ export class EntryModel {
     return this.db.getRoomId();
   }
 
-  //Allows other players to join a pre setup room. Requires them to pass in a roomId and username
-  async joinRoom(roomId: string, username: string): Promise<string> {
+  async joinRoom(roomId: string, username: string) {
     const playerId = v4();
 
     localStorage.setItem("playerId", playerId);
     localStorage.setItem("username", username);
 
-    //Have to connect and set the instance of the host created db
+    // Connect and set DB instance
     this.db = new Database();
     await this.db.join("rooms", roomId);
     setDBInstance(this.db);
 
+    // Pull current room state
     const roomData = await this.db.pullState();
     if (!roomData) throw new Error("Room does not exist");
     if (roomData.started) throw new Error("Game already started");
 
-    const players = roomData.players.map((p: any) => Player.fromPlainObject(p));
-    if (roomData.maxPlayers === players.length) {
-      throw new Error("Game is full");
+    const players: Player[] = Object.entries(roomData.players || {}).map(([id, p]) =>
+      Player.fromPlainObject(p as DocumentData)
+    );
+
+    if (roomData.maxPlayers && players.length >= roomData.maxPlayers) {
+        throw new Error("Game is full");
     }
 
+    // Create a local player object
     const newPlayer = new Player(playerId, username);
 
-    await this.db.update({
-      players: arrayUnion(newPlayer.toPlainObject()),
-      teams: arrayUnion(new Team(username, [newPlayer.id]).toPlainObject())
+    // Update the local Room state immediately
+    if (this.db.room) {
+        // Add to players
+        players.push(newPlayer);
+        this.db.room.getState().players = players;
+
+        // Add to a team (or create a new one)
+        const newTeam = new Team(username, [playerId], 0);        
+        this.db.room.getState().teams.push(newTeam);
+
+        // Emit stateChanged immediately so UI updates
+        this.db.events.emit("stateChanged", this.db.room.getState());
+    }
+
+    // Notify the host
+    await this.db.sendAction({
+        type: "JOIN_ROOM",
+        playerId,
+        name: username
     });
 
     return roomData.gameType;
