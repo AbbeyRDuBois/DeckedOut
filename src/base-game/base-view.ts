@@ -18,6 +18,9 @@ export abstract class BaseView {
     this.spriteSheet = new SpriteSheet();
   }
 
+  abstract renderGameOptions(options: any): void;
+  abstract createIndicators(opponent: PlayerPlain): HTMLDivElement[];
+
   //Basic Render of the Game
   render(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
     this.renderScoreboard(state);
@@ -26,9 +29,6 @@ export abstract class BaseView {
     this.renderHand(state, localPlayerId, onCardClick);
     this.renderPlayed(state, localPlayerId);
   }
-
-  abstract renderGameOptions(options: any): void;
-  abstract createIndicators(opponent: PlayerPlain): HTMLDivElement[];
 
   //Render local player's hand
   renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
@@ -205,10 +205,7 @@ export abstract class BaseView {
       logBox.appendChild(entry);
     });
 
-    //Prevents snapping to the bottom if you are looking at previous logs
-    if (logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 20){
-      logBox.scrollTop = logBox.scrollHeight; //Auto scroll to bottom
-    }
+    logBox.scrollTop = logBox.scrollHeight; //Auto scroll to bottom
   }
 
   //Just add a log to the log box

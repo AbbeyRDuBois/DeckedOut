@@ -23,6 +23,18 @@ export class Room {
     this.state = { roomId, gameType, players: [], teams: [], started: false, settingsOpen: false, theme: 'dark', cardTheme: 'Classic', hostId: ''};
   }
 
+  getState(): RoomState { return { ...this.state }; }
+
+  setTheme(theme: string) {
+    this.state.theme = theme;
+    this.events.emit('stateChanged', this.getState());
+  }
+  
+  setCardTheme(theme: string) {
+    this.state.cardTheme = theme;
+    this.events.emit('stateChanged', this.getState());
+  }
+
   async init() {
     try {
       this.db = new Database();
@@ -75,7 +87,7 @@ export class Room {
       for (const [, team] of Object.entries(remote.teams)) {
         nextTeams.push(Team.fromPlainObject(team as DocumentData));
       }
-
+      nextTeams.sort((a, b) => a.order - b.order);
       this.state.teams = nextTeams;
     }
 
@@ -92,20 +104,6 @@ export class Room {
     }
 
     this.events.emit('stateChanged', this.getState());
-  }
-
-  setTheme(theme: string) {
-    this.state.theme = theme;
-    this.events.emit('stateChanged', this.getState());
-  }
-
-  setCardTheme(theme: string) {
-    this.state.cardTheme = theme;
-    this.events.emit('stateChanged', this.getState());
-  }
-
-  getState(): RoomState {
-    return { ...this.state };
   }
 
   async updateTeams(teams: Team[]) {

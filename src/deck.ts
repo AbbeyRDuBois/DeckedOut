@@ -11,6 +11,14 @@ export class Deck{
             this.deck = deck;
         }
     }
+    
+    getDeck(): Card[] { return this.deck; }
+    getCard(){
+        if(this.deck.length === 0) return;
+
+        let card = Math.floor(Math.random() * this.deck.length);
+        return this.deck.splice(card, 1)[0];
+    }
 
     resetDeck(){
         this.deck = [];
@@ -22,17 +30,6 @@ export class Deck{
                 this.deck.push(new Card(idCounter++, value, suit.name));
             }
         }
-    }
-
-    getCard(){
-        if(this.deck.length === 0) return;
-
-        let card = Math.floor(Math.random() * this.deck.length);
-        return this.deck.splice(card, 1)[0];
-    }
-
-    getDeck(): Card[]{
-        return this.deck;
     }
 
     toPlainObject(){

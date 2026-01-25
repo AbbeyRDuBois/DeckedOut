@@ -21,6 +21,9 @@ export class SpriteSheet {
     back_col = 3;
     gap = 5;
 
+    getImage(): string { return this.image; }
+    setImage(){}; //Placeholder for other sheets that have random chance of sheets (looking at you pokemon)
+
     getCardLocation(x: number, y: number, targetWidth: number, targetHeight: number): {col: number, row: number}{
         const col = (x -1) * (this.card_width + 2 * this.gap) + this.gap;
         const row = y * this.card_height;
@@ -39,12 +42,6 @@ export class SpriteSheet {
             bgHeight: this.sheet_height * scaleY
         };
     }
-
-    getImage(): string {
-        return this.image;
-    }
-
-    setImage(){}; //Placeholder for other sheets that have random chance of sheets (looking at you pokemon)
 }
 
 export class CatSheet extends SpriteSheet {

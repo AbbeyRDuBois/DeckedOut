@@ -40,10 +40,8 @@ export class Cribbage extends BaseGame {
     this.maxPlayers = 8;
   }
 
-  // --- Basic getter/setup funcitons
-  setFlipped() { 
-    this.flipped = this.deck.getCard()!; 
-  }
+  //Basic getter/setup functions
+  setFlipped() { this.flipped = this.deck.getCard()!; }
   getFlipped(): Card { return this.flipped; }
   getCrib(): Card[] { return this.crib; }
   getCribOwner(): Player { return this.cribOwner; }
@@ -52,6 +50,8 @@ export class Cribbage extends BaseGame {
   getRoundState(): string { return this.roundState; }
   getPointGoal(): number { return this.pointGoal; }
   setIsTurn(turn: boolean){ this.isTurn = turn; }
+  getGameMode(): string { return this.gameMode; }
+  getDeckMode(): string { return this.deckMode; }
   isHost(): boolean{ return this.db.isHost(); }
 
   setHandState(player: Player){
@@ -75,6 +75,41 @@ export class Cribbage extends BaseGame {
       suit: card.suit,
       isFlipped: true
     }));
+  }
+
+  async setDeckMode(mode: string) {
+    this.deckMode = mode;
+    if (mode === 'Joker') {
+      this.deck = new JokerDeck();
+    } else {
+      this.deck = new Deck();
+    }
+    await this.db.update({
+      deckMode: mode,
+      deck: this.deck.toPlainObject()
+    });
+  }
+
+  async setGameMode(mode: string) {
+    this.gameMode = mode;
+
+    if(mode == "Standard"){
+      this.pointGoal = 121;
+      this.skunkLength = 90;
+      this.handSize = 4;
+    }
+    else{
+      this.pointGoal = 241
+      this.skunkLength = 180;
+      this.handSize = 8;
+    }
+
+    await this.db.update({
+      gameMode: mode,
+      pointGoal: this.pointGoal,
+      skunkLength: this.skunkLength,
+      handSize: this.handSize
+    });
   }
 
   waitingForJoker(): boolean {
@@ -150,49 +185,6 @@ export class Cribbage extends BaseGame {
     this.gameMode = data.gameMode ?? this.gameMode;
 
     super.updateLocalState(data); //Call this last for the stateChange event
-  }
-
-  async setDeckMode(mode: string) {
-    this.deckMode = mode;
-    if (mode === 'Joker') {
-      this.deck = new JokerDeck();
-    } else {
-      this.deck = new Deck();
-    }
-    await this.db.update({
-      deckMode: mode,
-      deck: this.deck.toPlainObject()
-    });
-  }
-
-  async setGameMode(mode: string) {
-    this.gameMode = mode;
-
-    if(mode == "Standard"){
-      this.pointGoal = 121;
-      this.skunkLength = 90;
-      this.handSize = 4;
-    }
-    else{
-      this.pointGoal = 241
-      this.skunkLength = 180;
-      this.handSize = 8;
-    }
-
-    await this.db.update({
-      gameMode: mode,
-      pointGoal: this.pointGoal,
-      skunkLength: this.skunkLength,
-      handSize: this.handSize
-    });
-  }
-
-  getGameMode():string {
-    return this.gameMode;
-  }
-
-  getDeckMode(): string {
-    return this.deckMode;
   }
 
   async cardPlayed(playerId: string, cardId: number) {
