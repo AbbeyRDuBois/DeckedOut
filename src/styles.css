@@ -123,7 +123,21 @@ body[data-theme='blessed'] {
   --gn-btn:#39FF14;
 }
 
-
+body[data-theme='fancy'] {
+  --logs:  url("./assets/Window_Themes/Fancy/Logs.png");
+  --teams:  url("./assets/Window_Themes/Fancy/ScoreBoard.png");
+  --scoreboard:  url("./assets/Window_Themes/Fancy/ScoreBoard.png");
+  --hand: url("./assets/Window_Themes/Fancy/Hand.png");
+  --background:  url("./assets/Window_Themes/Fancy/Background.png");
+  --top_bar:  url("./assets/Window_Themes/Fancy/Top_Bar.png");
+  --settings: url("./assets/Window_Themes/Fancy/Settings.png");
+  --border: black;
+  --text-bg:lightgrey;
+  --text-color: black;
+  --bl-btn:#005fff;
+  --rd-btn:tomato;
+  --gn-btn:#01b401;
+}
 
 /**************************************
   *
