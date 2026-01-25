@@ -66,19 +66,24 @@ export abstract class BaseGame {
   }
 
   updateLocalState(data: any){
-    this.players = [];
-    for (const [id, player] of Object.entries(data.players)) {
-      this.players.push(Player.fromPlainObject(player as DocumentData));
-    }
-    this.players.sort((a, b) => a.getOrder() - b.getOrder());
 
-    this.teams = [];
-    for (const [id, team] of Object.entries(data.teams)) {
-      this.teams.push(Team.fromPlainObject(team as DocumentData));
+    if (data.players){
+      this.players = [];
+      for (const [id, player] of Object.entries(data.players)) {
+        this.players.push(Player.fromPlainObject(player as DocumentData));
+      }
+      this.players.sort((a, b) => a.getOrder() - b.getOrder());
     }
 
-    this.logs = data.logs ?? [];
-    this.currentPlayer = Player.fromPlainObject(data.currentPlayer);
+    if (data.teams){
+      this.teams = [];
+      for (const [id, team] of Object.entries(data.teams)) {
+        this.teams.push(Team.fromPlainObject(team as DocumentData));
+      }
+    }
+
+    this.logs = data.logs ?? this.logs;
+    this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer): this.currentPlayer;
 
     this.events.emit('stateChanged', this.toPlainObject());
   }

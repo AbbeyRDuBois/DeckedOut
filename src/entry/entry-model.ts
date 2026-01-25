@@ -38,36 +38,52 @@ export class EntryModel {
     return this.db.getRoomId();
   }
 
-  //Allows other players to join a pre setup room. Requires them to pass in a roomId and username
-  async joinRoom(roomId: string, username: string){
+  async joinRoom(roomId: string, username: string) {
     const playerId = v4();
 
     localStorage.setItem("playerId", playerId);
     localStorage.setItem("username", username);
 
-    //Have to connect and set the instance of the host created db
+    // Connect and set DB instance
     this.db = new Database();
     await this.db.join("rooms", roomId);
     setDBInstance(this.db);
 
+    // Pull current room state
     const roomData = await this.db.pullState();
     if (!roomData) throw new Error("Room does not exist");
     if (roomData.started) throw new Error("Game already started");
 
+    const players: Player[] = Object.entries(roomData.players || {}).map(([id, p]) =>
+      Player.fromPlainObject(p as DocumentData)
+    );
 
-    var players = [];
-    for (const [id, player] of Object.entries(roomData.players)) {
-      players.push(Player.fromPlainObject(player as DocumentData));
+    if (roomData.maxPlayers && players.length >= roomData.maxPlayers) {
+        throw new Error("Game is full");
     }
 
-    if (roomData.maxPlayers === players.length) {
-      throw new Error("Game is full");
+    // Create a local player object
+    const newPlayer = new Player(playerId, username);
+
+    // Update the local Room state immediately
+    if (this.db.room) {
+        // Add to players
+        players.push(newPlayer);
+        this.db.room.getState().players = players;
+
+        // Add to a team (or create a new one)
+        const newTeam = new Team(username, [playerId], 0);        
+        this.db.room.getState().teams.push(newTeam);
+
+        // Emit stateChanged immediately so UI updates
+        this.db.events.emit("stateChanged", this.db.room.getState());
     }
 
+    // Notify the host
     await this.db.sendAction({
-      type: "JOIN_ROOM",
-      playerId,
-      name: username
+        type: "JOIN_ROOM",
+        playerId,
+        name: username
     });
 
     return roomData.gameType;

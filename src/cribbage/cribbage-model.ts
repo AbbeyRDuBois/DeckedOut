@@ -136,20 +136,20 @@ export class Cribbage extends BaseGame {
 
   //Updates the local state from DB values
   override updateLocalState(data: DocumentData): void {
-    this.cribOwner = Player.fromPlainObject(data.cribOwner);
-    this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? [];
-    this.deck = Deck.fromPlainObject(data.deck);
-    this.roundState = data.roundState;
-    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? [];
-    this.peggingTotal = data.peggingTotal ?? 0;
-    this.flipped = Card.fromPlainObject(data.flipped);
-    this.awaitingJokerSelection = data.awaitingJokerSelection ?? false;
-    this.skunkLength = data.skunkLength ?? 90;
-    this.handSize = data.handSize ?? 4;
-    if (data.deckMode !== undefined) this.deckMode = data.deckMode;
-    if (data.gameMode !== undefined) this.gameMode = data.gameMode;
+    this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
+    this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.crib;
+    this.deck = data.deck ? Deck.fromPlainObject(data.deck): this.deck;
+    this.roundState = data.roundState ?? this.roundState;
+    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.peggingCards;
+    this.peggingTotal = data.peggingTotal ?? this.peggingTotal;
+    this.flipped = data.flipped ? Card.fromPlainObject(data.flipped): this.flipped;
+    this.awaitingJokerSelection = data.awaitingJokerSelection ?? this.awaitingJokerSelection;
+    this.skunkLength = data.skunkLength ?? this.skunkLength;
+    this.handSize = data.handSize ?? this.handSize;
+    this.deckMode = data.deckMode ?? this.deckMode;
+    this.gameMode = data.gameMode ?? this.gameMode;
 
-    super.updateLocalState(data); //Call this last for the statChange event
+    super.updateLocalState(data); //Call this last for the stateChange event
   }
 
   async setDeckMode(mode: string) {
@@ -159,7 +159,10 @@ export class Cribbage extends BaseGame {
     } else {
       this.deck = new Deck();
     }
-    await this.db.update({deckMode: mode});
+    await this.db.update({
+      deckMode: mode,
+      deck: this.deck.toPlainObject()
+    });
   }
 
   async setGameMode(mode: string) {
@@ -303,7 +306,8 @@ export class Cribbage extends BaseGame {
         card.isFlipped = true;
         player.hand.push(card);
 
-        this.events.emit('stateChanged', { [`players.${player.id}`]: player.toPlainObject()});
+        this.events.emit('stateChanged', {});
+        this.db.update({[`players.${player.id}`]: player.toPlainObject()});
         return;
       }
     }
@@ -345,7 +349,7 @@ export class Cribbage extends BaseGame {
       this.peggingCards = [];
       
       await this.nextCribOwner();
-      await this.db.update(this.toPlainObject);
+      await this.db.update(this.toPlainObject());
       return;
     }
   }

@@ -98,6 +98,9 @@ export class Database{
             await updateDoc(this.roomRef, changes);
             return;
         }
+        else{
+            this.applyPatchLocally(changes); // Apply instantly
+        }
 
         // Guests send a GAME_ACTION intent
         await this.sendAction({
@@ -105,6 +108,13 @@ export class Database{
             playerId: localStorage.getItem("playerId")!,
             payload: changes
         });
+    }
+
+    applyPatchLocally(patch: any) {
+        if (!this.room || !this.game) return;
+        this.game.updateLocalState(patch);
+        this.room.updateLocalState(patch);
+        this.events.emit('stateChanged', this.room.getState());
     }
 
     /**
