@@ -91,6 +91,16 @@ export abstract class BaseView {
       name.classList.add('opponent-name');
       name.textContent = opp.name;
 
+      if(opp.roleColor === "neutral"){
+        //Set's the player back to the themed text color
+        name.style.color = getComputedStyle(document.body)
+          .getPropertyValue('--text-color')
+          .trim();
+      }
+      else{
+        name.style.color = opp.roleColor;
+      }
+
       const oppInfo = document.createElement('div');
       oppInfo.style.display = 'flex';
       oppInfo.style.justifyContent = 'center';
@@ -154,10 +164,24 @@ export abstract class BaseView {
         if (!player) return;
         const playerDiv = document.createElement('div');
         playerDiv.className = 'player';
-        playerDiv.innerHTML = `
-          <span class="player-name">${player.name}</span>
-          <span class="player-score">${player.score}</span>
-        `;
+        
+        const name = document.createElement('span');
+        name.textContent = player.name;
+        if(player.roleColor === "neutral"){
+          //Set's the player back to the themed text color
+          name.style.color = getComputedStyle(document.body)
+            .getPropertyValue('--text-color')
+            .trim();
+        }
+        else{
+          name.style.color = player.roleColor;
+        }
+
+        const score = document.createElement('span');
+        score.textContent = player.score;
+
+        playerDiv.appendChild(name);
+        playerDiv.appendChild(score);
         playersDiv.appendChild(playerDiv);
       });
 

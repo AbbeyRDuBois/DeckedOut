@@ -15,6 +15,7 @@ export type PlayerPlain = {
   playedCards: CardPlain[];
   score: number;
   order: number;
+  roleColor: string;
 };
 
 export type TeamPlain = {

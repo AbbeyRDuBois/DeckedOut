@@ -382,6 +382,53 @@ body {
   gap: 10px;
   top: .5%;
 }
+
+/***************************************
+*
+* Role Buttons
+*
+***************************************/
+.roles {
+  position: absolute;
+  bottom: 10px;   /* Distance from the bottom of center-main */
+  right: 10px;    /* Distance from the right of center-main */
+  display: flex;
+  gap: 8px;       /* Space between buttons */
+}
+.roles button {
+  padding: 5px 8px;
+  border: none;
+  color: var(--text-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+#garbage {
+  background: teal;
+}
+#dumpster {
+  background: lightgreen;
+}
+#glamour {
+  background: orange;
+}
+#treasure {
+  background: tomato;
+}
+#garbage:hover{
+  background: color-mix(in srgb, teal 80%, black)
+}
+#dumpster:hover{
+  background: color-mix(in srgb, lightgreen 80%, black)
+}
+#glamour:hover{
+  background: color-mix(in srgb, orange 80%, black)
+}
+#treasure:hover{
+  background: color-mix(in srgb, tomato 80%, black)
+}
+
 /***************************************
 *
 * Settings

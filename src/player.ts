@@ -10,6 +10,7 @@ export class Player {
     score: number = 0;
     team: number = 0;
     order: number = 0;
+    roleColor: string = "neutral";
 
     constructor(id: string, name: string){
         this.id = id;
@@ -23,7 +24,8 @@ export class Player {
             isTurn: this.isTurn,
             score: this.score,
             playedCards: this.playedCards?.map(card => card?.toPlainObject()),
-            team: this.team
+            team: this.team,
+            roleColor: this.roleColor
         };
     }
 
@@ -47,6 +49,8 @@ export class Player {
             : [];
         
         player.team = data.team;
+
+        player.roleColor = data.roleColor;
 
         return player;
     }
