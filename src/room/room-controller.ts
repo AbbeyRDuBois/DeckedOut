@@ -76,8 +76,12 @@ export class RoomController {
         // Toggle and persist settings panel state
         this.model.toggleSettings();
       },
-      onGenderChange: (gender: string) => {
-        this.model.setPlayerGender(gender);
+      onRoleChange: async (role: string) => {
+        const roleName = await this.model.updateRole(role);
+
+        const player = this.model.getState().players.find(p => p.id === localStorage.getItem("playerId")!);
+        this.game?.addLog(`${player?.name} has become a ${roleName}!`);
+        this.model.getDbInstance().update({logs: this.game?.getLogs()});
       }
     };
 

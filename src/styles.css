@@ -385,17 +385,17 @@ body {
 
 /***************************************
 *
-* Gender Buttons
+* Role Buttons
 *
 ***************************************/
-.genders {
+.roles {
   position: absolute;
   bottom: 10px;   /* Distance from the bottom of center-main */
   right: 10px;    /* Distance from the right of center-main */
   display: flex;
   gap: 8px;       /* Space between buttons */
 }
-.genders button {
+.roles button {
   padding: 5px 8px;
   border: none;
   color: var(--text-color);

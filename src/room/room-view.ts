@@ -22,7 +22,7 @@ export type RoomViewHandlers = {
   onCardThemeChange: (theme: string) => void;
   onSettingsToggle: () => Promise<void> | void;
   onMovePlayer: (playerId: string, fromIndex: number, toIndex: number) => Promise<void> | void;
-  onGenderChange: (gender: string) => void;
+  onRoleChange: (role: string) => void;
 };
 
 export class RoomView {
@@ -215,11 +215,11 @@ export class RoomView {
     const toggle = document.getElementById('settings-toggle')!;
     toggle.addEventListener('click', () => this.handlers.onSettingsToggle());
 
-    const buttons = document.querySelectorAll<HTMLButtonElement>('.gender-btn');
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.role-btn');
 
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
-        this.handlers.onGenderChange(btn.dataset.color!);
+        this.handlers.onRoleChange(btn.dataset.color!);
       });
     });
   }

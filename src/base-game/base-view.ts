@@ -91,14 +91,14 @@ export abstract class BaseView {
       name.classList.add('opponent-name');
       name.textContent = opp.name;
 
-      if(opp.genderColor === "neutral"){
+      if(opp.roleColor === "neutral"){
         //Set's the player back to the themed text color
         name.style.color = getComputedStyle(document.body)
           .getPropertyValue('--text-color')
           .trim();
       }
       else{
-        name.style.color = opp.genderColor;
+        name.style.color = opp.roleColor;
       }
 
       const oppInfo = document.createElement('div');
@@ -167,14 +167,14 @@ export abstract class BaseView {
         
         const name = document.createElement('span');
         name.textContent = player.name;
-        if(player.genderColor === "neutral"){
+        if(player.roleColor === "neutral"){
           //Set's the player back to the themed text color
           name.style.color = getComputedStyle(document.body)
             .getPropertyValue('--text-color')
             .trim();
         }
         else{
-          name.style.color = player.genderColor;
+          name.style.color = player.roleColor;
         }
 
         const score = document.createElement('span');

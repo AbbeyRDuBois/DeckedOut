@@ -137,14 +137,33 @@ export class Room {
     return true
   }
 
-  async setPlayerGender(gender: string) {
+  async updateRole(role: string): Promise<string> {
     const player = this.state.players.find(p => p.id === localStorage.getItem('playerId')!)!;
 
-    if(player.genderColor === gender){
-      await this.db.update({[`players.${player.id}.genderColor`]: "neutral"});
+    var trueColor = role;
+    if (role === player.roleColor) trueColor = "neutral";
+
+
+    var roleName = "";
+    switch (trueColor){
+      case "teal":
+        roleName = "Garbage Man";
+        break;
+      case "lightgreen":
+        roleName = "Dumpster Boy";
+        break;
+      case "orange":
+        roleName = "Glamour Girl";
+        break;
+      case "tomato":
+        roleName = "Treasure Lady";
+        break;
+      default:
+        roleName = "Neutral";
+        break;
     }
-    else{
-      await this.db.update({[`players.${player.id}.genderColor`]: gender});
-    }
+
+    await this.db.update({[`players.${player.id}.roleColor`]: trueColor});
+    return roleName;
   }
 }
