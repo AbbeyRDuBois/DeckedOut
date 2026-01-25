@@ -204,6 +204,11 @@ export abstract class BaseView {
       entry.innerHTML = log;
       logBox.appendChild(entry);
     });
+
+    //Prevents snapping to the bottom if you are looking at previous logs
+    if (logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 20){
+      logBox.scrollTop = logBox.scrollHeight; //Auto scroll to bottom
+    }
   }
 
   //Just add a log to the log box

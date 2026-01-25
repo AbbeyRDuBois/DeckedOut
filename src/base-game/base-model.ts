@@ -80,6 +80,7 @@ export abstract class BaseGame {
       for (const [id, team] of Object.entries(data.teams)) {
         this.teams.push(Team.fromPlainObject(team as DocumentData));
       }
+      this.teams.sort((a, b) => a.getOrder() - b.getOrder());
     }
 
     this.logs = data.logs ?? this.logs;

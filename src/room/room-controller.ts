@@ -27,7 +27,7 @@ export class RoomController {
       onLeave: async () => { await this.onLeaveRoom(); },
       onCopyId: async () => { await navigator.clipboard.writeText(this.model.getState().roomId); },
       onAddTeam: async () => { 
-        await this.model.addTeam( new Team(`Team ${this.model.getState().teams.length + 1}`, [], 0 ))
+        await this.model.addTeam( new Team(`Team ${this.model.getState().teams.length + 1}`, [], this.model.getState().teams.length));
       },
       onRemoveTeam: async () => { 
         const teams = this.model.getState().teams; 

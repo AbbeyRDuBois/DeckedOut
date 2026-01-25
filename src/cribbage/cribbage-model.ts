@@ -250,7 +250,7 @@ export class Cribbage extends BaseGame {
       card.isFlipped = true;
 
       // Move to played
-      const player = this.players.find(p => p.id === playerId)!;
+      const player = this.players.find(p => p.id === playerId)!
       const cardIndex = player.hand.findIndex((c: Card) => c.id === card.id);
       if (cardIndex === -1) return;
       player.hand[cardIndex].isFlipped = true; //Opponents can now see played card
@@ -604,12 +604,14 @@ export class Cribbage extends BaseGame {
     }
 
     if (!found) {
+      var teamChanges:any = {};
       // Last point for previous player
       if (this.peggingTotal !== 31) {
         const player = this.players[index];
         const team = this.findTeamByPlayer(player)!;
         team.score += 1;
         player.score += 1;
+        teamChanges[`teams.${team.name}`] = team.toPlainObject();
         await this.addLog(`Nobody else could play! ${player.name} got the point.`);
       }
 
@@ -618,9 +620,10 @@ export class Cribbage extends BaseGame {
       if (hasCardsLeft) {
         this.resetPegging(index);
         return {
+          ...teamChanges,
           currentPlayer: this.currentPlayer.toPlainObject(),
           peggingCards: this.peggingCards.map(c => c.toPlainObject()),
-          peggingTotal: this.peggingTotal
+          peggingTotal: this.peggingTotal,
         }
       } else {
         await this.endRound();
