@@ -34,21 +34,13 @@ export class RoomView {
     this.gameView = gameView;
   }
 
+  getGameView() { return this.gameView; }
+  navigateToHome() { window.location.href = 'index.html'; }
+
   //Outer call to set up listeners
   setHandlers(h: RoomViewHandlers) {
     this.handlers = h;
     this.attachBasicControls();
-  }
-
-  renderSettingsPanel(state: any) {
-    const panel = document.getElementById('settings-panel')!
-    panel.classList.toggle('closed', !state.settingsOpen);
-
-    // Ensure selectors reflect the current state
-    const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement | null;
-    if (themeSelector) themeSelector.value = state.theme || 'dark';
-    const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
-    if (cardThemeSelector) cardThemeSelector.value = state.cardTheme || 'Classic';
   }
 
   render(state: any) {
@@ -60,6 +52,17 @@ export class RoomView {
     this.renderPlayerList(state.players);
     this.renderTeams(state.teams, state.players);
     this.showWaitingOverlay(!state.started);
+  }
+
+  renderSettingsPanel(state: any) {
+    const panel = document.getElementById('settings-panel')!
+    panel.classList.toggle('closed', !state.settingsOpen);
+
+    // Ensure selectors reflect the current state
+    const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement | null;
+    if (themeSelector) themeSelector.value = state.theme || 'dark';
+    const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
+    if (cardThemeSelector) cardThemeSelector.value = state.cardTheme || 'Classic';
   }
 
   renderPlayerList(players: any[]) {
@@ -179,10 +182,7 @@ export class RoomView {
     await new Promise(requestAnimationFrame); //Waits for the new changes to load onto the page
   }
 
-  // Expose the game view instance so controllers can wire a game controller to the same view
-  getGameView() {
-    return this.gameView;
-  }
+  // Expose the game view instance so controllers can wire a game controller to the same vie
   showWaitingOverlay(show: boolean) {
     const el = document.getElementById('waiting-overlay')!;
     el.style.display = show ? 'flex' : 'none';
@@ -222,9 +222,5 @@ export class RoomView {
         this.handlers.onRoleChange(btn.dataset.color!);
       });
     });
-  }
-
-  navigateToHome() {
-    window.location.href = 'index.html';
   }
 }

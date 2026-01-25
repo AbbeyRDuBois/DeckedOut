@@ -48,6 +48,9 @@ export abstract class BaseController<
       }
     });
   }
+
+  abstract onStateChanged() : Promise<void>;
+  abstract gameOptions() : any;
   
   //Need this to trigger rerender to game when changes happen in the room (like changing card theme)
   gameRerender(){
@@ -59,7 +62,4 @@ export abstract class BaseController<
   async onCardPlayed(localId: string, cardId: number) {
     await this.game.cardPlayed(localId, cardId);
   }
-
-  abstract onStateChanged() : Promise<void>;
-  abstract gameOptions() : any;
 }

@@ -7,21 +7,10 @@
  ****************************************************************************/
 
 export class EntryView {
-  getUsername(): string {
-    return (document.getElementById("username") as HTMLInputElement).value;
-  }
-
-  getRoomId(): string {
-    return (document.getElementById("roomId") as HTMLInputElement).value;
-  }
-
-  hideSignIn() {
-    document.getElementById("signInBtn")!.style.display = "none";
-  }
-
-  setUsername(name: string) {
-    (document.getElementById("username") as HTMLInputElement).value = name;
-  }
+  getUsername(): string { return (document.getElementById("username") as HTMLInputElement).value; }
+  getRoomId(): string { return (document.getElementById("roomId") as HTMLInputElement).value; }
+  setUsername(name: string) { (document.getElementById("username") as HTMLInputElement).value = name; }
+  hideSignIn() { document.getElementById("signInBtn")!.style.display = "none"; }
 
   showError(message: string) {
     alert(message);

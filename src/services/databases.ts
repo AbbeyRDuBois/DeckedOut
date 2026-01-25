@@ -46,29 +46,12 @@ export class Database{
         });
     }
 
-    isHost(): boolean {
-        return this.room?.getState().hostId === localStorage.getItem('playerId')!;
-    }
-
-    actionsRef() {
-        return collection(this.roomRef, "actions");
-    }
-
-    getRoomRef(): any{
-        return this.roomRef;
-    }
-
-    getRoomId(): string {
-        return this.roomId;
-    }
-    
-    setGame(game: BaseGame){
-        this.game = game;
-    }
-
-    setRoom(room: Room){
-        this.room = room;
-    }
+    isHost(): boolean { return this.room?.getState().hostId === localStorage.getItem('playerId')!; }
+    actionsRef() { return collection(this.roomRef, "actions"); }
+    getRoomRef(): any { return this.roomRef; }
+    getRoomId(): string { return this.roomId; }
+    setGame(game: BaseGame) { this.game = game; }
+    setRoom(room: Room) { this.room = room; }
 
     async init(name: string, initialValues: any): Promise<Database>{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
@@ -152,7 +135,7 @@ export class Database{
 
                 patch = { 
                     [`players.${action.playerId}`]: player.toPlainObject(),
-                    [`teams.${action.name}`]:(new Team(player.name, [player.id])).toPlainObject() 
+                    [`teams.${action.name}`]:(new Team(player.name, [player.id], Object.keys(snap.teams).length)).toPlainObject() 
                 };
                 break;
             }

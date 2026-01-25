@@ -108,12 +108,12 @@ body[data-theme='cursed'] {
 }
 
 body[data-theme='blessed'] {
-  --logs:  #2FE600;
+  --logs:  #39FF14;
   --teams:  #39FF14;
-  --scoreboard: #2FE600;
+  --scoreboard: #39FF14;
   --hand: #39FF14;
-  --background: #66FF4D;
-  --top_bar: #26CC00;
+  --background: #39FF14;
+  --top_bar: #39FF14;
   --settings:#39FF14;
   --border:  white;
   --text-bg: #39FF14;
@@ -781,11 +781,16 @@ body {
   color: var(--text-color);
   padding: 8px;
   overflow-y: auto;
+  overflow-x: hidden;
+  word-break: break-word;
+  white-space: normal;
 }
 .log-entry {
   margin-bottom: 10px;
   font-size: 14px;
   border-bottom: 1px solid var(--border);
+  word-break: break-word;
+  white-space: normal;
 }
 
 /**************************************************************************************************************************************

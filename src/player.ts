@@ -16,6 +16,14 @@ export class Player {
         this.id = id;
         this.name = name;
     }
+
+    setOrder(order: number) { this.order = order; }
+    getOrder(): number { return this.order; }
+    getUnplayedCards(): Card[] {
+        const playedIds = new Set(this.playedCards.map(c => c.id));
+        return this.hand.filter(c => !playedIds.has(c.id));
+    }
+
     toPlainObject() {
         return {
             id: this.id,
@@ -53,18 +61,5 @@ export class Player {
         player.roleColor = data.roleColor;
 
         return player;
-    }
-
-    setOrder(order: number){
-        this.order = order;
-    }
-
-    getOrder(): number{
-        return this.order;
-    }
-
-    getUnplayedCards(): Card[] {
-        const playedIds = new Set(this.playedCards.map(c => c.id));
-        return this.hand.filter(c => !playedIds.has(c.id));
     }
 }

@@ -26,9 +26,8 @@ export class RoomController {
       onStart: async () => { await this.onStartGame();},
       onLeave: async () => { await this.onLeaveRoom(); },
       onCopyId: async () => { await navigator.clipboard.writeText(this.model.getState().roomId); },
-      onAddTeam: async () => { 
-        await this.model.addTeam( new Team(`Team ${this.model.getState().teams.length + 1}`, [], 0 ))
-      },
+      onAddTeam: async () => { await this.model.addTeam( new Team(`Team ${this.model.getState().teams.length + 1}`, [], this.model.getState().teams.length)); },
+      onTeamNameChange: async (idx, name) => { const teams = this.model.getState().teams; teams[idx].name = name; await this.model.updateTeams(teams); },
       onRemoveTeam: async () => { 
         const teams = this.model.getState().teams; 
         if (teams.length > 1) { 
@@ -44,7 +43,6 @@ export class RoomController {
           await this.model.updateTeams(teams); 
         } 
       },
-      onTeamNameChange: async (idx, name) => { const teams = this.model.getState().teams; teams[idx].name = name; await this.model.updateTeams(teams); },
       onRandomize: async (size) => {
         //Randomizes the teams
         const players = this.model.getState().players.slice();

@@ -29,7 +29,7 @@ export class EntryModel {
         hostId: playerId,
         gameType,
         players: { [playerId]: player.toPlainObject() },
-        teams: {[username]: new Team(player.name, [player.id]).toPlainObject()},
+        teams: {[username]: new Team(player.name, [player.id], 0).toPlainObject()},
         started: false
       })
     );
@@ -72,7 +72,7 @@ export class EntryModel {
         this.db.room.getState().players = players;
 
         // Add to a team (or create a new one)
-        const newTeam = new Team(username, [playerId], 0);        
+        const newTeam = new Team(username, [playerId], this.db.room.getState().teams.length);        
         this.db.room.getState().teams.push(newTeam);
 
         // Emit stateChanged immediately so UI updates

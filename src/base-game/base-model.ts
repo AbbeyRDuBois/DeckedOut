@@ -54,75 +54,34 @@ export abstract class BaseGame {
   abstract cardPlayed(playerId: string, cardId: number): void | Promise<void>;
 
   getEnded(): boolean { return this.ended; }
+  getDeck(): Deck { return this.deck; }
+  setPlayers(players: Player[]) { this.players = players; }
+  getMaxPlayers() { return this.maxPlayers; }
+  getMinPlayers() { return this.minPlayers; }
+  getPlayerById(id: string): Player | undefined { return this.players.find(player => player.id === id); }
+  getStarted() { return this.started; }
+  setStarted(started: boolean) { this.started = started; }
+  getUserPlayer() { return this.players.find((p) => p.id === localStorage.getItem('playerId')!)!; }
+  getOpponents() { return this.players.filter(p => p.id !== localStorage.getItem('playerId')!); }
+  getCurrentPlayer() { return this.currentPlayer; }
+  getPlayers() { return this.players; }
+  getTeams(): Team[] { return this.teams; }
+  setTeams(teams: Team[]) { this.teams = teams; }
+  getLogs(): string[] { return this.logs; }
 
-  //Allows the controller/view to subscribe to event
-  on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
-    this.events.on(event, listener);
+  async addLog(log: string){ 
+    this.logs.push(log);
   }
-
-  //Allows controller/view to unsubscribe to event
-  off<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
-    this.events.off(event, listener);
-  }
-
-  updateLocalState(data: any){
-
-    if (data.players){
-      this.players = [];
-      for (const [id, player] of Object.entries(data.players)) {
-        this.players.push(Player.fromPlainObject(player as DocumentData));
-      }
-      this.players.sort((a, b) => a.getOrder() - b.getOrder());
+  
+  getPlayerTeam(playerId: string): Team | null{
+    for (let i = 0; i < this.teams.length; i++) {
+        const team = this.teams[i];
+        if (team.playerIds.findIndex((id: string) => id === playerId) !== -1) {
+          return team;
+        }
     }
-
-    if (data.teams){
-      this.teams = [];
-      for (const [id, team] of Object.entries(data.teams)) {
-        this.teams.push(Team.fromPlainObject(team as DocumentData));
-      }
-    }
-
-    this.logs = data.logs ?? this.logs;
-    this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer): this.currentPlayer;
-
-    this.events.emit('stateChanged', this.toPlainObject());
+    return null;
   }
-
-  getDeck(): Deck{
-    return this.deck;
-  }
-
-  setPlayers(players: Player[]) {
-    this.players = players;
-  }
-
-  getMaxPlayers(){
-    return this.maxPlayers;
-  }
-
-  getMinPlayers(){
-    return this.minPlayers;
-  }
-
-  getPlayerById(id: string): Player | undefined{
-    return this.players.find(player => player.id === id);
-  }
-
-  getStarted() {
-    return this.started;
-  }
-  setStarted(started: boolean) {
-    this.started = started;
-  }
-
-  getUserPlayer(){
-    return this.players.find((p) => p.id === localStorage.getItem('playerId')!)!;
-  }
-
-  getOpponents(){
-    return this.players.filter(p => p.id !== localStorage.getItem('playerId')!);
-  }
-
   getPlayerOrder(){
     // If no teams exist, preserve players and just shuffle the player order
     if (!this.teams || this.teams.length === 0) {
@@ -161,38 +120,38 @@ export abstract class BaseGame {
     this.players = newOrder;
   }
 
-  getCurrentPlayer(){
-    return this.currentPlayer;
+    //Allows the controller/view to subscribe to event
+  on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
+    this.events.on(event, listener);
   }
 
-  getPlayers(){
-    return this.players;
+  //Allows controller/view to unsubscribe to event
+  off<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
+    this.events.off(event, listener);
   }
 
-  getTeams(): Team[]{
-    return this.teams;
-  }
+  updateLocalState(data: any){
 
-  setTeams(teams: Team[]) {
-    this.teams = teams;
-  }
-
-  getPlayerTeam(playerId: string): Team | null{
-    for (let i = 0; i < this.teams.length; i++) {
-        const team = this.teams[i];
-        if (team.playerIds.findIndex((id: string) => id === playerId) !== -1) {
-          return team;
-        }
+    if (data.players){
+      this.players = [];
+      for (const [id, player] of Object.entries(data.players)) {
+        this.players.push(Player.fromPlainObject(player as DocumentData));
+      }
+      this.players.sort((a, b) => a.getOrder() - b.getOrder());
     }
-    return null;
-  }
 
-  getLogs(): string[]{
-    return this.logs;
-  }
+    if (data.teams){
+      this.teams = [];
+      for (const [id, team] of Object.entries(data.teams)) {
+        this.teams.push(Team.fromPlainObject(team as DocumentData));
+      }
+      this.teams.sort((a, b) => a.getOrder() - b.getOrder());
+    }
 
-  async addLog(log: string){
-    this.logs.push(log);
+    this.logs = data.logs ?? this.logs;
+    this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer): this.currentPlayer;
+
+    this.events.emit('stateChanged', this.toPlainObject());
   }
 
   //Have to do this to send the state to Firebase (they only like plain objects)
