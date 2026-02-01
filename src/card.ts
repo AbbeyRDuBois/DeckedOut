@@ -56,6 +56,16 @@ export class Card {
         };
     }
 
+    //Sort by Value then by Suit
+    static sort(cards: Card[]){
+        const suitNames = SUITS.map(suit => suit.name);
+
+        return cards.sort((a, b) =>
+            VALUES.indexOf(a.value) - VALUES.indexOf(b.value) ||
+            suitNames.indexOf(a.suit) - suitNames.indexOf(b.suit)
+        );
+    }
+
     static fromPlainObject(data: DocumentData): Card{
         if (data == null){
             return new Card(0, "", "", false);

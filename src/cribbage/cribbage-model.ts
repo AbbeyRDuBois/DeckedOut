@@ -136,6 +136,7 @@ export class Cribbage extends BaseGame {
 
   //The beginning of it all!
   async start(): Promise<void> {
+    this.teams = this.teams.filter(t => t.playerIds.length > 0);
     this.getPlayerOrder();
     this.cribOwner = this.players[0];
     this.currentPlayer = this.players[1];
@@ -250,7 +251,7 @@ export class Cribbage extends BaseGame {
       this.peggingTotal += card.toInt(true);
       this.peggingCards.push(card);
 
-      this.addLog(`${player.name} played ${card.toHTML()}`);
+      this.addLog(`${player.name} played ${card.toHTML()} for ${this.peggingTotal}.`);
 
       // Calculate pegging points and assign
       const points = this.calculatePeggingPoints(card);
@@ -275,6 +276,7 @@ export class Cribbage extends BaseGame {
     changes.peggingTotal =  this.peggingTotal;
     changes[`players.${player.id}`] = player.toPlainObject();
     changes.logs = this.logs;
+    changes.ended = this.ended;
 
     changes = {
       ...changes,

@@ -151,6 +151,8 @@ export abstract class BaseGame {
     this.logs = data.logs ?? this.logs;
     this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer): this.currentPlayer;
 
+    this.ended = data.ended ?? false;
+
     this.events.emit('stateChanged', this.toPlainObject());
   }
 

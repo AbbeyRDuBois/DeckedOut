@@ -33,7 +33,8 @@ export class Player {
             score: this.score,
             playedCards: this.playedCards?.map(card => card?.toPlainObject()),
             team: this.team,
-            roleColor: this.roleColor
+            roleColor: this.roleColor,
+            order: this.order
         };
     }
 
@@ -60,6 +61,8 @@ export class Player {
 
         player.roleColor = data.roleColor;
 
+        player.order = data.order;
+        
         return player;
     }
 }

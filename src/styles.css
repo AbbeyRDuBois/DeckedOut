@@ -729,8 +729,16 @@ body {
 
 /*Winner Popup*/
 #winners {
-  font-size: large;
-  color: var(--gn-btn);
+  display: flex;
+  flex-direction: column;
+  font-size: xx-large;
+  align-items: center;
+  justify-content: center;
+}
+
+#winner-popup {
+  min-height: 50%;
+  min-width: 60%;
 }
 /***************************************
 *

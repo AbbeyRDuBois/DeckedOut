@@ -8,6 +8,7 @@
  * 
  ****************************************************************************/
 
+import { Card } from "../card";
 import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
 import { CardPlain, PlayerPlain, TeamPlain } from "../types";
 
@@ -40,7 +41,10 @@ export abstract class BaseView {
 
     handContainer.innerHTML = '';
 
-    const unplayed = player.hand.filter((card: CardPlain) => !player.playedCards.some((pc:CardPlain) => pc.id === card.id));
+    let unplayed = player.hand.filter((card: CardPlain) => !player.playedCards.some((pc:CardPlain) => pc.id === card.id));
+
+    unplayed = Card.sort(unplayed);
+
     unplayed.forEach((card: CardPlain) => {
       const cardEl = this.createCardElement(card, {
         startsFlipped: true,
@@ -90,16 +94,7 @@ export abstract class BaseView {
       const name = document.createElement('div');
       name.classList.add('opponent-name');
       name.textContent = opp.name;
-
-      if(opp.roleColor === "neutral"){
-        //Set's the player back to the themed text color
-        name.style.color = getComputedStyle(document.body)
-          .getPropertyValue('--text-color')
-          .trim();
-      }
-      else{
-        name.style.color = opp.roleColor;
-      }
+      name.style.color = opp.roleColor;
 
       const oppInfo = document.createElement('div');
       oppInfo.style.display = 'flex';
@@ -230,19 +225,22 @@ export abstract class BaseView {
   }
 
   //Render the Winner! (and the losers I suppose)
-  renderWinner(winner: any, losers: any) {
+  renderWinner(winner: any, losers: any, winnerPlayers: any) {
     const winnerPopup = document.getElementById('winner-overlay');
     if (!winnerPopup) return;
     winnerPopup.style.display = 'flex';
 
     const winners = document.getElementById('winners');
     if (!winners) return;
-    winners.innerHTML = `Winner: ${winner.name}!`;
+    winners.innerHTML = `
+      <strong>${winner.name} Won!</strong><div>
+      ${winnerPlayers.map(((player: any) => `${player.name}: ${player.score}`)).join("<div>")}`;
+
     const loserEl = document.createElement("h2");
     
     loserEl.innerHTML = `
-        <strong>Losers:</strong><br>
-        ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<br>")}
+        <strong>Losers:</strong><div>
+        ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<div>")}
     `;
     
     winners.appendChild(loserEl);
