@@ -139,7 +139,7 @@ export class Room {
     const player = this.state.players.find(p => p.id === localStorage.getItem('playerId')!)!;
 
     var trueColor = role;
-    if (role === player.roleColor) trueColor = "darkorchid";
+    if (role === player.roleColor) trueColor = "lavender";
 
 
     var roleName = "";

@@ -233,14 +233,14 @@ export abstract class BaseView {
     const winners = document.getElementById('winners');
     if (!winners) return;
     winners.innerHTML = `
-      <string>${winner.name} Won!</strong><br>
-      ${winnerPlayers.map(((player: any) => `${player.name}: ${player.score}`)).join("<br>")}`;
+      <strong>${winner.name} Won!</strong><div>
+      ${winnerPlayers.map(((player: any) => `${player.name}: ${player.score}`)).join("<div>")}`;
 
     const loserEl = document.createElement("h2");
     
     loserEl.innerHTML = `
-        <strong>Losers:</strong><br>
-        ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<br>")}
+        <strong>Losers:</strong><div>
+        ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<div>")}
     `;
     
     winners.appendChild(loserEl);

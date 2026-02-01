@@ -276,6 +276,7 @@ export class Cribbage extends BaseGame {
     changes.peggingTotal =  this.peggingTotal;
     changes[`players.${player.id}`] = player.toPlainObject();
     changes.logs = this.logs;
+    changes.ended = this.ended;
 
     changes = {
       ...changes,
