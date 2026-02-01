@@ -52,8 +52,9 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     if(this.game.getEnded()){
       const winner = this.game.getTeams().find(t => t.score >= this.game.getPointGoal());
       const losers = this.game.getTeams().filter(t => t.name != winner?.name);
+      const winnerPlayers = winner?.playerIds.map(id => this.game.getPlayerById(id));
 
-      this.view.renderWinner(winner, losers);
+      this.view.renderWinner(winner, losers, winnerPlayers);
       return;
     }
     

@@ -8,6 +8,7 @@
  * 
  ****************************************************************************/
 
+import { Card } from "../card";
 import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
 import { CardPlain, PlayerPlain, TeamPlain } from "../types";
 
@@ -40,7 +41,10 @@ export abstract class BaseView {
 
     handContainer.innerHTML = '';
 
-    const unplayed = player.hand.filter((card: CardPlain) => !player.playedCards.some((pc:CardPlain) => pc.id === card.id));
+    let unplayed = player.hand.filter((card: CardPlain) => !player.playedCards.some((pc:CardPlain) => pc.id === card.id));
+
+    unplayed = Card.sort(unplayed);
+
     unplayed.forEach((card: CardPlain) => {
       const cardEl = this.createCardElement(card, {
         startsFlipped: true,
@@ -221,14 +225,17 @@ export abstract class BaseView {
   }
 
   //Render the Winner! (and the losers I suppose)
-  renderWinner(winner: any, losers: any) {
+  renderWinner(winner: any, losers: any, winnerPlayers: any) {
     const winnerPopup = document.getElementById('winner-overlay');
     if (!winnerPopup) return;
     winnerPopup.style.display = 'flex';
 
     const winners = document.getElementById('winners');
     if (!winners) return;
-    winners.innerHTML = `Winner: ${winner.name}!`;
+    winners.innerHTML = `
+      <string>${winner.name} Won!</strong><br>
+      ${winnerPlayers.map(((player: any) => `${player.name}: ${player.score}`)).join("<br>")}`;
+
     const loserEl = document.createElement("h2");
     
     loserEl.innerHTML = `
