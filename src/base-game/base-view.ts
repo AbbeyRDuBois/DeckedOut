@@ -90,16 +90,7 @@ export abstract class BaseView {
       const name = document.createElement('div');
       name.classList.add('opponent-name');
       name.textContent = opp.name;
-
-      if(opp.roleColor === "neutral"){
-        //Set's the player back to the themed text color
-        name.style.color = getComputedStyle(document.body)
-          .getPropertyValue('--text-color')
-          .trim();
-      }
-      else{
-        name.style.color = opp.roleColor;
-      }
+      name.style.color = opp.roleColor;
 
       const oppInfo = document.createElement('div');
       oppInfo.style.display = 'flex';
