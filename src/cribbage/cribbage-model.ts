@@ -13,11 +13,13 @@ import { CardPlain } from "../types";
 import { Player } from "../player";
 import { Deck, JokerDeck } from "../deck";
 import { Database } from "../services/databases";
+import { Presentation, ScoringSlide } from "./presentation";
 
 export enum RoundState {
   Throwing = "Throwing",
   Pegging = "Pegging",
-  Pointing = "Pointing"
+  Pointing = "Pointing",
+  Scoring = "Scoring"
 }
 
 export class Cribbage extends BaseGame {
@@ -34,6 +36,7 @@ export class Cribbage extends BaseGame {
   protected awaitingJokerSelection: boolean = false;
   protected deckMode: string = "Standard";
   protected gameMode: string = "Standard";
+  protected presentation: Presentation = {slides:[], index:0};
 
   constructor(deck: Deck, players: Player[], db: Database){
     super(deck, players, db);
@@ -130,7 +133,8 @@ export class Cribbage extends BaseGame {
       peggingTotal: this.peggingTotal,
       awaitingJokerSelection: this.awaitingJokerSelection,
       deckMode: this.deckMode,
-      gameMode: this.gameMode
+      gameMode: this.gameMode,
+      presentation: this.presentation
     }
   }
 
@@ -184,6 +188,7 @@ export class Cribbage extends BaseGame {
     this.handSize = data.handSize ?? this.handSize;
     this.deckMode = data.deckMode ?? this.deckMode;
     this.gameMode = data.gameMode ?? this.gameMode;
+    this.presentation = data.presentation ?? this.presentation;
 
     super.updateLocalState(data); //Call this last for the stateChange event
   }
@@ -657,20 +662,108 @@ export class Cribbage extends BaseGame {
     this.peggingCards = [];
   }
 
-  async endRound(){
+  async endRound() {
     await this.addLog(`Flipped Card: ${this.flipped.toHTML()}`);
-    await this.countHands();
 
-    // If crib contains Joker we must pause here and ask crib owner to choose a replacement
-    const cribHasJoker = this.crib.some(c => c.value === 'JK');
+    //Get all the slides
+    const slides = this.computeScoringSlides();
+
+    this.roundState = RoundState.Scoring;
+    this.presentation = {
+      slides,
+      index: 0
+    };
+
+    await this.db.update(this.toPlainObject());
+    return false as any; // pause round progression
+  }
+
+  computeScoringSlides(): ScoringSlide[] {
+    const slides: ScoringSlide[] = [];
+    const currIndex = this.players.findIndex(p => p.id === this.cribOwner.id);
+
+    for (let i = 1; i <= this.players.length; i++) {
+      const player = this.players[(currIndex + i) % this.players.length];
+      const points = this.countHand([...player.hand], false);
+
+      slides.push({
+        type: "HAND",
+        playerId: player.id,
+        points
+      });
+    }
+
+    const cribPoints = this.countHand([...this.crib], true);
+
+    slides.push({
+      type: "CRIB",
+      dealerId: this.cribOwner.id,
+      points: cribPoints
+    });
+
+    return slides;
+  }
+
+  async advanceScoringPresentation() {
+    if (this.roundState !== RoundState.Scoring) return;
+
+    const { slides, index } = this.presentation;
+
+    if (index < slides.length - 1) {
+      this.presentation.index++;
+      await this.db.update({presentation: this.presentation});
+      return;
+    }
+
+    // Presentation finished
+    await this.applyScoringSlides(slides);
+    await this.finishRoundAfterScoring();
+  }
+
+  async applyScoringSlides(slides: ScoringSlide[]) {
+    for (const slide of slides) {
+      if (this.ended) return;
+
+      if (slide.type === "HAND") {
+        const player = this.players.find(p => p.id === slide.playerId)!;
+        const team = this.findTeamByPlayer(player)!;
+
+        team.score += slide.points;
+        player.score += slide.points;
+
+        await this.addLog(
+          `${player.name} got ${slide.points} points with hand ${player.hand.map(c => c.toHTML())}`
+        );
+
+        await this.checkIfWon(player);
+      }
+
+      if (slide.type === "CRIB") {
+        const player = this.players.find(p => p.id === slide.dealerId)!;
+        const team = this.findTeamByPlayer(player)!;
+
+        team.score += slide.points;
+        player.score += slide.points;
+
+        await this.addLog(
+          `${player.name} got ${slide.points} points with crib ${this.crib.map(c => c.toHTML())}`
+        );
+
+        this.crib = [];
+        await this.checkIfWon(player);
+      }
+    }
+  }
+
+  async finishRoundAfterScoring() {
+    // Joker rule stays intact
+    const cribHasJoker = this.crib.some(c => c.value === "JK");
     if (cribHasJoker) {
       this.roundState = RoundState.Pointing;
       this.awaitingJokerSelection = true;
       await this.db.update(this.toPlainObject());
-      return false as any; // indicate we paused
+      return;
     }
-
-    await this.countCrib();
 
     if (this.ended) return;
 
@@ -681,7 +774,9 @@ export class Cribbage extends BaseGame {
     this.roundState = RoundState.Throwing;
     this.peggingTotal = 0;
     this.peggingCards = [];
-    
+    this.presentation = {slides:[], index:0};
+
     await this.nextCribOwner();
+    await this.db.update(this.toPlainObject());
   }
 }

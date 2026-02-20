@@ -19,6 +19,7 @@ export class CribbageView extends BaseView {
     this.renderPeggingTotal(state);
     this.renderFlipped(state);
     this.renderIndicators(state, localPlayerId);
+    this.renderScoringOverlay(state);
   }
 
   renderPeggingTotal(state: any){
@@ -182,4 +183,68 @@ export class CribbageView extends BaseView {
   hideJokerPopup() {
     document.getElementById("joker-overlay")!.style.display = "none";
   }
-}
+
+  renderScoringOverlay(state: any) {
+    const overlay = document.querySelector(
+      ".scoring-overlay"
+    ) as HTMLElement;
+
+    if (state.roundState !== "Scoring") {
+      overlay.classList.add("hidden");
+      return;
+    }
+
+    overlay.classList.remove("hidden");
+
+    const slide =
+      state.presentation.slides[
+        state.presentation.index
+      ];
+
+    this.renderSlide(slide, state);
+  }
+
+  renderSlide(slide: any, state: any) {
+    const nameEl = document.getElementById("scoring-name")!;
+    const handEl = document.getElementById("scoring-hand")!;
+    const scoreEl = document.getElementById("scoring-score")!;
+
+    handEl.innerHTML = "";
+
+    if (slide.type === "HAND") {
+      const player = Object.entries(state.players).find(([id]) => id == slide.playerId)?.[1] as PlayerPlain;
+      nameEl.textContent = `${player.name}'s Hand`;
+
+      for (const card of player.hand) {
+        const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
+        handEl.appendChild(cardEl);
+      }
+
+      // plus flipped card
+      const plus = document.createElement("span");
+      plus.textContent = "+";
+      handEl.appendChild(plus);
+
+      const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
+      handEl.appendChild(flippedEl);
+    }
+
+    if (slide.type === "CRIB") {
+      const dealer = Object.entries(state.players).find(([id]) => id == slide.dealerId)?.[1] as PlayerPlain;
+      nameEl.textContent = `${dealer.name}'s Crib`;
+
+      for (const card of state.crib) {
+        const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
+        handEl.appendChild(cardEl);
+      }
+
+      const plus = document.createElement("span");
+      plus.textContent = "+";
+      handEl.appendChild(plus);
+
+      const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
+      handEl.appendChild(flippedEl);
+    }
+
+    scoreEl.textContent = `Total Points: ${slide.points}`;
+  }}

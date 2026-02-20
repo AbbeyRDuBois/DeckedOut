@@ -947,6 +947,12 @@ body {
   pointer-events: none;   
   cursor: default;               
 }
+
+/***************************************
+*
+* Pegging
+*
+***************************************/
 #peggingContainer { 
   position: absolute;
   top: 40%;
@@ -962,7 +968,11 @@ body {
   justify-content:center;
   font-size: 40px;
 }
-
+/***************************************
+*
+* Jokers
+*
+***************************************/
 #joker-popup.popup {
   display: flex;
   flex-direction: column;
@@ -976,4 +986,61 @@ body {
 .joker-row{
   height:25%;
   display:flex;
+}
+
+/***************************************
+*
+* Scoring "Animations"
+*
+***************************************/
+.scoring-overlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.scoring-overlay.hidden {
+  display: none !important;
+}
+
+.scoring-overlay .player-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.scoring-overlay .hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  max-width: 90vw;
+  max-height: 40vh;
+  min-width: 45vw;
+  min-height: 20vh;
+}
+
+/*This is for the Plus Sign*/
+.scoring-overlay .hand > span {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--text-color);
+  margin: 0 1rem;
+  align-self: center;
+}
+
+.scoring-overlay .total-score {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+  text-align: center;
 }

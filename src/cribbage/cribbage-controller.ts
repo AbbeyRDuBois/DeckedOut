@@ -14,6 +14,9 @@ import { Deck } from "../deck";
 import { BaseController } from "../base-game/base-controller";
 
 export class CribbageController extends BaseController<Cribbage, CribbageView>{
+  private scoringPresentationTimer: number | null = null;
+  private readonly SLIDE_DURATION_MS = 5000; // 5 seconds per slide
+
   constructor(game: Cribbage, view: CribbageView, db: Database) {
     super(game, view, db);
 
@@ -57,6 +60,23 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
       this.view.renderWinner(winner, losers, winnerPlayers);
       return;
     }
+
+    const state = this.game.getRoundState();
+
+    // Handle scoring presentation auto-advance
+    if (state === RoundState.Scoring) {
+      // Start auto-advance if not already running
+      if (this.scoringPresentationTimer === null) {
+        this.startScoringPresentation();
+      }
+      // Render the scoring overlay for all players
+      const gameState = this.game.toPlainObject();
+      const localId = localStorage.getItem('playerId')!;
+      this.view.render(gameState, localId, cardId => this.onCardPlayed(localId, cardId));
+    } else {
+      // Stop auto-advance if we're no longer in Scoring state
+      this.stopScoringPresentation();
+    }
     
     const localId = localStorage.getItem('playerId')!;
 
@@ -70,8 +90,6 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     }
 
     const localPlayer = this.game.getPlayers().find(p => p.id === localId);
-
-    const state = this.game.getRoundState();
 
     // Check if local player has a Joker in hand
     if (localPlayer?.hand.some((c: Card) => c.value === 'JK') && state != RoundState.Pointing) {
@@ -144,5 +162,24 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     };
 
     this.view.renderJokerPopup(cards, onCardClick);
+  }
+
+  private startScoringPresentation(): void {
+    if (!this.game.isHost()) return; // Only host manages the timer
+    
+    // Clear any existing timer
+    this.stopScoringPresentation();
+
+    // Start auto-advance timer
+    this.scoringPresentationTimer = window.setInterval(async () => {
+      await this.game.advanceScoringPresentation();
+    }, this.SLIDE_DURATION_MS);
+  }
+
+  private stopScoringPresentation(): void {
+    if (this.scoringPresentationTimer !== null) {
+      clearInterval(this.scoringPresentationTimer);
+      this.scoringPresentationTimer = null;
+    }
   }
 }
