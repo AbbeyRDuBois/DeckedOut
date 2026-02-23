@@ -35,6 +35,10 @@ export class Room {
     this.events.emit('stateChanged', this.getState());
   }
 
+  findPlayerById(playerId: string): Player {
+    return this.state.players.find(p => p.id === playerId)!;
+  }
+
   async init() {
     try {
       this.db = new Database();
@@ -136,7 +140,7 @@ export class Room {
   }
 
   async updateRole(role: string): Promise<string> {
-    const player = this.state.players.find(p => p.id === localStorage.getItem('playerId')!)!;
+    const player = this.findPlayerById(localStorage.getItem("playerId")!);
 
     var trueColor = role;
     if (role === player.roleColor) trueColor = "lavender";
