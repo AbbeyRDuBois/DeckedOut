@@ -976,18 +976,34 @@ body {
 #joker-popup.popup {
   display: flex;
   flex-direction: column;
-  height: 50vh;
-  width: 90vh;
+  height: 80vh;
+  width: 100vh;
   padding: 1%;
   gap: 1%;
   border-radius: 10px;
 }
 
-.joker-row{
-  height:25%;
-  display:flex;
+#joker-deck{
+  flex: 3;
 }
 
+#joker-hand {
+  flex:1;
+  display: flex;
+}
+
+.joker-divider {
+  height: 2px;
+  background: var(--border);
+  flex-shrink: 0;
+  align-self: stretch;
+  border-radius: 6px;
+}
+
+.joker-row {
+  height: 25%;
+  display: flex;
+}
 /***************************************
 *
 * Scoring "Animations"

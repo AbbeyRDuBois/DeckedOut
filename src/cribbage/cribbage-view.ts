@@ -158,19 +158,23 @@ export class CribbageView extends BaseView {
   // Call to render the card-select popup for when a joker is available in cribbage
   renderJokerPopup(
     cards: CardPlain[],
-    onCardClick: (cardId: number) => void
+    onCardClick: (cardId: number) => void,
+    choiceCards: CardPlain[]
   ) {
     const overlay = document.getElementById("joker-overlay")!;
     overlay.style.display = "flex";
 
-    const rows = document.getElementById("joker-popup")!.children;
-    for (let i = 0; i < 4; i++) rows.item(i)!.innerHTML = "";
+    // Clear deck section
+    const deckSection = document.getElementById("joker-deck")!;
+    const deckRows = deckSection.querySelectorAll(".joker-row");
+    deckRows.forEach(row => row.innerHTML = "");
 
+    // Render deck cards (full deck)
     cards.forEach((card, index) => {
-      const rowEl = rows.item(Math.floor(index / 13)) as HTMLElement;
+      const rowEl = deckRows.item(Math.floor(index / 13)) as HTMLElement;
 
       const cardDiv = this.createCardElement(card, {
-        container: rows[0] as HTMLElement,
+        container: rowEl,
         clickable: true,
         startsFlipped: card.isFlipped,
         onClick: () => onCardClick(card.id) // forward ID to controller
@@ -178,6 +182,21 @@ export class CribbageView extends BaseView {
 
       rowEl.appendChild(cardDiv);
     });
+
+    // Clear hand section
+    if (choiceCards && choiceCards.length > 0) {
+      const handSection = document.getElementById("joker-hand")!;
+      handSection.innerHTML = "";
+
+      choiceCards.forEach((card, index) => {
+        const cardDiv = this.createCardElement(card, {
+          container: handSection,
+          startsFlipped: true
+        });
+        cardDiv.style.pointerEvents = 'none';
+        handSection.appendChild(cardDiv);
+      });
+    }
   }
 
   hideJokerPopup() {

@@ -82,14 +82,16 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
           if (overlay) overlay.classList.add("hidden");
 
           const fullDeck = new Deck();
-          this.view.renderJokerPopup(this.game.getFullPlainDeck(),
+          this.view.renderJokerPopup(
+            this.game.getFullPlainDeck(),
             async (cardId: number) => {
               this.view.hideJokerPopup();
               const selectedCard = fullDeck.deck.find(c => c.id === cardId);
               if (selectedCard) {
                 await this.game.applyJokerCard(selectedCard, localId);
               }
-            }
+            },
+            this.game.getCrib().map(c => c.toPlainObject())
           );
         } else {
           // For non-crib owners, show the scoring slide and wait
@@ -129,13 +131,34 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     // Check if local player has a Joker in hand
     if (localPlayer?.hand.some((c: Card) => c.value === 'JK') && state != RoundState.Pointing && state != RoundState.Scoring) {
       const fullDeck = new Deck();
-      this.view.renderJokerPopup(this.game.getFullPlainDeck(),
+      this.view.renderJokerPopup(
+        this.game.getFullPlainDeck(),
         async (cardId: number) => {
           this.view.hideJokerPopup();
           const selected = fullDeck.deck.find(c => c.id === cardId);
           if (!selected) return;
           await this.game.applyJokerCard(selected, localId);
-        }
+        },
+        localPlayer.hand.map(c => c.toPlainObject())
+      );
+      return;
+    }
+
+    // Check if flipped card is a Joker
+    if (this.game.getFlipped().value === 'JK' 
+        && state != RoundState.Pointing && state != RoundState.Scoring
+        && localId === cribOwner.id
+        && this.game.getFlipped().isFlipped) {
+      const fullDeck = new Deck();
+      this.view.renderJokerPopup(
+        this.game.getFullPlainDeck(),
+        async (cardId: number) => {
+          this.view.hideJokerPopup();
+          const selected = fullDeck.deck.find(c => c.id === cardId);
+          if (!selected) return;
+          await this.game.applyJokerCard(selected, localId);
+        },
+        localPlayer?.hand.map(c => c.toPlainObject()) || []
       );
     }
   }
@@ -171,7 +194,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
       this.view.hideJokerPopup();
     };
 
-    this.view.renderJokerPopup(cards, onCardClick);
+    this.view.renderJokerPopup(cards, onCardClick, []);
   }
 
   private startScoringPresentation(): void {
