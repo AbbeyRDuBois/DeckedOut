@@ -62,23 +62,58 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     }
 
     const state = this.game.getRoundState();
+    const localId = localStorage.getItem('playerId')!;
+    const cribOwner = this.game.getCribOwner();
 
     // Handle scoring presentation auto-advance
     if (state === RoundState.Scoring) {
-      // Start auto-advance if not already running
-      if (this.scoringPresentationTimer === null) {
-        this.startScoringPresentation();
+      // Check if crib slide has joker
+      if (this.game.hasCribJokerInCurrentSlide()) {
+        // Pause for joker selection
+        this.stopScoringPresentation();
+
+        // Only show popup for crib owner
+        if (localId === cribOwner.id) {
+          const gameState = this.game.toPlainObject();
+          this.view.render(gameState, localId, cardId => this.onCardPlayed(localId, cardId));
+            
+          // Hide the scoring overlay for the crib owner
+          const overlay = document.querySelector(".scoring-overlay") as HTMLElement;
+          if (overlay) overlay.classList.add("hidden");
+
+          const fullDeck = new Deck();
+          this.view.renderJokerPopup(this.game.getFullPlainDeck(),
+            async (cardId: number) => {
+              this.view.hideJokerPopup();
+              const selectedCard = fullDeck.deck.find(c => c.id === cardId);
+              if (selectedCard) {
+                await this.game.applyJokerCard(selectedCard, localId);
+              }
+            }
+          );
+        } else {
+          // For non-crib owners, show the scoring slide and wait
+          const gameState = this.game.toPlainObject();
+          this.view.render(gameState, localId, cardId => this.onCardPlayed(localId, cardId));
+        }
+      } else {
+        // Normal slide
+        if (this.scoringPresentationTimer === null) {
+          this.startScoringPresentation();
+        }
+        
+        // Render the scoring overlay for all players
+        const gameState = this.game.toPlainObject();
+        this.view.render(gameState, localId, cardId => this.onCardPlayed(localId, cardId));
+        
+        // Make sure scoring is visible
+        const overlay = document.querySelector(".scoring-overlay") as HTMLElement;
+        if (overlay) overlay.classList.remove("hidden");
       }
-      // Render the scoring overlay for all players
-      const gameState = this.game.toPlainObject();
-      const localId = localStorage.getItem('playerId')!;
-      this.view.render(gameState, localId, cardId => this.onCardPlayed(localId, cardId));
     } else {
       // Stop auto-advance if we're no longer in Scoring state
       this.stopScoringPresentation();
     }
-    
-    const localId = localStorage.getItem('playerId')!;
 
     // Freeze/Restore the local hand UI depending on whether a selection is pending
     if (this.game.waitingForJoker()) {
@@ -92,41 +127,16 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     const localPlayer = this.game.getPlayers().find(p => p.id === localId);
 
     // Check if local player has a Joker in hand
-    if (localPlayer?.hand.some((c: Card) => c.value === 'JK') && state != RoundState.Pointing) {
+    if (localPlayer?.hand.some((c: Card) => c.value === 'JK') && state != RoundState.Pointing && state != RoundState.Scoring) {
       const fullDeck = new Deck();
       this.view.renderJokerPopup(this.game.getFullPlainDeck(),
         async (cardId: number) => {
-          await this.game.applyJokerCard(fullDeck.deck.find(c => c.id === cardId)!, localId);
-          // Hide the popup after selection
           this.view.hideJokerPopup();
+          const selected = fullDeck.deck.find(c => c.id === cardId);
+          if (!selected) return;
+          await this.game.applyJokerCard(selected, localId);
         }
       );
-    }
-
-    // If a joker selection is pending, show the crib (if applicable) and prompt crib owner to select
-    const flipped = this.game.getFlipped();
-    const cribJoker = this.game.getCrib().some((c: any) => c?.value === 'JK');
-    const cribOwner = this.game.getCribOwner();
-
-    if (this.game.waitingForJoker() && (
-      (state === RoundState.Pegging && flipped.value === 'JK') ||
-      (state === RoundState.Pointing && cribJoker)
-    )) {
-      // set everyone's hands to the crib so they can see it
-      if (state === RoundState.Pointing && cribJoker) {
-        this.game.getPlayers().forEach(player => player.hand = this.game.getCrib());
-      }
-
-      if (localId === cribOwner.id) {
-        const fullDeck = new Deck();
-        this.view.renderJokerPopup(this.game.getFullPlainDeck(),
-          async (cardId: number) => {
-            await this.game.applyJokerCard(fullDeck.deck.find(c => c.id === cardId)!, localId);
-            // Hide the popup after selection
-            this.view.hideJokerPopup();
-          }
-        );
-      }
     }
   }
 
@@ -138,10 +148,10 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
       data = await this.db?.pullState();
 
       //Check for if crib has been set
-      if(crib && !this.game.getCrib().map((c: any) => new Card(c.id, c.value, c.suit)).some((card: any) => card.value === "JK")) break;
+      if (crib && !data?.crib?.some((c: any) => c.value === "JK")) break;
 
       //Check for if flipped has been set
-      if(!crib && Card.fromPlainObject(data?.flipped).value != "JK") break;
+      if (!crib && data?.flipped?.value != "JK") break;
 
       // Small delay before checking again
       await new Promise(res => setTimeout(res, 300));
@@ -157,7 +167,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
       if (!card) return;
 
       const playerId = selectingPlayerId ?? localStorage.getItem('playerId')!;
-      await this.game.applyJokerCard(card, playerId); // call model logic and wait for any post-selection counting
+      await this.game.applyJokerCard(card, playerId);
       this.view.hideJokerPopup();
     };
 

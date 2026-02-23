@@ -57,6 +57,17 @@ export class Cribbage extends BaseGame {
   getDeckMode(): string { return this.deckMode; }
   isHost(): boolean{ return this.db.isHost(); }
 
+  getScoringSlide() {
+    const { slides, index } = this.presentation;
+    return slides[index];
+  }
+
+  hasCribJokerInCurrentSlide(): boolean {
+    const slide = this.getScoringSlide();
+    if (!slide || slide.type !== "CRIB") return false;
+    return this.crib.some(c => c.value === "JK");
+  }
+
   setHandState(player: Player){
     if(player.hand?.length <= 0) return;
 
@@ -178,7 +189,6 @@ export class Cribbage extends BaseGame {
   override updateLocalState(data: DocumentData): void {
     this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
     this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.crib;
-    this.deck = data.deck ? Deck.fromPlainObject(data.deck): this.deck;
     this.roundState = data.roundState ?? this.roundState;
     this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.peggingCards;
     this.peggingTotal = data.peggingTotal ?? this.peggingTotal;
@@ -189,6 +199,15 @@ export class Cribbage extends BaseGame {
     this.deckMode = data.deckMode ?? this.deckMode;
     this.gameMode = data.gameMode ?? this.gameMode;
     this.presentation = data.presentation ?? this.presentation;
+
+    // Restore deck with correct type based on deckMode
+    if (data.deck) {
+      if (this.deckMode === 'Joker') {
+        this.deck = JokerDeck.fromPlainObject(data.deck);
+      } else {
+        this.deck = Deck.fromPlainObject(data.deck);
+      }
+    }
 
     super.updateLocalState(data); //Call this last for the stateChange event
   }
@@ -324,6 +343,7 @@ export class Cribbage extends BaseGame {
       }
 
       await this.db.update(changes);
+      this.events.emit('stateChanged', {});
       return;
     }
 
@@ -332,24 +352,39 @@ export class Cribbage extends BaseGame {
     if (cribJoker != -1) {
       this.crib.splice(cribJoker, 1);
       this.crib.push(card);
-      // Selection made, unfreeze and immediately count the crib
-      this.awaitingJokerSelection = false;
-      // Now proceed to count crib and reset round
-      await this.countCrib();
 
-      if (this.ended) return;
+      if (this.roundState === RoundState.Scoring) {
+        this.presentation.slides.pop(); //Get rid of last slide
+        // Recount crib
+        const cribPoints = this.countHand([...this.crib], true);
 
-      this.deck.resetDeck();
-      await this.deal();
-      this.setFlipped();
+        //Push on that new slide
+        this.presentation.slides.push({
+          type: "CRIB",
+          dealerId: this.cribOwner.id,
+          points: cribPoints
+        });
 
-      this.roundState = RoundState.Throwing;
-      this.peggingTotal = 0;
-      this.peggingCards = [];
-      
-      await this.nextCribOwner();
-      await this.db.update(this.toPlainObject());
-      return;
+        this.awaitingJokerSelection = false;
+
+        await this.db.update({
+          crib: this.crib.map(c => c.toPlainObject()),
+          presentation: this.presentation,
+          awaitingJokerSelection: this.awaitingJokerSelection
+        });
+
+        this.events.emit('stateChanged', {});
+        return;
+      } else {
+        this.awaitingJokerSelection = false;
+        await this.db.update({
+          crib: this.crib.map(c => c.toPlainObject()),
+          awaitingJokerSelection: this.awaitingJokerSelection
+        });
+
+        this.events.emit('stateChanged', {});
+        return;
+      }
     }
   }
 
@@ -433,8 +468,8 @@ export class Cribbage extends BaseGame {
     return points;
   }
 
-  async countCrib() {
-    if (this.ended) return;
+  async countCrib(): Promise<number> {
+    if (this.ended) return 0;
 
     let hand = [...this.crib];
     const points = this.countHand(hand, true);
@@ -447,6 +482,8 @@ export class Cribbage extends BaseGame {
     this.crib = [];
 
     await this.checkIfWon(player);
+
+    return points;
   }
 
   //Finds all the 15s in the hand
@@ -708,6 +745,11 @@ export class Cribbage extends BaseGame {
     if (this.roundState !== RoundState.Scoring) return;
 
     const { slides, index } = this.presentation;
+
+    // If crib has joker pause
+    if (this.hasCribJokerInCurrentSlide()) {
+      return; // Don't advance, wait for joker selection
+    }
 
     if (index < slides.length - 1) {
       this.presentation.index++;

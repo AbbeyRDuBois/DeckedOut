@@ -217,6 +217,7 @@ export class CribbageView extends BaseView {
 
       for (const card of player.hand) {
         const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
+        cardEl.style.pointerEvents = 'none';
         handEl.appendChild(cardEl);
       }
 
@@ -226,6 +227,7 @@ export class CribbageView extends BaseView {
       handEl.appendChild(plus);
 
       const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
+      flippedEl.style.pointerEvents = 'none';
       handEl.appendChild(flippedEl);
     }
 
@@ -235,6 +237,7 @@ export class CribbageView extends BaseView {
 
       for (const card of state.crib) {
         const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
+        cardEl.style.pointerEvents = 'none';
         handEl.appendChild(cardEl);
       }
 
@@ -243,6 +246,7 @@ export class CribbageView extends BaseView {
       handEl.appendChild(plus);
 
       const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
+      flippedEl.style.pointerEvents = 'none';
       handEl.appendChild(flippedEl);
     }
 

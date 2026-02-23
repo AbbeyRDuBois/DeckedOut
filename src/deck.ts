@@ -49,6 +49,12 @@ export class JokerDeck extends Deck{
         this.deck.push(new Card(this.deck.length, 'JK', 'Red'))
         this.deck.push(new Card(this.deck.length, 'JK', 'Black'))
     }
+
+    static fromPlainObject(data: DocumentData): JokerDeck{
+        return new JokerDeck(Array.isArray(data)
+            ? data.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped))
+            : []);
+    }
 }
 
 export { SUITS };
