@@ -2,7 +2,7 @@
  * 
  *  Base Model (Parent of all Games)
  * 
- *      Implements core functionality all games should have to play their game
+ *      Implements core functionality most games should have to play their game
  *          Basic getters/setters
  *          Player order/teams
  *      Sets/updates the game state as events happen through the game
@@ -82,6 +82,7 @@ export abstract class BaseGame {
     }
     return null;
   }
+
   getPlayerOrder(){
     // If no teams exist, preserve players and just shuffle the player order
     if (!this.teams || this.teams.length === 0) {
@@ -131,7 +132,6 @@ export abstract class BaseGame {
   }
 
   updateLocalState(data: any){
-
     if (data.players){
       this.players = [];
       for (const [id, player] of Object.entries(data.players)) {
@@ -150,7 +150,6 @@ export abstract class BaseGame {
 
     this.logs = data.logs ?? this.logs;
     this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer): this.currentPlayer;
-
     this.ended = data.ended ?? false;
 
     this.events.emit('stateChanged', this.toPlainObject());
@@ -197,6 +196,10 @@ export abstract class BaseGame {
     return this.teams.find(team =>
         team.playerIds.some((id: string) => id === player.id)
     )!;
+  }
+
+  findPlayerById(playerId: string): Player {
+    return this.players.find(p => p.id === playerId)!;
   }
 
   //Shuffles the player/team order
