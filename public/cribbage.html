@@ -12,11 +12,21 @@
 
 <div id="joker-overlay" class="popup-overlay" style="display: none;">
   <div id="joker-popup" class="popup">
-    <div class="joker-row"></div>
-    <div class="joker-row"></div>
-    <div class="joker-row"></div>
-    <div class="joker-row"></div>
+    <div id="joker-deck" class="joker-section">
+      <div class="joker-row"></div>
+      <div class="joker-row"></div>
+      <div class="joker-row"></div>
+      <div class="joker-row"></div>
+    </div>
+    <div class="joker-divider"></div>
+    <div id="joker-hand"></div>
   </div>
 </div>
 
 <div id="throwing">Throwing</div>
+
+<div class="scoring-overlay hidden">
+  <div class="player-name" id="scoring-name"></div>
+  <div class="hand" id="scoring-hand"></div>
+  <div class="total-score" id="scoring-score"></div>
+</div>

@@ -19,6 +19,7 @@ export class CribbageView extends BaseView {
     this.renderPeggingTotal(state);
     this.renderFlipped(state);
     this.renderIndicators(state, localPlayerId);
+    this.renderScoringOverlay(state);
   }
 
   renderPeggingTotal(state: any){
@@ -157,19 +158,23 @@ export class CribbageView extends BaseView {
   // Call to render the card-select popup for when a joker is available in cribbage
   renderJokerPopup(
     cards: CardPlain[],
-    onCardClick: (cardId: number) => void
+    onCardClick: (cardId: number) => void,
+    choiceCards: CardPlain[]
   ) {
     const overlay = document.getElementById("joker-overlay")!;
     overlay.style.display = "flex";
 
-    const rows = document.getElementById("joker-popup")!.children;
-    for (let i = 0; i < 4; i++) rows.item(i)!.innerHTML = "";
+    // Clear deck section
+    const deckSection = document.getElementById("joker-deck")!;
+    const deckRows = deckSection.querySelectorAll(".joker-row");
+    deckRows.forEach(row => row.innerHTML = "");
 
+    // Render deck cards (full deck)
     cards.forEach((card, index) => {
-      const rowEl = rows.item(Math.floor(index / 13)) as HTMLElement;
+      const rowEl = deckRows.item(Math.floor(index / 13)) as HTMLElement;
 
       const cardDiv = this.createCardElement(card, {
-        container: rows[0] as HTMLElement,
+        container: rowEl,
         clickable: true,
         startsFlipped: card.isFlipped,
         onClick: () => onCardClick(card.id) // forward ID to controller
@@ -177,9 +182,92 @@ export class CribbageView extends BaseView {
 
       rowEl.appendChild(cardDiv);
     });
+
+    // Clear hand section
+    if (choiceCards && choiceCards.length > 0) {
+      const handSection = document.getElementById("joker-hand")!;
+      handSection.innerHTML = "";
+
+      choiceCards.forEach((card, index) => {
+        const cardDiv = this.createCardElement(card, {
+          container: handSection,
+          startsFlipped: true
+        });
+        cardDiv.style.pointerEvents = 'none';
+        handSection.appendChild(cardDiv);
+      });
+    }
   }
 
   hideJokerPopup() {
     document.getElementById("joker-overlay")!.style.display = "none";
   }
-}
+
+  renderScoringOverlay(state: any) {
+    const overlay = document.querySelector(
+      ".scoring-overlay"
+    ) as HTMLElement;
+
+    if (state.roundState !== "Scoring") {
+      overlay.classList.add("hidden");
+      return;
+    }
+
+    overlay.classList.remove("hidden");
+
+    const slide =
+      state.presentation.slides[
+        state.presentation.index
+      ];
+
+    this.renderSlide(slide, state);
+  }
+
+  renderSlide(slide: any, state: any) {
+    const nameEl = document.getElementById("scoring-name")!;
+    const handEl = document.getElementById("scoring-hand")!;
+    const scoreEl = document.getElementById("scoring-score")!;
+
+    handEl.innerHTML = "";
+
+    if (slide.type === "HAND") {
+      const player = Object.entries(state.players).find(([id]) => id == slide.playerId)?.[1] as PlayerPlain;
+      nameEl.textContent = `${player.name}'s Hand`;
+
+      for (const card of player.hand) {
+        const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
+        cardEl.style.pointerEvents = 'none';
+        handEl.appendChild(cardEl);
+      }
+
+      // plus flipped card
+      const plus = document.createElement("span");
+      plus.textContent = "+";
+      handEl.appendChild(plus);
+
+      const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
+      flippedEl.style.pointerEvents = 'none';
+      handEl.appendChild(flippedEl);
+    }
+
+    if (slide.type === "CRIB") {
+      const dealer = Object.entries(state.players).find(([id]) => id == slide.dealerId)?.[1] as PlayerPlain;
+      nameEl.textContent = `${dealer.name}'s Crib`;
+
+      for (const card of state.crib) {
+        const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
+        cardEl.style.pointerEvents = 'none';
+        handEl.appendChild(cardEl);
+      }
+
+      const plus = document.createElement("span");
+      plus.textContent = "+";
+      handEl.appendChild(plus);
+
+      const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
+      flippedEl.style.pointerEvents = 'none';
+      handEl.appendChild(flippedEl);
+    }
+
+    scoreEl.textContent = `Total Points: ${slide.points}`;
+  }}

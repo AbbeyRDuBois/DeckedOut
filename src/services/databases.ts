@@ -10,7 +10,6 @@ import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
 import EventEmitter from "events";
 import { Room } from "../room/room-model";
-import { Cribbage } from "../cribbage/cribbage-model";
 import { RoomAction } from "../types";
 import { Player } from "../player";
 import { Team } from "../team";
@@ -114,7 +113,6 @@ export class Database{
     * Host-only action processor
     */
     async processAction(action: RoomAction) {
-        console.trace("processAction called with:", action);
         const snap = await this.pullState();
         if (!snap) return;
 
@@ -194,7 +192,6 @@ export class Database{
         return onSnapshot(this.actionsRef(), snap => {
             snap.docChanges().forEach(async change => {
             if (change.type !== "added") return;
-
             await this.processAction(change.doc.data() as RoomAction);
             deleteDoc(change.doc.ref);
             });
