@@ -62,12 +62,6 @@ export class Cribbage extends BaseGame {
     return slides[index];
   }
 
-  hasCribJokerInCurrentSlide(): boolean {
-    const slide = this.getScoringSlide();
-    if (!slide || slide.type !== "CRIB") return false;
-    return this.crib.some(c => c.value === "JK");
-  }
-
   setHandState(player: Player){
     if(player.hand?.length <= 0) return;
 
@@ -149,6 +143,33 @@ export class Cribbage extends BaseGame {
     }
   }
 
+    //Updates the local state from DB values
+  override updateLocalState(data: DocumentData): void {
+    this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
+    this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.crib;
+    this.roundState = data.roundState ?? this.roundState;
+    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.peggingCards;
+    this.peggingTotal = data.peggingTotal ?? this.peggingTotal;
+    this.flipped = data.flipped ? Card.fromPlainObject(data.flipped): this.flipped;
+    this.awaitingJokerSelection = data.awaitingJokerSelection ?? this.awaitingJokerSelection;
+    this.skunkLength = data.skunkLength ?? this.skunkLength;
+    this.handSize = data.handSize ?? this.handSize;
+    this.deckMode = data.deckMode ?? this.deckMode;
+    this.gameMode = data.gameMode ?? this.gameMode;
+    this.presentation = data.presentation ?? this.presentation;
+
+    // Restore deck with correct type based on deckMode
+    if (data.deck) {
+      if (this.deckMode === 'Joker') {
+        this.deck = JokerDeck.fromPlainObject(data.deck);
+      } else {
+        this.deck = Deck.fromPlainObject(data.deck);
+      }
+    }
+
+    super.updateLocalState(data); //Call this last for the stateChange event
+  }
+
   //The beginning of it all!
   async start(): Promise<void> {
     this.teams = this.teams.filter(t => t.playerIds.length > 0);
@@ -185,33 +206,6 @@ export class Cribbage extends BaseGame {
     this.updateLocalState(data);
   }
 
-  //Updates the local state from DB values
-  override updateLocalState(data: DocumentData): void {
-    this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
-    this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.crib;
-    this.roundState = data.roundState ?? this.roundState;
-    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.peggingCards;
-    this.peggingTotal = data.peggingTotal ?? this.peggingTotal;
-    this.flipped = data.flipped ? Card.fromPlainObject(data.flipped): this.flipped;
-    this.awaitingJokerSelection = data.awaitingJokerSelection ?? this.awaitingJokerSelection;
-    this.skunkLength = data.skunkLength ?? this.skunkLength;
-    this.handSize = data.handSize ?? this.handSize;
-    this.deckMode = data.deckMode ?? this.deckMode;
-    this.gameMode = data.gameMode ?? this.gameMode;
-    this.presentation = data.presentation ?? this.presentation;
-
-    // Restore deck with correct type based on deckMode
-    if (data.deck) {
-      if (this.deckMode === 'Joker') {
-        this.deck = JokerDeck.fromPlainObject(data.deck);
-      } else {
-        this.deck = Deck.fromPlainObject(data.deck);
-      }
-    }
-
-    super.updateLocalState(data); //Call this last for the stateChange event
-  }
-
   async cardPlayed(playerId: string, cardId: number) {
     if (!this.isHost()) {
       // Guest sends intent only
@@ -224,7 +218,7 @@ export class Cribbage extends BaseGame {
     }
 
     // Host executes logic
-    const player = this.players.find(p => p.id === playerId)!;
+    const player = this.findPlayerById(playerId);
     if (!player) return;
 
     const cardIndex = player.hand.findIndex(c => c.id === cardId);
@@ -267,7 +261,7 @@ export class Cribbage extends BaseGame {
       card.isFlipped = true;
 
       // Move to played
-      const player = this.players.find(p => p.id === playerId)!
+      const player = this.findPlayerById(playerId);
       const cardIndex = player.hand.findIndex((c: Card) => c.id === card.id);
       if (cardIndex === -1) return;
       player.hand[cardIndex].isFlipped = true; //Opponents can now see played card
@@ -313,7 +307,7 @@ export class Cribbage extends BaseGame {
 
 //Handle a joker being turned into another card
   async applyJokerCard(card: Card, playerId: string) {
-    const player = this.players.find(p => p.id === playerId);
+    const player = this.findPlayerById(playerId);
     if (!player) return;
 
     // Joker in hand
@@ -473,7 +467,7 @@ export class Cribbage extends BaseGame {
 
     let hand = [...this.crib];
     const points = this.countHand(hand, true);
-    const player = this.players.find(player => player.id == this.cribOwner.id)!;
+    const player = this.findPlayerById(this.cribOwner.id);
 
     const team = this.findTeamByPlayer(player)!;
     team.score += points;
@@ -599,7 +593,7 @@ export class Cribbage extends BaseGame {
 
   async findNibs(){
     if (this.flipped.value == "J"){
-      const player = this.players.find(player => player.name == this.cribOwner.name)!;
+      const player = this.findPlayerById(this.cribOwner.id);
       const team = this.findTeamByPlayer(player)!;
       team.score += 2;
       player.score += 2;
@@ -767,7 +761,7 @@ export class Cribbage extends BaseGame {
       if (this.ended) return;
 
       if (slide.type === "HAND") {
-        const player = this.players.find(p => p.id === slide.playerId)!;
+        const player = this.findPlayerById(slide.playerId);
         const team = this.findTeamByPlayer(player)!;
 
         team.score += slide.points;
@@ -781,7 +775,7 @@ export class Cribbage extends BaseGame {
       }
 
       if (slide.type === "CRIB") {
-        const player = this.players.find(p => p.id === slide.dealerId)!;
+        const player = this.findPlayerById(slide.dealerId);
         const team = this.findTeamByPlayer(player)!;
 
         team.score += slide.points;
@@ -797,8 +791,13 @@ export class Cribbage extends BaseGame {
     }
   }
 
+  hasCribJokerInCurrentSlide(): boolean {
+    const slide = this.getScoringSlide();
+    if (!slide || slide.type !== "CRIB") return false;
+    return this.crib.some(c => c.value === "JK");
+  }
+
   async finishRoundAfterScoring() {
-    // Joker rule stays intact
     const cribHasJoker = this.crib.some(c => c.value === "JK");
     if (cribHasJoker) {
       this.roundState = RoundState.Pointing;

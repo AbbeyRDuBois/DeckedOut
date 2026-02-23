@@ -71,8 +71,7 @@ export class Database{
     async update(changes: any = {}) {
         if (!changes || Object.keys(changes).length === 0) return;
 
-        const playerId = localStorage.getItem("playerId")!;
-        if (!this.room?.getState().players.find(p => p.id == playerId)) {
+        if (!this.room?.findPlayerById(localStorage.getItem("playerId")!)) {
             return; // Not officially joined yet
         }
 

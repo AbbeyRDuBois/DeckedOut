@@ -177,7 +177,7 @@ export class CribbageView extends BaseView {
         container: rowEl,
         clickable: true,
         startsFlipped: card.isFlipped,
-        onClick: () => onCardClick(card.id) // forward ID to controller
+        onClick: () => onCardClick(card.id)
       });
 
       rowEl.appendChild(cardDiv);
