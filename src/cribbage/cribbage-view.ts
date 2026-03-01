@@ -221,6 +221,7 @@ export class CribbageView extends BaseView {
     const nameEl = document.getElementById("scoring-name")!;
     const handEl = document.getElementById("scoring-hand")!;
     const scoreEl = document.getElementById("scoring-score")!;
+    const grandEl = document.getElementById("scoring-grand")!;
 
     handEl.innerHTML = "";
 
@@ -264,4 +265,5 @@ export class CribbageView extends BaseView {
     }
 
     scoreEl.textContent = `Total Points: ${slide.points}`;
+    grandEl.textContent = `Grand Total: ${slide.grandTotal}`;
   }}

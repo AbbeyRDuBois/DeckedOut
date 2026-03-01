@@ -359,7 +359,8 @@ export class Cribbage extends BaseGame {
         this.presentation.slides.push({
           type: "CRIB",
           dealerId: this.cribOwner.id,
-          points: cribPoints
+          points: cribPoints,
+          grandTotal: cribPoints + this.cribOwner.score + this.countHand(this.cribOwner.hand, false)
         });
 
         this.awaitingJokerSelection = false;
@@ -715,6 +716,7 @@ export class Cribbage extends BaseGame {
   computeScoringSlides(): ScoringSlide[] {
     const slides: ScoringSlide[] = [];
     const currIndex = this.players.findIndex(p => p.id === this.cribOwner.id);
+    let ownerPoints = 0;
 
     for (let i = 1; i <= this.players.length; i++) {
       const player = this.players[(currIndex + i) % this.players.length];
@@ -723,8 +725,13 @@ export class Cribbage extends BaseGame {
       slides.push({
         type: "HAND",
         playerId: player.id,
-        points
+        points,
+        grandTotal: points + player.score
       });
+
+      if(player.id == this.cribOwner.id){
+        ownerPoints = points;
+      }
     }
 
     const cribPoints = this.countHand([...this.crib], true);
@@ -732,7 +739,8 @@ export class Cribbage extends BaseGame {
     slides.push({
       type: "CRIB",
       dealerId: this.cribOwner.id,
-      points: cribPoints
+      points: cribPoints,
+      grandTotal: cribPoints + ownerPoints + this.cribOwner.score
     });
 
     return slides;
