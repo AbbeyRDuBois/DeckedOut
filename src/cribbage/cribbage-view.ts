@@ -36,9 +36,13 @@ export class CribbageView extends BaseView {
   //Cribbage Specific Options when setting up the game
   override renderGameOptions(options: any) {
     super.renderGameOptions(options);
-    let modeContainer = document.getElementById('game-options')!;
+    let optionsContainer = document.getElementById('options-content')!;
+    optionsContainer.innerHTML = '';
 
     // Deck selector
+    const deckOption = document.createElement('div');
+    deckOption.classList.add('option');
+
     const deckLabel = document.createElement('label');
     deckLabel.textContent = 'Deck: ';
 
@@ -55,6 +59,11 @@ export class CribbageView extends BaseView {
     deckSelect.onchange = () => 
       this.onDeckChange?.(deckSelect.value);
 
+    deckOption.append(deckLabel, deckSelect);
+
+
+    const modeOption = document.createElement('div');
+    modeOption.classList.add('option');
     // Game mode selector
     const modeLabel = document.createElement('label');
     modeLabel.textContent = 'Mode: ';
@@ -72,12 +81,9 @@ export class CribbageView extends BaseView {
     modeSelect.onchange = () =>
       this.onGameModeChange?.(modeSelect.value);
 
-    modeContainer.append(
-      deckLabel,
-      deckSelect,
-      modeLabel,
-      modeSelect
-    );
+    modeOption.append(modeLabel, modeSelect);
+
+    optionsContainer.append(deckOption, modeOption);
   }
 
   renderIndicators(state: any, localPlayerId: string){

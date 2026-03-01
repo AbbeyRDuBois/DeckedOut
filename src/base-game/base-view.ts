@@ -33,20 +33,17 @@ export abstract class BaseView {
   //This just sets up/creates the Game options container
   //Games will implement what actually goes in here (if applicable)
   renderGameOptions(options: any) {
-    const innerContainer = document.getElementById('inner-container')!;
+    const optionsContainer = document.getElementById('options-container')!;
+    const line = document.getElementById('divide')!;
 
     let modeContainer = document.getElementById('game-options');
     if (!modeContainer) {
       modeContainer = document.createElement('div');
       modeContainer.id = 'game-options';
 
-      const divideLine = document.createElement('div');
-      divideLine.classList.add('divide-line');
-      innerContainer.appendChild(divideLine);
-      innerContainer.appendChild(modeContainer);
+      line.style.display = "flex"; //Make divide line visible
+      optionsContainer.appendChild(modeContainer);
     }
-
-    modeContainer.innerHTML = '<div class="options-title">Game Options</div>';
   };
 
   //Render local player's hand

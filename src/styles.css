@@ -556,12 +556,12 @@ body {
   position: relative;
   background: var(--background);
   background-size: 100% 100%;
-  flex-direction: column; /*Stacks children vertically*/
   display: inline-flex;
   align-items: center;
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+  align-items: stretch;  
 }
 #waiting-popup .room-info {
   position: absolute;
@@ -569,6 +569,11 @@ body {
   left: 16px;
   font-size: 12px;
   font-weight: bold;
+}
+.waiting-container{
+  flex-direction: column; /*Stacks children vertically*/
+  display: inline-flex;
+  align-items: center;
 }
 .waiting-list-container {
   display: flex;
@@ -704,10 +709,9 @@ body {
 
 /*Game mode selection part of popup*/
 
-#inner-container{
+#teams-container{
   display:flex;
   align-items: center;
-  align-items: stretch;
   gap: 10px;
 }
 
@@ -717,8 +721,29 @@ body {
   align-self: stretch;
 }
 
+#options-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;        /* horizontal center */
+  padding: 15px;
+  gap: 10px;                  /* space between title and content */
+}
+
 .options-title {
+  flex: 0 0 auto;             /* never grows, stays at top */
+  text-align: center;
   color: var(--text-color);
+  font-size: x-large;
+}
+
+.options-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.option{
+  display:flex;
 }
 
 .menu-selector{

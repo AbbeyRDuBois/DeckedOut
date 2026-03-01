@@ -78,7 +78,7 @@ export class RoomView {
 
   //Renders Team containers in the Waiting overlay where teams can be edited
   renderTeams(teams: any[], players: any[]) {
-    const innerContainer = document.getElementById('inner-container');
+    const innerContainer = document.getElementById('teams-container');
     if (!innerContainer) return;
 
     innerContainer.innerHTML = "";
