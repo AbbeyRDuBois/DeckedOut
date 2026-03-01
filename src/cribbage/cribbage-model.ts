@@ -81,7 +81,8 @@ export class Cribbage extends BaseGame {
       id: card.id,
       value: card.value,
       suit: card.suit,
-      isFlipped: true
+      isFlipped: true,
+      isPlayed: false
     }));
   }
 
@@ -259,12 +260,14 @@ export class Cribbage extends BaseGame {
       if (this.peggingTotal + card.toInt(true) > 31) return;
 
       card.isFlipped = true;
+      card.isPlayed = true;
 
       // Move to played
       const player = this.findPlayerById(playerId);
       const cardIndex = player.hand.findIndex((c: Card) => c.id === card.id);
       if (cardIndex === -1) return;
       player.hand[cardIndex].isFlipped = true; //Opponents can now see played card
+      player.hand[cardIndex].isPlayed = true;
       player.playedCards.push(player.hand[cardIndex]); //Put played card into the played container
       this.peggingTotal += card.toInt(true);
       this.peggingCards.push(card);

@@ -6,6 +6,7 @@ export type CardPlain = {
   value: string;
   suit: string;
   isFlipped: boolean;
+  isPlayed: boolean;
 };
 
 export type PlayerPlain = {

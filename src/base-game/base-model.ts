@@ -174,7 +174,8 @@ export abstract class BaseGame {
       id: card.id,
       suit: card.suit,
       value: card.value,
-      isFlipped: true
+      isFlipped: true,
+      isPlayed: false
     }));
   }
 

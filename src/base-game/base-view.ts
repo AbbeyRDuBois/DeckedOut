@@ -125,16 +125,28 @@ export abstract class BaseView {
 
       opponentDiv.appendChild(oppInfo);
 
-      const oppCards = document.createElement('div');
-      oppCards.classList.add('opp-cards');
-      opponentDiv.appendChild(oppCards);
+      // Create containers for unplayed and played
+      const oppUnplayed = document.createElement('div');
+      oppUnplayed.classList.add('opp-unplayed');
+      opponentDiv.appendChild(oppUnplayed);
 
-      //Request is here so that oppCards container size is set in order for the cards to be sized correctly (otherwise they are invisible)
+      const oppPlayed = document.createElement('div');
+      oppPlayed.classList.add('opp-played');
+      opponentDiv.appendChild(oppPlayed);
+
+      // Request is here so that card containers sizes are set in order for the cards to be sized correctly (otherwise they are invisible)
       requestAnimationFrame(() =>{
-        opp.hand.forEach((card: CardPlain) => {
-          const cardDiv = this.createCardElement(card, { container: oppCards });
-          cardDiv.style.pointerEvents = 'none';
-          oppCards.appendChild(cardDiv)
+        // Unplayed (cards still in opponent's hand) - show as face-down stacked
+        const unplayedCards = opp.hand.filter((c: CardPlain) => !c.isPlayed);
+        unplayedCards.forEach((card: CardPlain) => {
+          const cardDiv = this.createCardElement(card, { container: oppUnplayed });
+          oppUnplayed.appendChild(cardDiv);
+        });
+
+        // Played - show face-up, stacked with latest on top
+        opp.playedCards.forEach((card: CardPlain) => {
+          const cardDiv = this.createCardElement(card, { container: oppPlayed, startsFlipped: true });
+          oppPlayed.appendChild(cardDiv);
         });
       });
 

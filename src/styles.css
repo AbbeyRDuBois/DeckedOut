@@ -188,7 +188,7 @@ body {
 }
 
 .center-main {
-  height: 60%;
+  height: 50%;
   position: relative;
   overflow: hidden;
 }
@@ -466,7 +466,7 @@ body {
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 2;
+  z-index: 20;
 }
 #settings-panel.closed {
   display: none;
@@ -487,7 +487,7 @@ body {
   cursor: pointer;
   border-radius: 10px;
   border: none;
-  z-index: 3; 
+  z-index: 30; 
 }
 .theme-selector{
   background: var(--text-bg);
@@ -545,12 +545,12 @@ body {
   background: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
   align-items: center;
   justify-content: center;
-  z-index: 4;
+  z-index: 40;
 }
 .popup-overlay#joker-popup {
   backdrop-filter: none;               /* Removes the blur */
   background: transparent;       /* Removes the dark overlay */
-  z-index: 4;
+  z-index: 40;
 }
 .popup {
   position: relative;
@@ -865,25 +865,45 @@ body {
 ***************************************************************************************************************************************/
 #opponents {
   display:flex;
-  margin-top: 1%;
-  height: 20%;
+  margin-top: .5%;
+  height: 30%;
   flex-direction: row;
   align-items: center;
   justify-content: center;
 }
 
 .opponent-name {
-  height: 25%;
+  flex: 0 0 auto;
+  text-align: center;
+  padding: 6px 0;
 }
 
-.opp-cards {
-  display: grid;
-  grid-template-columns:  repeat(5, auto); /* 5 cards per row */
-  height: 60%;
+.opponent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;          /* must be defined by parent */
+  width: 100%;
+}
+
+.opp-unplayed,
+.opp-played {
+  flex: 1;
+  display: flex;
   justify-content: center;
-  gap: 2px;
+  align-items: center;
+  pointer-events:none;
 }
 
+.opp-unplayed > *,
+.opp-played > * {
+  margin-left: -5px;
+  flex-shrink: 0;
+}
+
+.opp-unplayed > *:first-child,
+.opp-played > *:first-child {
+  margin-left: 0;
+}
 /**************************************************************************************************************************************
 *
 * Player Hand
@@ -943,10 +963,10 @@ body {
 }
 #flipped {
   position: absolute; 
-  top: 55%;
+  top: 45%;
   left: 10%;          
   transform: translateY(-50%);
-  height: 60%;
+  height: 70%;
   pointer-events: none;   
   cursor: default;               
 }
@@ -1021,7 +1041,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  z-index: 20;
 }
 .scoring-overlay.hidden {
   display: none !important;
