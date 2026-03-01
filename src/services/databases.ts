@@ -125,15 +125,25 @@ export class Database{
                 break;
             }
             case "JOIN_ROOM": {
-                if (snap.started) return;
                 if (snap.players?.[action.playerId]) return;
 
-                var player = new Player(action.playerId, action.name);
+                const player = new Player(action.playerId, action.name);
+                const team = new Team(player.name, [player.id], Object.keys(snap.teams || {}).length);
 
+                // Build the patch that will be applied to Firestore
                 patch = { 
                     [`players.${action.playerId}`]: player.toPlainObject(),
-                    [`teams.${action.name}`]:(new Team(player.name, [player.id], Object.keys(snap.teams).length)).toPlainObject() 
+                    [`teams.${action.name}`]: team.toPlainObject()
                 };
+
+                // Apply the same change locally so the host doesn't have to wait for the
+                // snapshot listener to fire and the UI can update immediately.
+                if (this.room) {
+                    this.room.updateLocalState({
+                        players: { [action.playerId]: player.toPlainObject() },
+                        teams: { [action.name]: team.toPlainObject() }
+                    });
+                }
                 break;
             }
 
@@ -182,17 +192,52 @@ export class Database{
         await updateDoc(this.roomRef, patch);
     }
 
-    /**
-    * Host listens to incoming actions
-    */
     listenForActions() {
-        if (!this.isHost()) return;
 
         return onSnapshot(this.actionsRef(), snap => {
             snap.docChanges().forEach(async change => {
-            if (change.type !== "added") return;
-            await this.processAction(change.doc.data() as RoomAction);
-            deleteDoc(change.doc.ref);
+                if (change.type !== "added") return;
+                const action = change.doc.data() as RoomAction;
+
+                //Guests can only do updates on the Join_room/Leave events to keep their local as updated as possible
+                if (this.isHost()) {
+                    await this.processAction(action);
+                } else {
+                    // guest handling for a subset of action types
+                    switch (action.type) {
+                        case "JOIN_ROOM": {
+                            // add the player/team locally
+                            if (!this.room) break;
+                            const player = new Player(action.playerId, action.name);
+                            const team = new Team(player.name, [player.id], Object.keys(this.room.getState().teams || {}).length);
+                            this.room.updateLocalState({
+                                players: { [action.playerId]: player.toPlainObject() },
+                                teams: { [action.name]: team.toPlainObject() }
+                            });
+                            break;
+                        }
+                        case "LEAVE_ROOM": {
+                            if (!this.room) break;
+                            // remove player and clean up teams locally
+                            const playerId = action.playerId;
+                            const state = this.room.getState();
+                            const remainingPlayers = state.players.filter((p: any) => p.id !== playerId);
+                            const updatedTeams = state.teams.map((t: any) => ({
+                                ...t,
+                                playerIds: t.playerIds.filter((id: string) => id !== playerId)
+                            }));
+
+                            // patch the local room state directly
+                            this.room.updateLocalState({
+                                players: Object.fromEntries(remainingPlayers.map((p: any) => [p.id, p.toPlainObject()])),
+                                teams: Object.fromEntries(updatedTeams.map((t: any) => [t.name, t.toPlainObject()]))
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                deleteDoc(change.doc.ref);
             });
         });
     }

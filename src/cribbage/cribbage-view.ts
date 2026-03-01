@@ -35,20 +35,8 @@ export class CribbageView extends BaseView {
 
   //Cribbage Specific Options when setting up the game
   override renderGameOptions(options: any) {
-    const innerContainer = document.getElementById('inner-container')!;
-
-    let modeContainer = document.getElementById('mode-container');
-    if (!modeContainer) {
-      modeContainer = document.createElement('div');
-      modeContainer.id = 'mode-container';
-
-      const divideLine = document.createElement('div');
-      divideLine.classList.add('divide-line');
-      innerContainer.appendChild(divideLine);
-      innerContainer.appendChild(modeContainer);
-    }
-
-    modeContainer.innerHTML = '';
+    super.renderGameOptions(options);
+    let modeContainer = document.getElementById('game-options')!;
 
     // Deck selector
     const deckLabel = document.createElement('label');

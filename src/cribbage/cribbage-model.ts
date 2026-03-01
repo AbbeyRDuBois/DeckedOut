@@ -387,7 +387,7 @@ export class Cribbage extends BaseGame {
     let points = 0;
     // Find longest run if enough cards
     if (this.peggingCards.length >= 3) {
-      let handValues = this.peggingCards.map(c => c.toInt(true));
+      let handValues = this.peggingCards.map(c => c.toInt());
       for (let length = handValues.length; length >= 3; length--) {
         const slice = handValues.slice(handValues.length - length); // Always ends at last card
         const unique = new Set(slice);

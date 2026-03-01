@@ -19,7 +19,6 @@ export abstract class BaseView {
     this.spriteSheet = new SpriteSheet();
   }
 
-  abstract renderGameOptions(options: any): void;
   abstract createIndicators(opponent: PlayerPlain): HTMLDivElement[];
 
   //Basic Render of the Game
@@ -30,6 +29,25 @@ export abstract class BaseView {
     this.renderHand(state, localPlayerId, onCardClick);
     this.renderPlayed(state, localPlayerId);
   }
+
+  //This just sets up/creates the Game options container
+  //Games will implement what actually goes in here (if applicable)
+  renderGameOptions(options: any) {
+    const innerContainer = document.getElementById('inner-container')!;
+
+    let modeContainer = document.getElementById('game-options');
+    if (!modeContainer) {
+      modeContainer = document.createElement('div');
+      modeContainer.id = 'game-options';
+
+      const divideLine = document.createElement('div');
+      divideLine.classList.add('divide-line');
+      innerContainer.appendChild(divideLine);
+      innerContainer.appendChild(modeContainer);
+    }
+
+    modeContainer.innerHTML = '<div class="options-title">Game Options</div>';
+  };
 
   //Render local player's hand
   renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
@@ -233,17 +251,17 @@ export abstract class BaseView {
     const winners = document.getElementById('winners');
     if (!winners) return;
     winners.innerHTML = `
-      <strong>${winner.name} Won!</strong><div>
+      <div id="winner-team">${winner.name} Won!</div><div class="winner-player">
       ${winnerPlayers.map(((player: any) => `${player.name}: ${player.score}`)).join("<div>")}`;
 
-    const loserEl = document.createElement("h2");
+    const loserEl = document.createElement("div");
     
     loserEl.innerHTML = `
-        <strong>Losers:</strong><div>
+        <div id="losers">Losers:</div><div class="loser-team">
         ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<div>")}
     `;
     
-    winners.appendChild(loserEl);
+    winnerPopup.appendChild(loserEl);
   }
 
   setSpriteSheet(sheet: string) {

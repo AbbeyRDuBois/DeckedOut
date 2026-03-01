@@ -545,24 +545,23 @@ body {
   background: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
   align-items: center;
   justify-content: center;
-  z-index: 3;
+  z-index: 4;
 }
 .popup-overlay#joker-popup {
   backdrop-filter: none;               /* Removes the blur */
   background: transparent;       /* Removes the dark overlay */
-  z-index: 3;
+  z-index: 4;
 }
 .popup {
   position: relative;
   background: var(--background);
   background-size: 100% 100%;
   flex-direction: column; /*Stacks children vertically*/
-  display: flex;
+  display: inline-flex;
   align-items: center;
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-  animation: 0.3s ease-in-out;
 }
 #waiting-popup .room-info {
   position: absolute;
@@ -600,7 +599,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 100%;
 }
 #team-column-wrapper {
   display: flex;
@@ -613,7 +611,7 @@ body {
   border: 2px solid black;
   border-radius: 12px;
   padding: 15px;
-  width: 35%;
+  width: 30%;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -660,7 +658,8 @@ body {
 #add-del-container {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 2%;
+  padding-bottom: 2%;
 }
 .add-del-btn {
   background: var(--text-bg);
@@ -716,6 +715,10 @@ body {
   width: 2px;
   background: var(--border);
   align-self: stretch;
+}
+
+.options-title {
+  color: var(--text-color);
 }
 
 .menu-selector{
