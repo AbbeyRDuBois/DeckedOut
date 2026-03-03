@@ -120,20 +120,25 @@ export class Database{
         switch (action.type) {
             case "PLAY_CARD": {
                 if (this.isHost()) {
-                await this.game?.cardPlayed(action.playerId, action.cardId);
+                    await this.game?.cardPlayed(action.playerId, action.cardId);
                 }
                 break;
             }
             case "JOIN_ROOM": {
-                if (snap.started) return;
                 if (snap.players?.[action.playerId]) return;
 
-                var player = new Player(action.playerId, action.name);
+                const player = new Player(action.playerId, action.name);
+                const team = new Team(player.name, [player.id], Object.keys(snap.teams || {}).length);
 
-                patch = { 
+                // Build the patch that will be applied to Firestore
+                patch = {
                     [`players.${action.playerId}`]: player.toPlainObject(),
-                    [`teams.${action.name}`]:(new Team(player.name, [player.id], Object.keys(snap.teams).length)).toPlainObject() 
+                    [`teams.${action.name}`]: team.toPlainObject()
                 };
+
+                // apply locally to both room and game so the host UI updates instantly
+                // (before the document snapshot arrives)
+                this.applyPatchLocally(patch);
                 break;
             }
 
@@ -161,6 +166,9 @@ export class Database{
 
                 patch.teams = updatedTeams;
 
+                // apply locally so host game state stays in sync immediately
+                this.applyPatchLocally(patch);
+
                 // If host leaves or game started -> delete room
                 if (action.playerId === snap.hostId || snap.started) {
                     this.delete();
@@ -175,6 +183,11 @@ export class Database{
                 if (!snap.players?.[action.playerId]) return;
 
                 patch = { ...action.payload };
+                // host should immediately merge these changes into its own state so
+                // there is no momentary lag before the snapshot listener fires
+                if (Object.keys(patch).length > 0) {
+                    this.applyPatchLocally(patch);
+                }
                 break;
             }
         }
@@ -182,17 +195,51 @@ export class Database{
         await updateDoc(this.roomRef, patch);
     }
 
-    /**
-    * Host listens to incoming actions
-    */
     listenForActions() {
-        if (!this.isHost()) return;
 
         return onSnapshot(this.actionsRef(), snap => {
             snap.docChanges().forEach(async change => {
-            if (change.type !== "added") return;
-            await this.processAction(change.doc.data() as RoomAction);
-            deleteDoc(change.doc.ref);
+                if (change.type !== "added") return;
+                const action = change.doc.data() as RoomAction;
+
+                //Guests can only do updates on the Join_room/Leave events to keep their local as updated as possible
+                if (this.isHost()) {
+                    await this.processAction(action);
+                    await deleteDoc(change.doc.ref);
+                } else {
+                    // the action the room snapshot listener will update every client.
+                    switch (action.type) {
+                        case "JOIN_ROOM": {
+                            // add the player/team locally
+                            if (!this.room) break;
+                            const player = new Player(action.playerId, action.name);
+                            const team = new Team(player.name, [player.id], Object.keys(this.room.getState().teams || {}).length);
+                            this.room.updateLocalState({
+                                players: { [action.playerId]: player.toPlainObject() },
+                                teams: { [action.name]: team.toPlainObject() }
+                            });
+                            break;
+                        }
+                        case "LEAVE_ROOM": {
+                            if (!this.room) break;
+                            // remove player and clean up teams locally
+                            const playerId = action.playerId;
+                            const state = this.room.getState();
+                            const remainingPlayers = state.players.filter((p: any) => p.id !== playerId);
+                            const updatedTeams = state.teams.map((t: any) => ({
+                                ...t,
+                                playerIds: t.playerIds.filter((id: string) => id !== playerId)
+                            }));
+
+                            // patch the local room state directly
+                            this.room.updateLocalState({
+                                players: Object.fromEntries(remainingPlayers.map((p: any) => [p.id, p.toPlainObject()])),
+                                teams: Object.fromEntries(updatedTeams.map((t: any) => [t.name, t.toPlainObject()]))
+                            });
+                            break;
+                        }
+                    }
+                }
             });
         });
     }

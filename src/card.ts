@@ -20,12 +20,14 @@ export class Card {
     value: string;
     suit: string;
     isFlipped: boolean;
+    isPlayed: boolean;
 
-    constructor(id: number, value = "", suit = "", isFlipped = false) {
+    constructor(id: number, value = "", suit = "", isFlipped = false, isPlayed = false) {
         this.value = value;
         this.suit = suit;
         this.id = id;
         this.isFlipped = isFlipped;
+        this.isPlayed = isPlayed;
     }
 
     toInt(counting = false): number {
@@ -52,7 +54,8 @@ export class Card {
             id: this.id,
             value: this.value,
             suit: this.suit,
-            isFlipped: this.isFlipped
+            isFlipped: this.isFlipped,
+            isPlayed: this.isPlayed
         };
     }
 
@@ -68,8 +71,8 @@ export class Card {
 
     static fromPlainObject(data: DocumentData): Card{
         if (data == null){
-            return new Card(0, "", "", false);
+            return new Card(0, "", "", false, false);
         }
-        return new Card(data.id, data.value, data.suit, data.isFlipped);
+        return new Card(data.id, data.value, data.suit, data.isFlipped, data.isPlayed);
     }
 }

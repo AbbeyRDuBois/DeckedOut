@@ -19,7 +19,6 @@ export abstract class BaseView {
     this.spriteSheet = new SpriteSheet();
   }
 
-  abstract renderGameOptions(options: any): void;
   abstract createIndicators(opponent: PlayerPlain): HTMLDivElement[];
 
   //Basic Render of the Game
@@ -30,6 +29,22 @@ export abstract class BaseView {
     this.renderHand(state, localPlayerId, onCardClick);
     this.renderPlayed(state, localPlayerId);
   }
+
+  //This just sets up/creates the Game options container
+  //Games will implement what actually goes in here (if applicable)
+  renderGameOptions(options: any) {
+    const optionsContainer = document.getElementById('options-container')!;
+    const line = document.getElementById('divide')!;
+
+    let modeContainer = document.getElementById('game-options');
+    if (!modeContainer) {
+      modeContainer = document.createElement('div');
+      modeContainer.id = 'game-options';
+
+      line.style.display = "flex"; //Make divide line visible
+      optionsContainer.appendChild(modeContainer);
+    }
+  };
 
   //Render local player's hand
   renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
@@ -107,16 +122,28 @@ export abstract class BaseView {
 
       opponentDiv.appendChild(oppInfo);
 
-      const oppCards = document.createElement('div');
-      oppCards.classList.add('opp-cards');
-      opponentDiv.appendChild(oppCards);
+      // Create containers for unplayed and played
+      const oppUnplayed = document.createElement('div');
+      oppUnplayed.classList.add('opp-unplayed');
+      opponentDiv.appendChild(oppUnplayed);
 
-      //Request is here so that oppCards container size is set in order for the cards to be sized correctly (otherwise they are invisible)
+      const oppPlayed = document.createElement('div');
+      oppPlayed.classList.add('opp-played');
+      opponentDiv.appendChild(oppPlayed);
+
+      // Request is here so that card containers sizes are set in order for the cards to be sized correctly (otherwise they are invisible)
       requestAnimationFrame(() =>{
-        opp.hand.forEach((card: CardPlain) => {
-          const cardDiv = this.createCardElement(card, { container: oppCards });
-          cardDiv.style.pointerEvents = 'none';
-          oppCards.appendChild(cardDiv)
+        // Unplayed (cards still in opponent's hand) - show as face-down stacked
+        const unplayedCards = opp.hand.filter((c: CardPlain) => !c.isPlayed);
+        unplayedCards.forEach((card: CardPlain) => {
+          const cardDiv = this.createCardElement(card, { container: oppUnplayed });
+          oppUnplayed.appendChild(cardDiv);
+        });
+
+        // Played - show face-up, stacked with latest on top
+        opp.playedCards.forEach((card: CardPlain) => {
+          const cardDiv = this.createCardElement(card, { container: oppPlayed, startsFlipped: true });
+          oppPlayed.appendChild(cardDiv);
         });
       });
 
@@ -233,17 +260,17 @@ export abstract class BaseView {
     const winners = document.getElementById('winners');
     if (!winners) return;
     winners.innerHTML = `
-      <strong>${winner.name} Won!</strong><div>
+      <div id="winner-team">${winner.name} Won!</div><div class="winner-player">
       ${winnerPlayers.map(((player: any) => `${player.name}: ${player.score}`)).join("<div>")}`;
 
-    const loserEl = document.createElement("h2");
+    const loserEl = document.createElement("div");
     
     loserEl.innerHTML = `
-        <strong>Losers:</strong><div>
+        <div id="losers">Losers:</div><div class="loser-team">
         ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<div>")}
     `;
     
-    winners.appendChild(loserEl);
+    winnerPopup.appendChild(loserEl);
   }
 
   setSpriteSheet(sheet: string) {

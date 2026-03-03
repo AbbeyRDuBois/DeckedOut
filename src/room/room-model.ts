@@ -11,7 +11,7 @@ import { EventEmitter } from "../event-emitter";
 import { Database } from "../services/databases";
 import { Player } from "../player";
 import { Team } from "../team";
-import { DocumentData } from "firebase/firestore";
+import { DocumentData, deleteField } from "firebase/firestore";
 import { RoomState } from "../types";
 
 export class Room {
@@ -50,6 +50,28 @@ export class Room {
 
       this.updateLocalState(remote);
 
+      //If Host hasn't processed Guest yet add them on their side in so they can see what's happening
+      const localId = localStorage.getItem('playerId');
+      const localName = localStorage.getItem('username');
+      if (localId && localName) {
+        const already = this.state.players.some(p => p.id === localId);
+        if (!already) {
+          const placeholder = new Player(localId, localName);
+          placeholder.setOrder(this.state.players.length);
+          this.state.players.push(placeholder);
+
+          // also give them a team so the team rendering code won't break
+          const hasTeam = this.state.teams.some(t => t.playerIds.includes(localId));
+          if (!hasTeam) {
+            const team = new Team(localName, [localId], this.state.teams.length);
+            this.state.teams.push(team);
+          }
+
+          // notify any listeners that the state has changed
+          this.events.emit('stateChanged', this.getState());
+        }
+      }
+
       this.db.listenForUpdates();
       this.db.listenForActions();
 
@@ -75,24 +97,56 @@ export class Room {
   //Updates state from Database values
   updateLocalState(remote: any) {
     if (remote.players) {
-      const nextPlayers: Player[] = [];
+      // build list from remote content
+      const remoteIds = new Set<string>(Object.keys(remote.players));
+      const mergedPlayers: Player[] = [];
 
       for (const [id, player] of Object.entries(remote.players)) {
-        nextPlayers.push(Player.fromPlainObject(player as DocumentData));
+        mergedPlayers.push(Player.fromPlainObject(player as DocumentData));
       }
 
-      nextPlayers.sort((a, b) => a.order - b.order);
-      this.state.players = nextPlayers;
+      // include any existing local players that the remote doesn't yet know about
+      for (const p of this.state.players) {
+        if (!remoteIds.has(p.id)) {
+          mergedPlayers.push(p);
+        }
+      }
+
+      mergedPlayers.sort((a, b) => a.order - b.order);
+      this.state.players = mergedPlayers;
     }
 
     if (remote.teams) {
-      const nextTeams: Team[] = [];
+      const mergedTeams: Team[] = [];
+      const removedNames = new Set<string>();
 
-      for (const [, team] of Object.entries(remote.teams)) {
-        nextTeams.push(Team.fromPlainObject(team as DocumentData));
+      if (Array.isArray(remote.teams)) {
+        remote.teams.forEach((t: any) => {
+          if (t && typeof t.name === 'string') {
+            mergedTeams.push(Team.fromPlainObject(t as DocumentData));
+          }
+        });
+      } else {
+        for (const [teamName, teamObj] of Object.entries(remote.teams)) {
+          if (teamObj && typeof (teamObj as any).name === 'string') {
+            mergedTeams.push(Team.fromPlainObject(teamObj as DocumentData));
+          } else {
+            removedNames.add(teamName);
+          }
+        }
       }
-      nextTeams.sort((a, b) => a.order - b.order);
-      this.state.teams = nextTeams;
+
+      // keep any local teams not mentioned in the patch, but skip ones that were
+      // explicitly deleted
+      const remoteNames = new Set<string>(mergedTeams.map(t => t.name));
+      for (const t of this.state.teams) {
+        if (!remoteNames.has(t.name) && !removedNames.has(t.name)) {
+          mergedTeams.push(t);
+        }
+      }
+
+      mergedTeams.sort((a, b) => a.order - b.order);
+      this.state.teams = mergedTeams;
     }
 
     if (typeof remote.started === 'boolean') {
@@ -120,9 +174,8 @@ export class Room {
 
   async addTeam(team: Team) {
     if (this.state.teams.length < this.state.players.length) {
-      await this.db.update({
-        [`teams.${team.name}`]: team.toPlainObject()
-      });
+      this.state.teams.push(team);
+      await this.updateTeams(this.state.teams);
     }
   }
 

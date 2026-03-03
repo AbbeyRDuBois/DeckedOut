@@ -35,22 +35,14 @@ export class CribbageView extends BaseView {
 
   //Cribbage Specific Options when setting up the game
   override renderGameOptions(options: any) {
-    const innerContainer = document.getElementById('inner-container')!;
-
-    let modeContainer = document.getElementById('mode-container');
-    if (!modeContainer) {
-      modeContainer = document.createElement('div');
-      modeContainer.id = 'mode-container';
-
-      const divideLine = document.createElement('div');
-      divideLine.classList.add('divide-line');
-      innerContainer.appendChild(divideLine);
-      innerContainer.appendChild(modeContainer);
-    }
-
-    modeContainer.innerHTML = '';
+    super.renderGameOptions(options);
+    let optionsContainer = document.getElementById('options-content')!;
+    optionsContainer.innerHTML = '';
 
     // Deck selector
+    const deckOption = document.createElement('div');
+    deckOption.classList.add('option');
+
     const deckLabel = document.createElement('label');
     deckLabel.textContent = 'Deck: ';
 
@@ -67,6 +59,11 @@ export class CribbageView extends BaseView {
     deckSelect.onchange = () => 
       this.onDeckChange?.(deckSelect.value);
 
+    deckOption.append(deckLabel, deckSelect);
+
+
+    const modeOption = document.createElement('div');
+    modeOption.classList.add('option');
     // Game mode selector
     const modeLabel = document.createElement('label');
     modeLabel.textContent = 'Mode: ';
@@ -84,12 +81,9 @@ export class CribbageView extends BaseView {
     modeSelect.onchange = () =>
       this.onGameModeChange?.(modeSelect.value);
 
-    modeContainer.append(
-      deckLabel,
-      deckSelect,
-      modeLabel,
-      modeSelect
-    );
+    modeOption.append(modeLabel, modeSelect);
+
+    optionsContainer.append(deckOption, modeOption);
   }
 
   renderIndicators(state: any, localPlayerId: string){
@@ -227,6 +221,7 @@ export class CribbageView extends BaseView {
     const nameEl = document.getElementById("scoring-name")!;
     const handEl = document.getElementById("scoring-hand")!;
     const scoreEl = document.getElementById("scoring-score")!;
+    const grandEl = document.getElementById("scoring-grand")!;
 
     handEl.innerHTML = "";
 
@@ -270,4 +265,5 @@ export class CribbageView extends BaseView {
     }
 
     scoreEl.textContent = `Total Points: ${slide.points}`;
+    grandEl.textContent = `Grand Total: ${slide.grandTotal}`;
   }}

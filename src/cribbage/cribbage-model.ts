@@ -81,7 +81,8 @@ export class Cribbage extends BaseGame {
       id: card.id,
       value: card.value,
       suit: card.suit,
-      isFlipped: true
+      isFlipped: true,
+      isPlayed: false
     }));
   }
 
@@ -259,12 +260,14 @@ export class Cribbage extends BaseGame {
       if (this.peggingTotal + card.toInt(true) > 31) return;
 
       card.isFlipped = true;
+      card.isPlayed = true;
 
       // Move to played
       const player = this.findPlayerById(playerId);
       const cardIndex = player.hand.findIndex((c: Card) => c.id === card.id);
       if (cardIndex === -1) return;
       player.hand[cardIndex].isFlipped = true; //Opponents can now see played card
+      player.hand[cardIndex].isPlayed = true;
       player.playedCards.push(player.hand[cardIndex]); //Put played card into the played container
       this.peggingTotal += card.toInt(true);
       this.peggingCards.push(card);
@@ -356,7 +359,8 @@ export class Cribbage extends BaseGame {
         this.presentation.slides.push({
           type: "CRIB",
           dealerId: this.cribOwner.id,
-          points: cribPoints
+          points: cribPoints,
+          grandTotal: cribPoints + this.cribOwner.score + this.countHand(this.cribOwner.hand, false)
         });
 
         this.awaitingJokerSelection = false;
@@ -387,7 +391,7 @@ export class Cribbage extends BaseGame {
     let points = 0;
     // Find longest run if enough cards
     if (this.peggingCards.length >= 3) {
-      let handValues = this.peggingCards.map(c => c.toInt(true));
+      let handValues = this.peggingCards.map(c => c.toInt());
       for (let length = handValues.length; length >= 3; length--) {
         const slice = handValues.slice(handValues.length - length); // Always ends at last card
         const unique = new Set(slice);
@@ -712,6 +716,7 @@ export class Cribbage extends BaseGame {
   computeScoringSlides(): ScoringSlide[] {
     const slides: ScoringSlide[] = [];
     const currIndex = this.players.findIndex(p => p.id === this.cribOwner.id);
+    let ownerPoints = 0;
 
     for (let i = 1; i <= this.players.length; i++) {
       const player = this.players[(currIndex + i) % this.players.length];
@@ -720,8 +725,13 @@ export class Cribbage extends BaseGame {
       slides.push({
         type: "HAND",
         playerId: player.id,
-        points
+        points,
+        grandTotal: points + player.score
       });
+
+      if(player.id == this.cribOwner.id){
+        ownerPoints = points;
+      }
     }
 
     const cribPoints = this.countHand([...this.crib], true);
@@ -729,7 +739,8 @@ export class Cribbage extends BaseGame {
     slides.push({
       type: "CRIB",
       dealerId: this.cribOwner.id,
-      points: cribPoints
+      points: cribPoints,
+      grandTotal: cribPoints + ownerPoints + this.cribOwner.score
     });
 
     return slides;
