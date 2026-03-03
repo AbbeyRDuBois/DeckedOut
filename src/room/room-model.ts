@@ -11,7 +11,7 @@ import { EventEmitter } from "../event-emitter";
 import { Database } from "../services/databases";
 import { Player } from "../player";
 import { Team } from "../team";
-import { DocumentData } from "firebase/firestore";
+import { DocumentData, deleteField } from "firebase/firestore";
 import { RoomState } from "../types";
 
 export class Room {
@@ -117,15 +117,30 @@ export class Room {
     }
 
     if (remote.teams) {
-      const remoteNames = new Set<string>(Object.keys(remote.teams));
       const mergedTeams: Team[] = [];
+      const removedNames = new Set<string>();
 
-      for (const [, team] of Object.entries(remote.teams)) {
-        mergedTeams.push(Team.fromPlainObject(team as DocumentData));
+      if (Array.isArray(remote.teams)) {
+        remote.teams.forEach((t: any) => {
+          if (t && typeof t.name === 'string') {
+            mergedTeams.push(Team.fromPlainObject(t as DocumentData));
+          }
+        });
+      } else {
+        for (const [teamName, teamObj] of Object.entries(remote.teams)) {
+          if (teamObj && typeof (teamObj as any).name === 'string') {
+            mergedTeams.push(Team.fromPlainObject(teamObj as DocumentData));
+          } else {
+            removedNames.add(teamName);
+          }
+        }
       }
 
+      // keep any local teams not mentioned in the patch, but skip ones that were
+      // explicitly deleted
+      const remoteNames = new Set<string>(mergedTeams.map(t => t.name));
       for (const t of this.state.teams) {
-        if (!remoteNames.has(t.name)) {
+        if (!remoteNames.has(t.name) && !removedNames.has(t.name)) {
           mergedTeams.push(t);
         }
       }
@@ -159,9 +174,8 @@ export class Room {
 
   async addTeam(team: Team) {
     if (this.state.teams.length < this.state.players.length) {
-      await this.db.update({
-        [`teams.${team.name}`]: team.toPlainObject()
-      });
+      this.state.teams.push(team);
+      await this.updateTeams(this.state.teams);
     }
   }
 

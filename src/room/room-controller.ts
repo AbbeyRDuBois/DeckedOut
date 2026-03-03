@@ -26,12 +26,21 @@ export class RoomController {
       onStart: async () => { await this.onStartGame();},
       onLeave: async () => { await this.onLeaveRoom(); },
       onCopyId: async () => { await navigator.clipboard.writeText(this.model.getState().roomId); },
-      onAddTeam: async () => { await this.model.addTeam( new Team(`Team ${this.model.getState().teams.length + 1}`, [], this.model.getState().teams.length)); },
+      onAddTeam: async () => {
+        // create new team and append locally so UI updates immediately
+        const teams = this.model.getState().teams;
+        if (teams.length < this.model.getState().players.length) {
+          const newTeam = new Team(`Team ${teams.length + 1}`, [], teams.length);
+          teams.push(newTeam);
+          // re-sync database using the shared helper (handles object formatting)
+          await this.model.updateTeams(teams);
+        }
+      },
       onTeamNameChange: async (idx, name) => { const teams = this.model.getState().teams; teams[idx].name = name; await this.model.updateTeams(teams); },
       onRemoveTeam: async () => { 
         const teams = this.model.getState().teams; 
         if (teams.length > 1) { 
-          var removed = teams.pop(); 
+          const removed = teams.pop(); 
 
           // Push players from removed team back into remaining teams
           if (removed){
@@ -39,6 +48,9 @@ export class RoomController {
               teams[i % teams.length].playerIds.push(id);
             });
           }
+
+          // make sure orders are contiguous after removal
+          teams.forEach((t, idx) => t.order = idx);
 
           await this.model.updateTeams(teams); 
         } 

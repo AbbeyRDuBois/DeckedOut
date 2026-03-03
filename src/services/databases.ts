@@ -120,7 +120,7 @@ export class Database{
         switch (action.type) {
             case "PLAY_CARD": {
                 if (this.isHost()) {
-                await this.game?.cardPlayed(action.playerId, action.cardId);
+                    await this.game?.cardPlayed(action.playerId, action.cardId);
                 }
                 break;
             }
@@ -131,19 +131,14 @@ export class Database{
                 const team = new Team(player.name, [player.id], Object.keys(snap.teams || {}).length);
 
                 // Build the patch that will be applied to Firestore
-                patch = { 
+                patch = {
                     [`players.${action.playerId}`]: player.toPlainObject(),
                     [`teams.${action.name}`]: team.toPlainObject()
                 };
 
-                // Apply the same change locally so the host doesn't have to wait for the
-                // snapshot listener to fire and the UI can update immediately.
-                if (this.room) {
-                    this.room.updateLocalState({
-                        players: { [action.playerId]: player.toPlainObject() },
-                        teams: { [action.name]: team.toPlainObject() }
-                    });
-                }
+                // apply locally to both room and game so the host UI updates instantly
+                // (before the document snapshot arrives)
+                this.applyPatchLocally(patch);
                 break;
             }
 
@@ -171,6 +166,9 @@ export class Database{
 
                 patch.teams = updatedTeams;
 
+                // apply locally so host game state stays in sync immediately
+                this.applyPatchLocally(patch);
+
                 // If host leaves or game started -> delete room
                 if (action.playerId === snap.hostId || snap.started) {
                     this.delete();
@@ -185,6 +183,11 @@ export class Database{
                 if (!snap.players?.[action.playerId]) return;
 
                 patch = { ...action.payload };
+                // host should immediately merge these changes into its own state so
+                // there is no momentary lag before the snapshot listener fires
+                if (Object.keys(patch).length > 0) {
+                    this.applyPatchLocally(patch);
+                }
                 break;
             }
         }
@@ -202,8 +205,9 @@ export class Database{
                 //Guests can only do updates on the Join_room/Leave events to keep their local as updated as possible
                 if (this.isHost()) {
                     await this.processAction(action);
+                    await deleteDoc(change.doc.ref);
                 } else {
-                    // guest handling for a subset of action types
+                    // the action the room snapshot listener will update every client.
                     switch (action.type) {
                         case "JOIN_ROOM": {
                             // add the player/team locally
@@ -236,8 +240,6 @@ export class Database{
                         }
                     }
                 }
-
-                deleteDoc(change.doc.ref);
             });
         });
     }
