@@ -194,7 +194,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     const localPlayer = this.game.findPlayerById(localId);
 
     // Check if local player has a Joker in hand
-    if (localPlayer?.hand.some((c: Card) => c.value === 'JK') && state != RoundState.Pointing && state != RoundState.Scoring) {
+    if (localPlayer?.hand.some((c: Card) => c.rank === 'JK') && state != RoundState.Pointing && state != RoundState.Scoring) {
       const fullDeck = new Deck();
       this.view.renderJokerPopup(
         this.game.getFullPlainDeck(),
@@ -210,7 +210,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     }
 
     // Check if flipped card is a Joker
-    if (this.game.getFlipped().value === 'JK' 
+    if (this.game.getFlipped().rank === 'JK' 
         && state != RoundState.Pointing && state != RoundState.Scoring
         && localId === cribOwner.id
         && this.game.getFlipped().isFlipped) {

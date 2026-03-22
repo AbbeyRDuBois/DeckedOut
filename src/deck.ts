@@ -1,5 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-import { Card, SUITS, VALUES } from "./card";
+import { Card, SUITS, RANKS } from "./card";
 
 export class Deck{
     deck: Card[] = [];
@@ -26,8 +26,8 @@ export class Deck{
 
         //Adds in a card of each value/suit
         for (const suit of SUITS){
-            for(const value of VALUES){
-                this.deck.push(new Card(idCounter++, value, suit.name));
+            for(const rank of RANKS){
+                this.deck.push(new Card(idCounter++, rank, suit.name));
             }
         }
     }
@@ -40,6 +40,14 @@ export class Deck{
         return new Deck(Array.isArray(data)
             ? data.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped, c.isPlayed))
             : []);
+    }
+
+    length(): number{
+        return this.deck.length;
+    }
+
+    pop(): Card {
+        return this.deck.pop()!;
     }
 }
 

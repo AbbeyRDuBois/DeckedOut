@@ -43,7 +43,9 @@ export class Cribbage extends BaseGame {
     this.maxPlayers = 8;
   }
 
-  //Basic getter/setup functions
+  /* ----------------------------------------------------- */
+  /* Basic getters                                         */
+  /* ----------------------------------------------------- */
   setFlipped() { this.flipped = this.deck.getCard()!; }
   getFlipped(): Card { return this.flipped; }
   getCrib(): Card[] { return this.crib; }
@@ -79,7 +81,7 @@ export class Cribbage extends BaseGame {
   getCribRenderState(): CardPlain[] {
     return this.crib.map(card => ({
       id: card.id,
-      value: card.value,
+      value: card.rank,
       suit: card.suit,
       isFlipped: true,
       isPlayed: false
@@ -190,13 +192,14 @@ export class Cribbage extends BaseGame {
 
     this.players.forEach(player => {
       player.hand = [];
-      for(let i = 0; i < cardNum; i++){
+      player.playedCards = [];
+
+      for(let i=0; i<cardNum; i++){
         player.hand.push(this.deck.getCard()!);
       }
-      player.playedCards = [];
-    })
+    });
 
-    if (this.players.length == 3){
+    if(this.players.length === 3){
       this.crib.push(this.deck.getCard()!);
     }
   }
@@ -247,7 +250,7 @@ export class Cribbage extends BaseGame {
         changes.flipped = this.flipped.toPlainObject();
 
         // If the flipped card is a Joker, we must pause pegging until the crib owner selects a replacement
-        if (this.flipped.value === 'JK') {
+        if (this.flipped.rank === 'JK') {
           this.awaitingJokerSelection = true;
           changes.awaitingJokerSelection = true;
         }
@@ -262,13 +265,8 @@ export class Cribbage extends BaseGame {
       card.isFlipped = true;
       card.isPlayed = true;
 
-      // Move to played
-      const player = this.findPlayerById(playerId);
-      const cardIndex = player.hand.findIndex((c: Card) => c.id === card.id);
-      if (cardIndex === -1) return;
-      player.hand[cardIndex].isFlipped = true; //Opponents can now see played card
-      player.hand[cardIndex].isPlayed = true;
-      player.playedCards.push(player.hand[cardIndex]); //Put played card into the played container
+      player.playedCards.push(card);
+
       this.peggingTotal += card.toInt(true);
       this.peggingCards.push(card);
 
@@ -315,7 +313,7 @@ export class Cribbage extends BaseGame {
 
     // Joker in hand
     if (this.roundState != RoundState.Pointing){
-      const playerJoker = player.hand.findIndex((c: Card) => c.value == "JK");
+      const playerJoker = player.hand.findIndex((c: Card) => c.rank == "JK");
       if (playerJoker != -1) {
         player.hand.splice(playerJoker, 1);
         card.isFlipped = true;
@@ -328,7 +326,7 @@ export class Cribbage extends BaseGame {
     }
 
     // Joker as flipped card
-    if (this.flipped.value == "JK" && this.flipped.isFlipped) {
+      if (this.flipped.rank == "JK" && this.flipped.isFlipped) {
       this.flipped = card;
       this.flipped.isFlipped = true;
       // Selection made, unfreeze play
@@ -344,24 +342,24 @@ export class Cribbage extends BaseGame {
       return;
     }
 
-    // Joker in crib
-    const cribJoker = this.crib.findIndex(c => c.value == "JK");
-    if (cribJoker != -1) {
-      this.crib.splice(cribJoker, 1);
-      this.crib.push(card);
+      const cribIndex = this.crib.findIndex(c => c.rank === "JK");
 
-      if (this.roundState === RoundState.Scoring) {
-        this.presentation.slides.pop(); //Get rid of last slide
-        // Recount crib
-        const cribPoints = this.countHand([...this.crib], true);
+      if(cribIndex !== -1){
+        this.crib.splice(cribIndex,1);
+        this.crib.push(card);
 
-        //Push on that new slide
-        this.presentation.slides.push({
-          type: "CRIB",
-          dealerId: this.cribOwner.id,
-          points: cribPoints,
-          grandTotal: cribPoints + this.cribOwner.score + this.countHand(this.cribOwner.hand, false)
-        });
+        if (this.roundState === RoundState.Scoring) {
+          this.presentation.slides.pop(); //Get rid of last slide
+          // Recount crib
+          const cribPoints = this.countHand([...this.crib], true);
+
+          //Push on that new slide
+          this.presentation.slides.push({
+            type: "CRIB",
+            dealerId: this.cribOwner.id,
+            points: cribPoints,
+            grandTotal: cribPoints + this.cribOwner.score + this.countHand(this.cribOwner.hand, false)
+          });
 
         this.awaitingJokerSelection = false;
 
@@ -416,7 +414,7 @@ export class Cribbage extends BaseGame {
     let isDone = false;
 
     for(let i = this.peggingCards.length - 2 ; i >= 0 && !isDone; i--) {
-      if (card.value == this.peggingCards[i].value) {
+      if (card.rank == this.peggingCards[i].rank) {
         pairs += 1;
       } else {
         isDone = true;
@@ -590,13 +588,13 @@ export class Cribbage extends BaseGame {
   }
 
   findNobs(cards: Card[]): number{
-    const hasNobs = cards.some(card => card.value == 'J' && this.flipped.suit == card.suit)
+    const hasNobs = cards.some(card => card.rank == 'J' && this.flipped.suit == card.suit)
 
     return hasNobs ? 1 : 0;
   }
 
   async findNibs(){
-    if (this.flipped.value == "J"){
+    if (this.flipped.rank == "J"){
       const player = this.findPlayerById(this.cribOwner.id);
       const team = this.findTeamByPlayer(player)!;
       team.score += 2;
@@ -805,11 +803,11 @@ export class Cribbage extends BaseGame {
   hasCribJokerInCurrentSlide(): boolean {
     const slide = this.getScoringSlide();
     if (!slide || slide.type !== "CRIB") return false;
-    return this.crib.some(c => c.value === "JK");
+    return this.crib.some(c => c.rank === "JK");
   }
 
   async finishRoundAfterScoring() {
-    const cribHasJoker = this.crib.some(c => c.value === "JK");
+    const cribHasJoker = this.crib.some(c => c.rank === "JK");
     if (cribHasJoker) {
       this.roundState = RoundState.Pointing;
       this.awaitingJokerSelection = true;

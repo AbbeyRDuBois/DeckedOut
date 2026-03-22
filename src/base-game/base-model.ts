@@ -30,7 +30,7 @@ export type BaseEvents = {
 export abstract class BaseGame {
   protected deck: Deck;
   protected players: Player[];
-  protected teams: Team[] = []
+  protected teams: Team[] = [];
   protected maxPlayers: number = 6;
   protected minPlayers: number = 2;
   protected started: boolean = false;
@@ -53,12 +53,13 @@ export abstract class BaseGame {
   abstract guestSetup(data: DocumentData): void;
   abstract cardPlayed(playerId: string, cardId: number): void | Promise<void>;
 
+  // ----- Basic Getters / Setters -----
   getEnded(): boolean { return this.ended; }
   getDeck(): Deck { return this.deck; }
   setPlayers(players: Player[]) { this.players = players; }
   getMaxPlayers() { return this.maxPlayers; }
   getMinPlayers() { return this.minPlayers; }
-  getPlayerById(id: string): Player | undefined { return this.players.find(player => player.id === id); }
+  getPlayerById(id: string): Player | undefined { return this.players.find(p => p.id === id); }
   getStarted() { return this.started; }
   setStarted(started: boolean) { this.started = started; }
   getUserPlayer() { return this.players.find((p) => p.id === localStorage.getItem('playerId')!)!; }
@@ -72,48 +73,38 @@ export abstract class BaseGame {
   async addLog(log: string){ 
     this.logs.push(log);
   }
-  
-  getPlayerTeam(playerId: string): Team | null{
-    for (let i = 0; i < this.teams.length; i++) {
-        const team = this.teams[i];
-        if (team.playerIds.findIndex((id: string) => id === playerId) !== -1) {
-          return team;
-        }
-    }
-    return null;
+
+  getPlayerTeam(playerId: string): Team | null {
+    return this.teams.find(team => team.playerIds.includes(playerId)) || null;
   }
 
   getPlayerOrder(){
     // If no teams exist, preserve players and just shuffle the player order
     if (!this.teams || this.teams.length === 0) {
       this.players = this.shuffle(this.players);
-      for (let i = 0; i < this.players.length; i++) {
-        this.players[i].setOrder(i);
-      }
+      this.players.forEach((p, i) => p.setOrder(i));
       return;
     }
 
     //Randomize Team Order and Player Order in the teams
     this.teams = this.shuffle(this.teams);
-    for(let teamIndex = 0; teamIndex < this.teams.length; teamIndex++){
-      this.teams[teamIndex].setPlayers(this.shuffle(this.teams[teamIndex].getPlayers()));
+    for (const team of this.teams) {
+      team.setPlayers(this.shuffle(team.getPlayers()));
     }
 
-    //Cycle through teams adding them to player array in order.
-    const newOrder = [];
-    let tempTeams = this.teams.map(team => ({players: [...team.getPlayers()]}));
+    const newOrder: Player[] = [];
+    const tempTeams = this.teams.map(t => ({ players: [...t.getPlayers()] }));
     let stillHasPlayers = true;
     let order = 0;
 
     while (stillHasPlayers) {
       stillHasPlayers = false;
-      for (const team of tempTeams) {
-        if (team.players.length > 0) {
-          const player = this.getPlayerById(team.players.shift()!)!;
-          player.setOrder(order);
+      for (const t of tempTeams) {
+        if (t.players.length > 0) {
+          const player = this.getPlayerById(t.players.shift()!)!;
+          player.setOrder(order++);
           newOrder.push(player);
           stillHasPlayers = true;
-          order++;
         }
       }
     }
@@ -131,25 +122,20 @@ export abstract class BaseGame {
     this.events.off(event, listener);
   }
 
-  updateLocalState(data: any){
-    if (data.players){
-      this.players = [];
-      for (const [id, player] of Object.entries(data.players)) {
-        this.players.push(Player.fromPlainObject(player as DocumentData));
-      }
+  // ----- State Updates -----
+  updateLocalState(data: any) {
+    if (data.players) {
+      this.players = Object.entries(data.players).map(([id, p]) => Player.fromPlainObject(p as DocumentData));
       this.players.sort((a, b) => a.getOrder() - b.getOrder());
     }
 
-    if (data.teams){
-      this.teams = [];
-      for (const [id, team] of Object.entries(data.teams)) {
-        this.teams.push(Team.fromPlainObject(team as DocumentData));
-      }
+    if (data.teams) {
+      this.teams = Object.entries(data.teams).map(([id, t]) => Team.fromPlainObject(t as DocumentData));
       this.teams.sort((a, b) => a.getOrder() - b.getOrder());
     }
 
     this.logs = data.logs ?? this.logs;
-    this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer): this.currentPlayer;
+    this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer) : this.currentPlayer;
     this.ended = data.ended ?? false;
 
     this.events.emit('stateChanged', this.toPlainObject());
@@ -173,7 +159,7 @@ export abstract class BaseGame {
     return deck.deck.map(card => ({
       id: card.id,
       suit: card.suit,
-      value: card.value,
+      value: card.rank,
       isFlipped: true,
       isPlayed: false
     }));
@@ -184,19 +170,15 @@ export abstract class BaseGame {
     this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
   }
 
-  //Basic next player, get's overridden by games if needed
-  async nextPlayer(): Promise<any>{
-    const index = this.players.findIndex(player => player.id === this.currentPlayer.id);
+  async nextPlayer(): Promise<any> {
+    const index = this.players.findIndex(p => p.id === this.currentPlayer.id);
     this.currentPlayer = this.players[(index + 1) % this.players.length];
-    
-    this.isTurn = this.currentPlayer.id === localStorage.getItem('playerId');
-    return { currentPlayer: this.currentPlayer.toPlainObject};
+    this.isTurn = this.currentPlayer.id === localStorage.getItem("playerId");
+    return { currentPlayer: this.currentPlayer.toPlainObject() };
   }
 
   findTeamByPlayer(player: Player): Team {
-    return this.teams.find(team =>
-        team.playerIds.some((id: string) => id === player.id)
-    )!;
+    return this.teams.find(team => team.playerIds.includes(player.id))!;
   }
 
   findPlayerById(playerId: string): Player {
