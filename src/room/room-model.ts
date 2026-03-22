@@ -72,9 +72,7 @@ export class Room {
         }
       }
 
-      this.db.listenForUpdates();
-      this.db.listenForActions();
-
+      this.db.setupListeners();
     } catch (e: any) {
       this.events.emit('error', e.message || String(e));
       throw e;
@@ -198,7 +196,6 @@ export class Room {
     var trueColor = role;
     if (role === player.roleColor) trueColor = "lavender";
 
-
     var roleName = "";
     switch (trueColor){
       case "teal":
@@ -218,6 +215,7 @@ export class Room {
         break;
     }
 
+    this.db.addLog(`${player?.name} has become a ${roleName}!`);
     await this.db.update({[`players.${player.id}.roleColor`]: trueColor});
     return roleName;
   }

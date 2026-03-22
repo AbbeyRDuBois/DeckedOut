@@ -69,9 +69,9 @@ export abstract class BaseGame {
   getTeams(): Team[] { return this.teams; }
   setTeams(teams: Team[]) { this.teams = teams; }
   getLogs(): string[] { return this.logs; }
-
-  async addLog(log: string){ 
-    this.logs.push(log);
+  setLogs(logs: string[]) { 
+    this.logs = logs;
+    this.events.emit('stateChanged', {}); 
   }
 
   getPlayerTeam(playerId: string): Team | null {
@@ -133,8 +133,6 @@ export abstract class BaseGame {
       this.teams = Object.entries(data.teams).map(([id, t]) => Team.fromPlainObject(t as DocumentData));
       this.teams.sort((a, b) => a.getOrder() - b.getOrder());
     }
-
-    this.logs = data.logs ?? this.logs;
     this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer) : this.currentPlayer;
     this.ended = data.ended ?? false;
 
@@ -149,7 +147,6 @@ export abstract class BaseGame {
       deck: this.deck.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       started: this.started,
-      logs: this.logs,
       ended: this.ended
     };
   }

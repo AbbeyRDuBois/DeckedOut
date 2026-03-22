@@ -5,7 +5,7 @@
  * 
  ****************************************************************************/
 
-import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, initializeFirestore, onSnapshot, persistentLocalCache, persistentSingleTabManager, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, initializeFirestore, onSnapshot, orderBy, persistentLocalCache, persistentSingleTabManager, query, serverTimestamp, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
 import EventEmitter from "events";
@@ -47,6 +47,7 @@ export class Database{
 
     isHost(): boolean { return this.room?.getState().hostId === localStorage.getItem('playerId')!; }
     actionsRef() { return collection(this.roomRef, "actions"); }
+    logsRef() { return collection(this.roomRef, "logs"); }
     getRoomRef(): any { return this.roomRef; }
     getRoomId(): string { return this.roomId; }
     setGame(game: BaseGame) { this.game = game; }
@@ -64,6 +65,13 @@ export class Database{
     
     async pullState(): Promise<DocumentData> {
         return (await getDoc(this.roomRef))?.data()!;
+    }
+
+
+    setupListeners(){
+      this.listenForActions();
+      this.listenForUpdates();
+      this.listenForLogs();
     }
 
     //Only allows host to do the writing, the others just sent the intent.
@@ -195,8 +203,19 @@ export class Database{
         await updateDoc(this.roomRef, patch);
     }
 
-    listenForActions() {
+    async addLog(message: string) {
+      try {
+        console.log(`Adding Log: ${message}`);
+        await addDoc(this.logsRef(), {
+          message: message,
+          timestamp: serverTimestamp()
+        });
+      } catch (e) {
+        console.error("Error adding log:", e);
+      }
+    }
 
+    listenForActions() {
         return onSnapshot(this.actionsRef(), snap => {
             snap.docChanges().forEach(async change => {
                 if (change.type !== "added") return;
@@ -242,6 +261,16 @@ export class Database{
                 }
             });
         });
+    }
+
+    listenForLogs(){
+      const q = query(this.logsRef(), orderBy("timestamp", "asc"));
+
+      return onSnapshot(q, (snapshot) => {
+        console.log("Getting the logs");
+        const logs = snapshot.docs.map(doc => doc.data().message);
+        this.game?.setLogs(logs);
+      });
     }
 
     listenForUpdates(){
