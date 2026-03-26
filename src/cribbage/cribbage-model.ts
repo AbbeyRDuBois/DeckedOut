@@ -184,7 +184,16 @@ export class Cribbage extends BaseGame {
     this.setFlipped();
     this.roundState = RoundState.Throwing;
     this.started = true;
-    await this.db.update(this.toPlainObject());
+    this.teams.forEach(async team => await this.updateTeam(team));
+
+    await this.db.update({
+      players: this.players.map(player => player.toPlainObject()),
+      cribOwner: this.cribOwner.toPlainObject(),
+      currentPlayer: this.currentPlayer.toPlainObject(),
+      flipped: this.flipped.toPlainObject(),
+      roundState: this.roundState,
+      started: this.started
+    });
   }
 
   // 2 players get 6 cards, 3+ players get 5 cards and any extra in crib
@@ -210,6 +219,7 @@ export class Cribbage extends BaseGame {
     this.setStarted(true);
     this.updateLocalState(data);
     this.db.listenForLogs();
+    this.db.listenForTeams();
   }
 
   async cardPlayed(playerId: string, cardId: number) {
@@ -281,27 +291,21 @@ export class Cribbage extends BaseGame {
         team.score += points;
         player.score += points;
         await this.db.addLog(`${player.name} got ${points} points in pegging.`);
-        changes[`teams.${team.name}`] = team.toPlainObject();
+        this.updateTeam(team);
       }
 
       await this.checkIfWon(player);
 
-      var newChanges: any = {};
       if (!this.ended) {
-        newChanges = await this.nextPlayer();
+        await this.nextPlayer();
       }
     }
 
     changes.currentPlayer = this.currentPlayer.toPlainObject();
     changes.peggingCards = this.peggingCards.map(c => c.toPlainObject());
     changes.peggingTotal =  this.peggingTotal;
-    changes[`players.${player.id}`] = player.toPlainObject();
+    changes.players = this.players.map(player => player.toPlainObject());
     changes.ended = this.ended;
-
-    changes = {
-      ...changes,
-      ...newChanges
-    }
 
     await this.db.update(changes);
     this.events.emit('stateChanged', changes);
@@ -465,24 +469,6 @@ export class Cribbage extends BaseGame {
     return points;
   }
 
-  async countCrib(): Promise<number> {
-    if (this.ended) return 0;
-
-    let hand = [...this.crib];
-    const points = this.countHand(hand, true);
-    const player = this.findPlayerById(this.cribOwner.id);
-
-    const team = this.findTeamByPlayer(player)!;
-    team.score += points;
-    player.score += points;
-    await this.db.addLog(`${player.name} got ${points} points with crib ${this.crib.map(card => card.toHTML())}`);
-    this.crib = [];
-
-    await this.checkIfWon(player);
-
-    return points;
-  }
-
   //Finds all the 15s in the hand
   find15s(cards: Card[]): number{
     let handValues = cards.map(card => card.toInt(true));
@@ -602,8 +588,7 @@ export class Cribbage extends BaseGame {
       player.score += 2;
       await this.db.addLog(`${player.name} got Nibs! +2 points`);
       return {
-        [`players.${player.id}`]: player.toPlainObject(),
-        [`teams.${team.name}`]: team.toPlainObject()
+        [`players.${player.id}`]: player.toPlainObject()
       };
     }
   }
@@ -615,7 +600,11 @@ export class Cribbage extends BaseGame {
     if (team.score >= this.pointGoal){
       this.ended = true;
       await this.db.addLog(`${player.name} won the game!`);
-      await this.db.update(this.toPlainObject());
+      this.teams.forEach(async team => await this.updateTeam(team));
+      await this.db.update({
+        ended: this.ended,
+        players: this.players.map(player => player.toPlainObject())
+      });
     }
   }
 
@@ -637,14 +626,13 @@ export class Cribbage extends BaseGame {
     }
 
     if (!found) {
-      var teamChanges:any = {};
       // Last point for previous player
       if (this.peggingTotal !== 31) {
         const player = this.players[index];
         const team = this.findTeamByPlayer(player)!;
         team.score += 1;
         player.score += 1;
-        teamChanges[`teams.${team.name}`] = team.toPlainObject();
+        this.updateTeam(team);
         await this.db.addLog(`Nobody else could play! ${player.name} got the point.`);
       }
 
@@ -653,15 +641,12 @@ export class Cribbage extends BaseGame {
       if (hasCardsLeft) {
         this.resetPegging(index);
         return {
-          ...teamChanges,
           currentPlayer: this.currentPlayer.toPlainObject(),
           peggingCards: this.peggingCards.map(c => c.toPlainObject()),
           peggingTotal: this.peggingTotal,
         }
       } else {
         await this.endRound();
-
-        return this.toPlainObject();
       }
     }
 
@@ -707,8 +692,18 @@ export class Cribbage extends BaseGame {
       slides,
       index: 0
     };
+    this.crib = [];
 
-    await this.db.update(this.toPlainObject());
+    this.teams.forEach(async team => this.updateTeam(team));
+    await this.db.update({
+      roundState: this.roundState,
+      presentation: this.presentation,
+      players: this.players.map(player => player.toPlainObject()),
+      currentPlayer: this.currentPlayer.toPlainObject(),
+      peggingCards: this.peggingCards.map(card => card.toPlainObject()),
+      peggingTotal: this.peggingTotal,
+      crib: this.crib.map(c => c.toPlainObject())
+    });
     return false as any; // pause round progression
   }
 
@@ -812,7 +807,10 @@ export class Cribbage extends BaseGame {
     if (cribHasJoker) {
       this.roundState = RoundState.Pointing;
       this.awaitingJokerSelection = true;
-      await this.db.update(this.toPlainObject());
+      await this.db.update({
+        awaitingJokerSelection: this.awaitingJokerSelection,
+        roundState: this.roundState
+      });
       return;
     }
 
@@ -828,6 +826,16 @@ export class Cribbage extends BaseGame {
     this.presentation = {slides:[], index:0};
 
     await this.nextCribOwner();
-    await this.db.update(this.toPlainObject());
+    this.teams.forEach(team => this.updateTeam(team));
+    await this.db.update({
+      currentPlayer: this.currentPlayer.toPlainObject(),
+      cribOwner: this.cribOwner.toPlainObject(),
+      roundState: this.roundState,
+      peggingTotal: this.peggingTotal,
+      peggingCards: this.peggingCards.map(card => card.toPlainObject),
+      presentation: this.presentation,
+      players: this.players.map(player => player.toPlainObject()),
+      flipped: this.flipped.toPlainObject()
+    });
   }
 }

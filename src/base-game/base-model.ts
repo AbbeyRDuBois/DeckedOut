@@ -67,7 +67,11 @@ export abstract class BaseGame {
   getCurrentPlayer() { return this.currentPlayer; }
   getPlayers() { return this.players; }
   getTeams(): Team[] { return this.teams; }
-  setTeams(teams: Team[]) { this.teams = teams; }
+  setTeams(teams: any) {
+    this.teams = teams.map((t:any) => Team.fromPlainObject(t));
+    this.teams.sort((a, b) => a.getOrder() - b.getOrder());
+    this.events.emit('stateChanged', {});
+  }
   getLogs(): string[] { return this.logs; }
   setLogs(logs: string[]) { 
     this.logs = logs;
@@ -129,15 +133,16 @@ export abstract class BaseGame {
       this.players.sort((a, b) => a.getOrder() - b.getOrder());
     }
 
-    if (data.teams) {
-      this.teams = Object.entries(data.teams).map(([id, t]) => Team.fromPlainObject(t as DocumentData));
-      this.teams.sort((a, b) => a.getOrder() - b.getOrder());
-    }
     this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer) : this.currentPlayer;
     this.ended = data.ended ?? false;
 
     this.events.emit('stateChanged', this.toPlainObject());
   }
+
+  async updateTeam(team: Team){
+    await this.db.updateTeam(team.toPlainObject());
+  }
+
 
   //Have to do this to send the state to Firebase (they only like plain objects)
   toPlainObject() {

@@ -5,7 +5,7 @@
  * 
  ****************************************************************************/
 
-import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, initializeFirestore, onSnapshot, orderBy, persistentLocalCache, persistentSingleTabManager, query, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, getDocs, initializeFirestore, onSnapshot, orderBy, persistentLocalCache, persistentSingleTabManager, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
 import EventEmitter from "events";
@@ -48,6 +48,7 @@ export class Database{
     isHost(): boolean { return this.room?.getState().hostId === localStorage.getItem('playerId')!; }
     actionsRef() { return collection(this.roomRef, "actions"); }
     logsRef() { return collection(this.roomRef, "logs"); }
+    teamsRef() { return collection(this.roomRef, "teams"); }
     getRoomRef(): any { return this.roomRef; }
     getRoomId(): string { return this.roomId; }
     setGame(game: BaseGame) { this.game = game; }
@@ -64,14 +65,19 @@ export class Database{
     }
     
     async pullState(): Promise<DocumentData> {
-        return (await getDoc(this.roomRef))?.data()!;
-    }
+      const teamsSnap = await getDocs(this.teamsRef());
+      const teams = teamsSnap.docs.map(doc => doc.data());
 
+      const gameSnap = (await getDoc(this.roomRef)).data()!;
+
+      return {...gameSnap, teams};
+    }
 
     setupListeners(){
       this.listenForActions();
       this.listenForUpdates();
       this.listenForLogs();
+      this.listenForTeams();
     }
 
     //Only allows host to do the writing, the others just sent the intent.
@@ -98,6 +104,15 @@ export class Database{
             payload: changes
         });
     }
+
+    async updateTeam(team: any){
+      try {
+        await setDoc(doc(this.teamsRef(), team.id), team, { merge: true });
+      } catch (e) {
+        console.error("Error adding log:", e);
+      }
+    }
+
 
     applyPatchLocally(patch: any) {
         if (!this.room || !this.game) return;
@@ -140,13 +155,13 @@ export class Database{
 
                 // Build the patch that will be applied to Firestore
                 patch = {
-                    [`players.${action.playerId}`]: player.toPlainObject(),
-                    [`teams.${action.name}`]: team.toPlainObject()
+                    [`players.${action.playerId}`]: player.toPlainObject()
                 };
 
                 // apply locally to both room and game so the host UI updates instantly
                 // (before the document snapshot arrives)
                 this.applyPatchLocally(patch);
+                this.updateTeam(team.toPlainObject());
                 break;
             }
 
@@ -172,7 +187,9 @@ export class Database{
                     })
                 );
 
-                patch.teams = updatedTeams;
+                updatedTeams.array.forEach((team: any) => {
+                  this.updateTeam(team);
+                });;
 
                 // apply locally so host game state stays in sync immediately
                 this.applyPatchLocally(patch);
@@ -205,7 +222,6 @@ export class Database{
 
     async addLog(message: string) {
       try {
-        console.log(`Adding Log: ${message}`);
         await addDoc(this.logsRef(), {
           message: message,
           timestamp: serverTimestamp()
@@ -232,10 +248,8 @@ export class Database{
                             // add the player/team locally
                             if (!this.room) break;
                             const player = new Player(action.playerId, action.name);
-                            const team = new Team(player.name, [player.id], Object.keys(this.room.getState().teams || {}).length);
                             this.room.updateLocalState({
-                                players: { [action.playerId]: player.toPlainObject() },
-                                teams: { [action.name]: team.toPlainObject() }
+                                players: { [action.playerId]: player.toPlainObject()},
                             });
                             break;
                         }
@@ -245,16 +259,15 @@ export class Database{
                             const playerId = action.playerId;
                             const state = this.room.getState();
                             const remainingPlayers = state.players.filter((p: any) => p.id !== playerId);
-                            const updatedTeams = state.teams.map((t: any) => ({
-                                ...t,
-                                playerIds: t.playerIds.filter((id: string) => id !== playerId)
-                            }));
+
+                            const remainingTeams = state.teams.filter((t: any) => !t.playerIds.includes(playerId));
 
                             // patch the local room state directly
                             this.room.updateLocalState({
                                 players: Object.fromEntries(remainingPlayers.map((p: any) => [p.id, p.toPlainObject()])),
-                                teams: Object.fromEntries(updatedTeams.map((t: any) => [t.name, t.toPlainObject()]))
                             });
+
+                            this.room.updateTeams(remainingTeams);
                             break;
                         }
                     }
@@ -267,10 +280,19 @@ export class Database{
       const q = query(this.logsRef(), orderBy("timestamp", "asc"));
 
       return onSnapshot(q, (snapshot) => {
-        console.log("Getting the logs");
         const logs = snapshot.docs.map(doc => doc.data().message);
         this.game?.setLogs(logs);
       });
+    }
+
+    listenForTeams(){
+      return onSnapshot(this.teamsRef(), (snapshot: any) => {
+        const teams = snapshot.docs.map((doc: any) => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        this.game?.setTeams(teams);
+      })
     }
 
     listenForUpdates(){

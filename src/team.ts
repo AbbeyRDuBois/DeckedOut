@@ -1,17 +1,24 @@
 import { DocumentData } from "firebase/firestore";
-import { Player } from "./player";
+import { v4 } from "uuid";
 
 export class Team {
     name: string;
     playerIds: string[];
     order: number;
     score: number = 0;
+    id: string;
 
-    constructor(name: string, playerIds: string[], order: number, score: number = 0){
+    constructor(name: string, playerIds: string[], order: number, score: number = 0, id: string = ""){
         this.name = name;
         this.playerIds = playerIds;
         this.order = order;
         this.score = score;
+        if (id == ""){
+            this.id = v4();
+        }
+        else{
+            this.id = id;
+        }
     }
 
     setPlayers(players: string[]){this.playerIds = players;}  
@@ -27,16 +34,15 @@ export class Team {
             name: this.name,
             order: this.order,
             score: this.score,
-            playerIds: this.playerIds
+            playerIds: this.playerIds,
+            id: this.id
         };
     }
 
     static fromPlainObject(data: DocumentData): Team {
-        if (data == null){
-            return new Team("", [], 0);
-        }
+        if (data == null){ return new Team("", [], 0); }
         
-        let team = new Team(data.name, data.playerIds, data.order, data.score);
+        let team = new Team(data.name, data.playerIds, data.order, data.score, data.id);
 
         return team;
     }

@@ -23,6 +23,7 @@ export type TeamPlain = {
   name: string;
   score: number;
   playerIds: string[];
+  order: number;
 };
 
 export type RoomAction =

@@ -309,9 +309,11 @@ export abstract class BaseView {
     if (!container) return;
     container.innerHTML = '';
 
-    var teams = state.teams as Record<string, TeamPlain>;
+    var teams = Object.values(state.teams) as TeamPlain[];
 
-    Object.values(teams).forEach((team: TeamPlain) => {
+    teams.sort((a, b) => a.order - b.order);
+
+    teams.forEach((team: TeamPlain) => {
       const teamDiv = document.createElement('div');
       teamDiv.className = 'team';
 

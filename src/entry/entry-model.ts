@@ -29,7 +29,6 @@ export class EntryModel {
         hostId: playerId,
         gameType,
         players: { [playerId]: player.toPlainObject() },
-        teams: {[username]: new Team(player.name, [player.id], 0).toPlainObject()},
         started: false
       })
     );
@@ -59,26 +58,13 @@ export class EntryModel {
     );
 
     if (roomData.maxPlayers && players.length >= roomData.maxPlayers) {
-        throw new Error("Game is full");
+      throw new Error("Game is full");
     }
 
-    // Create a local player object
-    const newPlayer = new Player(playerId, username);
-
-    // Update the local Room state immediately
-    if (this.db.room) {
-        // Add to players
-        players.push(newPlayer);
-        this.db.room.getState().players = players;
-
-        // Add to a team (or create a new one)
-        const newTeam = new Team(username, [playerId], this.db.room.getState().teams.length);        
-        this.db.room.getState().teams.push(newTeam);
-
-        // Emit stateChanged immediately so UI updates
-        this.db.events.emit("stateChanged", this.db.room.getState());
+    if (players.find(p => p.name === username)){
+      throw new Error("Person Already has that Username");
     }
-
+    
     // Notify the host
     await this.db.sendAction({
         type: "JOIN_ROOM",
