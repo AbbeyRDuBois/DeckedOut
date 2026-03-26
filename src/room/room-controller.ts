@@ -23,58 +23,8 @@ export class RoomController {
   constructor(private model: Room, private view: RoomView) {
     //Connect the listener handlers to actual functions outlined in the model
     const handlers: RoomViewHandlers = {
-      onStart: async () => { await this.onStartGame();},
       onLeave: async () => { await this.onLeaveRoom(); },
       onCopyId: async () => { await navigator.clipboard.writeText(this.model.getState().roomId); },
-      onAddTeam: async () => {
-        // create new team and append locally so UI updates immediately
-        const teams = this.model.getState().teams;
-        if (teams.length < this.model.getState().players.length) {
-          const newTeam = new Team(`Team ${teams.length + 1}`, [], teams.length);
-          teams.push(newTeam);
-          // re-sync database using the shared helper (handles object formatting)
-          await this.model.updateTeams(teams);
-        }
-      },
-      onTeamNameChange: async (idx, name) => { const teams = this.model.getState().teams; teams[idx].name = name; await this.model.updateTeams(teams); },
-      onRemoveTeam: async () => { 
-        const teams = this.model.getState().teams; 
-        if (teams.length > 1) { 
-          const removed = teams.pop(); 
-
-          // Push players from removed team back into remaining teams
-          if (removed){
-            removed.playerIds.forEach((id, i) => {
-              teams[i % teams.length].playerIds.push(id);
-            });
-          }
-
-          // make sure orders are contiguous after removal
-          teams.forEach((t, idx) => t.order = idx);
-
-          await this.model.updateTeams(teams); 
-        } 
-      },
-      onRandomize: async (size) => {
-        //Randomizes the teams
-        const players = this.model.getState().players.slice();
-        const shuffled = players.sort(() => Math.random() - 0.5);
-        const newTeams: any[] = [];
-        for (let i = 0; i < shuffled.length; i += size) {
-          const slice = shuffled.slice(i, i + size);
-          newTeams.push({ name: `Team ${newTeams.length + 1}`, playerIds: slice.map(p => p.id) });
-        }
-        await this.model.updateTeams(newTeams);
-      },
-      onMovePlayer: async (playerId, fromIndex, toIndex) => {
-        const teams = this.model.getState().teams;
-        if (!teams[fromIndex] || !teams[toIndex]) return;
-        // Remove from source
-        teams[fromIndex].playerIds = teams[fromIndex].playerIds.filter((id: string) => id !== playerId);
-        // Add to destination
-        teams[toIndex].playerIds.push(playerId);
-        await this.model.updateTeams(teams);
-      },
       onThemeChange: (theme: string) => {
         this.model.setTheme(theme);
         document.body.setAttribute('data-theme', theme);
@@ -95,7 +45,6 @@ export class RoomController {
 
     this.model.events.on('stateChanged', (s) => {
       this.view.render(s);
-      this.gameController?.gameOptions();
       this.gameController?.gameRerender();
     });
     
@@ -108,7 +57,6 @@ export class RoomController {
         requestAnimationFrame(() => {
           // Re-render room view (will apply theme, settings panel, options)
           this.view.render(this.model.getState());
-          this.gameController?.gameOptions();
           this.gameController?.gameRerender();
           // Let game-specific controllers re-render if they want
           window.dispatchEvent(new CustomEvent('room:resize'));
@@ -149,6 +97,9 @@ export class RoomController {
       // Default deck - can be changed via game options UI
       const deck = new Deck();
       this.game = new Cribbage(deck, players, db);
+      
+      //Create the Host's team
+      if (this.game.isHost()) this.game.updateTeam(new Team(players[0].name, players.map(p => p.id), 0));
 
       // Make sure DB knows about this game instance so snapshot handling can call guestSetup
       db.setGame(this.game);
@@ -174,27 +125,5 @@ export class RoomController {
       playerId
     });
     this.view.navigateToHome();
-  }
-
-  async onStartGame() {
-    if (!this.model.enoughPlayers()){
-      alert('Not Enough Players to Start Game.');
-      return;
-    }
-
-    if (!this.game?.getStarted()){
-      // Start the game model (deal cards, set flipped, etc.) and persist game state
-      await this.game?.start();
-      
-      const gameState = this.game?.toPlainObject()!;
-      try {
-        await this.model.getDbInstance().update(gameState);
-      } catch (e) {
-        console.warn('Failed to persist initial game state', e);
-      }
-
-      // Mark room as started (this will be observed by guests)
-      await this.model.startGame();
-    }
   }
 }

@@ -47,11 +47,8 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
   }
 
   override async onStateChanged() {
-    if (!this.game.getStarted()){
-      this.gameOptions();
-      return;
-    }
-
+    this.gameRerender();
+    
     if(this.game.getEnded()){
       const winner = this.game.getTeams().find(t => t.score >= this.game.getPointGoal());
       const losers = this.game.getTeams().filter(t => t.name != winner?.name);

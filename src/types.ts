@@ -35,7 +35,6 @@ export type RoomState = {
   roomId: string;
   gameType: string;
   players: Player[];
-  teams: Team[];
   started: boolean;
   settingsOpen: boolean;
   theme: string;

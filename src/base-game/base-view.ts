@@ -12,23 +12,168 @@ import { Card } from "../card";
 import { CatSheet, GenshinSheet, HollowSheet, PokemonSheet, SpriteSheet, StarWarsSheet } from "../spritesheets";
 import { CardPlain, PlayerPlain, TeamPlain } from "../types";
 
+//These will have functionality set up to them in Controller
+export type BaseViewHandlers = {
+  onStart: () => Promise<void>;
+  onTeamNameChange: (teamIndex: number, name: string) => Promise<void> | void;
+  onAddTeam: () => Promise<void> | void;
+  onRemoveTeam: () => Promise<void> | void;
+  onRandomize: (size: number) => Promise<void> | void;
+  onMovePlayer: (playerId: string, fromIndex: number, toIndex: number) => Promise<void> | void;
+};
+
+
+
 export abstract class BaseView {
   //SpriteSheet is a purely visual class. No knowledge of game rules/logic so it's okay to have in the View
   private spriteSheet: SpriteSheet;
+  private handlers!: BaseViewHandlers;
   constructor() {
     this.spriteSheet = new SpriteSheet();
   }
 
   abstract createIndicators(opponent: PlayerPlain): HTMLDivElement[];
 
+  //Sets up listeners for waiting overlay Events
+  attachBasicControls() {
+    document.getElementById('start-game')?.addEventListener('click', async () => {
+      await this.handlers.onStart?.();
+    });
+  }
+
+  //Outer call to set up listeners
+  setHandlers(h: BaseViewHandlers) {
+    this.handlers = h;
+    this.attachBasicControls();
+  }
+
   //Basic Render of the Game
   render(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
+    this.showWaitingOverlay(!state.started);
     this.renderScoreboard(state);
     this.renderOpponents(state, localPlayerId);
     this.renderLogs(state);
     this.renderHand(state, localPlayerId, onCardClick);
     this.renderPlayed(state, localPlayerId);
   }
+
+  renderPlayerList(players: any[]) {
+    const list = document.getElementById('waiting-list');
+    if (!list) return;
+    list.innerHTML = `
+      <div class="waiting-list-container">
+        <h3 class="waiting-title">Players in room:</h3>
+        ${players.map(p => `<div class="player-name">${p.name}</div>`).join('')}
+      </div>
+    `;
+  }
+
+  //Renders Team containers in the Waiting overlay where teams can be edited
+  renderTeams(teams: any[], players: any[]) {
+    const innerContainer = document.getElementById('teams-container');
+    if (!innerContainer) return;
+
+    innerContainer.innerHTML = "";
+
+    // Recreate teams section
+    let teamsContainer = document.getElementById('teams');
+    if (!teamsContainer) {
+      teamsContainer = document.createElement('div');
+      teamsContainer.id = 'teams';
+    }
+    teamsContainer.innerHTML = '';
+
+    const columnsWrapper = document.createElement('div');
+    columnsWrapper.id = 'team-column-wrapper';
+
+    teams.forEach((team: any, teamIndex: number) => {
+      const column = document.createElement('div');
+      column.className = 'team-column';
+
+      const teamNameInput = document.createElement('input');
+      teamNameInput.id = `team-name`;
+      teamNameInput.value = team.name;
+      teamNameInput.addEventListener('blur', async () => {
+        const newName = teamNameInput.value.trim();
+        if (newName !== team.name && newName !== '') {
+          await this.handlers.onTeamNameChange(teamIndex, newName);
+        }
+      });
+      column.appendChild(teamNameInput);
+
+      team.playerIds.forEach((id: string) => {
+        column.appendChild(this.createPlayerElement(players, id, teamIndex, teams.length));
+      });
+
+      columnsWrapper.appendChild(column);
+    });
+
+    // Add switching team controls
+    const addDel = document.createElement('div');
+    addDel.id = 'add-del-container';
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Add Team';
+    addBtn.className = 'add-del-btn';
+    addBtn.onclick = async () => await this.handlers.onAddTeam();
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Remove Team';
+    delBtn.className = 'add-del-btn';
+    delBtn.onclick = async () => await this.handlers.onRemoveTeam();
+
+    addDel.appendChild(addBtn);
+    addDel.appendChild(delBtn);
+
+    teamsContainer.appendChild(columnsWrapper);
+    teamsContainer.appendChild(addDel);
+
+    innerContainer.prepend(teamsContainer);
+  }
+
+  createPlayerElement(players: PlayerPlain[], playerId: string, teamIndex: number, teamAmount: number): HTMLDivElement{
+      const player = document.createElement('div');
+      player.className = 'team-player';
+      const nameSpan = document.createElement("span");
+      const name = players.find(p => p.id === playerId)?.name;
+
+      if (!name) return document.createElement("div");
+      nameSpan.textContent = name;
+
+      const controls = document.createElement("div");
+
+      if (teamIndex > 0) {
+        const leftBtn = document.createElement("button");
+        leftBtn.className = "move-player";
+        leftBtn.textContent = "←";
+        leftBtn.onclick = async () => {
+          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex - 1);
+        };
+        controls.appendChild(leftBtn);
+      }
+
+      if (teamIndex < teamAmount - 1) {
+        const rightBtn = document.createElement("button");
+        rightBtn.className = "move-player";
+        rightBtn.textContent = "→";
+        rightBtn.onclick = async () => {
+          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex + 1);
+        };
+        controls.appendChild(rightBtn);
+      }
+
+      player.appendChild(nameSpan);
+      player.appendChild(controls);
+      return player;
+  }
+
+  // Expose the game view instance so controllers can wire a game controller to the same vie
+  showWaitingOverlay(show: boolean) {
+    const el = document.getElementById('waiting-overlay')!;
+    el.style.display = show ? 'flex' : 'none';
+  }
+
+
 
   //This just sets up/creates the Game options container
   //Games will implement what actually goes in here (if applicable)
