@@ -10,8 +10,6 @@
 import { EventEmitter } from "../event-emitter";
 import { Database } from "../services/databases";
 import { Player } from "../player";
-import { Team } from "../team";
-import { DocumentData } from "firebase/firestore";
 import { RoomState } from "../types";
 
 export class Room {
@@ -20,7 +18,7 @@ export class Room {
   public events = new EventEmitter<{ stateChanged: {}; error: string }>();
 
   constructor(gameType: string, roomId: string) {
-    this.state = { roomId, gameType, players: [], started: false, settingsOpen: false, theme: 'dark', cardTheme: 'Classic', hostId: ''};
+    this.state = { roomId, gameType, started: false, settingsOpen: false, theme: 'dark', cardTheme: 'Classic', hostId: ''};
   }
 
   getState(): RoomState { return { 
@@ -37,8 +35,10 @@ export class Room {
     this.events.emit('stateChanged', this.getState());
   }
 
-  findPlayerById(playerId: string): Player {
-    return this.state.players.find(p => p.id === playerId)!;
+  async findPlayerById(playerId: string): Promise<Player> {
+    const state = await this.db.pullState();
+
+    return state.players.find((p: any) => p.id === playerId)!;
   }
 
   async init() {
@@ -72,19 +72,6 @@ export class Room {
 
   //Updates state from Database values
   updateLocalState(remote: any) {
-    if (remote.players) {
-      // build list from remote content
-      const remoteIds = new Set<string>(Object.keys(remote.players));
-      const mergedPlayers: Player[] = [];
-
-      for (const [id, player] of Object.entries(remote.players)) {
-        mergedPlayers.push(Player.fromPlainObject(player as DocumentData));
-      }
-
-      mergedPlayers.sort((a, b) => a.order - b.order);
-      this.state.players = mergedPlayers;
-    }
-
     if (typeof remote.started === 'boolean') {
       this.state.started = remote.started;
     }
@@ -100,16 +87,12 @@ export class Room {
     this.events.emit('stateChanged', this.getState());
   }
 
-  async updateTeams(teams: Team[]) {
-    teams.forEach(async team => await this.db.updateTeam(team.toPlainObject()));
-  }
-
   getDbInstance() {
     return this.db;
   }
 
   async updateRole(role: string): Promise<string> {
-    const player = this.findPlayerById(localStorage.getItem("playerId")!);
+    const player = await this.findPlayerById(localStorage.getItem("playerId")!);
 
     var trueColor = role;
     if (role === player.roleColor) trueColor = "lavender";

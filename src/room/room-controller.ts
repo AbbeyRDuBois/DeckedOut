@@ -78,28 +78,27 @@ export class RoomController {
 
   async init() {
     await this.model.init();
-    this.view.render(this.model.getState());
-
     // Ensure a game instance and controller exist for this room (guest or host)
-    await this.setupGameIfNeeded();
+    await this.gameSetup();
+    this.view.render(this.model.getState());
+    this.gameController?.gameRerender();
   }
 
-  private async setupGameIfNeeded() {
+  private async gameSetup() {
     const state = this.model.getState();
     const db = this.model.getDbInstance();
+    const remote = await db.pullState();
 
     if (state.gameType === 'cribbage') {
       // If already setup, skip
       if (this.game) return;
 
-      const players = state.players.map(p => Player.fromPlainObject(p));
+      const players = remote.players.map((p: any) => Player.fromPlainObject(p));
+      const teams = remote.teams.map((t: any) => Team.fromPlainObject(t));
 
       // Default deck - can be changed via game options UI
       const deck = new Deck();
-      this.game = new Cribbage(deck, players, db);
-      
-      //Create the Host's team
-      if (this.game.isHost()) this.game.updateTeam(new Team(players[0].name, players.map(p => p.id), 0));
+      this.game = new Cribbage(deck, players, teams, db);
 
       // Make sure DB knows about this game instance so snapshot handling can call guestSetup
       db.setGame(this.game);
@@ -109,7 +108,6 @@ export class RoomController {
       this.gameController = new CribbageController((this.game as Cribbage), gameView, db);
 
       // If remote indicates the game started, run guest setup to populate local game state
-      const remote = await db.pullState();
       if (remote?.started && !this.game.getStarted()) {
         await this.game.guestSetup(remote);
       }

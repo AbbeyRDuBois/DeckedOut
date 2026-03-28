@@ -35,7 +35,6 @@ export type RoomAction =
 export type RoomState = {
   roomId: string;
   gameType: string;
-  players: Player[];
   started: boolean;
   settingsOpen: boolean;
   theme: string;

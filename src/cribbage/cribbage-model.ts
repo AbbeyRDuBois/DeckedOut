@@ -14,6 +14,7 @@ import { Player } from "../player";
 import { Deck, JokerDeck } from "../deck";
 import { Database } from "../services/databases";
 import { Presentation, ScoringSlide } from "./presentation";
+import { Team } from "../team";
 
 export enum RoundState {
   Throwing = "Throwing",
@@ -38,8 +39,8 @@ export class Cribbage extends BaseGame {
   protected gameMode: string = "Standard";
   protected presentation: Presentation = {slides:[], index:0};
 
-  constructor(deck: Deck, players: Player[], db: Database){
-    super(deck, players, db);
+  constructor(deck: Deck, players: Player[], teams: Team[], db: Database){
+    super(deck, players, teams, db);
     this.maxPlayers = 8;
   }
 
@@ -185,9 +186,9 @@ export class Cribbage extends BaseGame {
     this.roundState = RoundState.Throwing;
     this.started = true;
     this.teams.forEach(async team => await this.updateTeam(team));
+    this.players.forEach(async player => await this.updatePlayer(player));
 
     await this.db.update({
-      players: this.players.map(player => player.toPlainObject()),
       cribOwner: this.cribOwner.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       flipped: this.flipped.toPlainObject(),
@@ -220,6 +221,7 @@ export class Cribbage extends BaseGame {
     this.updateLocalState(data);
     this.db.listenForLogs();
     this.db.listenForTeams();
+    this.db.listenForPlayers();
   }
 
   async cardPlayed(playerId: string, cardId: number) {
@@ -291,7 +293,7 @@ export class Cribbage extends BaseGame {
         team.score += points;
         player.score += points;
         await this.db.addLog(`${player.name} got ${points} points in pegging.`);
-        this.updateTeam(team);
+        await this.updateTeam(team);
       }
 
       await this.checkIfWon(player);
@@ -304,8 +306,9 @@ export class Cribbage extends BaseGame {
     changes.currentPlayer = this.currentPlayer.toPlainObject();
     changes.peggingCards = this.peggingCards.map(c => c.toPlainObject());
     changes.peggingTotal =  this.peggingTotal;
-    changes.players = this.players.map(player => player.toPlainObject());
     changes.ended = this.ended;
+
+    this.players.forEach(async player => await this.updatePlayer(player));
 
     await this.db.update(changes);
     this.events.emit('stateChanged', changes);
@@ -601,9 +604,9 @@ export class Cribbage extends BaseGame {
       this.ended = true;
       await this.db.addLog(`${player.name} won the game!`);
       this.teams.forEach(async team => await this.updateTeam(team));
+      this.players.forEach(async player => await this.updatePlayer(player));
       await this.db.update({
-        ended: this.ended,
-        players: this.players.map(player => player.toPlainObject())
+        ended: this.ended
       });
     }
   }
@@ -632,7 +635,7 @@ export class Cribbage extends BaseGame {
         const team = this.findTeamByPlayer(player)!;
         team.score += 1;
         player.score += 1;
-        this.updateTeam(team);
+        await this.updateTeam(team);
         await this.db.addLog(`Nobody else could play! ${player.name} got the point.`);
       }
 
@@ -692,13 +695,13 @@ export class Cribbage extends BaseGame {
       slides,
       index: 0
     };
-    this.crib = [];
 
-    this.teams.forEach(async team => this.updateTeam(team));
+    this.teams.forEach(async team => await this.updateTeam(team));
+    this.players.forEach(async player => await this.updatePlayer(player));
+
     await this.db.update({
       roundState: this.roundState,
       presentation: this.presentation,
-      players: this.players.map(player => player.toPlainObject()),
       currentPlayer: this.currentPlayer.toPlainObject(),
       peggingCards: this.peggingCards.map(card => card.toPlainObject()),
       peggingTotal: this.peggingTotal,
@@ -816,6 +819,7 @@ export class Cribbage extends BaseGame {
 
     if (this.ended) return;
 
+    this.crib = [];
     this.deck.resetDeck();
     await this.deal();
     this.setFlipped();
@@ -826,7 +830,9 @@ export class Cribbage extends BaseGame {
     this.presentation = {slides:[], index:0};
 
     await this.nextCribOwner();
-    this.teams.forEach(team => this.updateTeam(team));
+    this.teams.forEach(async team => await this.updateTeam(team));
+    this.players.forEach(async player => await this.updatePlayer(player));
+
     await this.db.update({
       currentPlayer: this.currentPlayer.toPlainObject(),
       cribOwner: this.cribOwner.toPlainObject(),
@@ -834,8 +840,8 @@ export class Cribbage extends BaseGame {
       peggingTotal: this.peggingTotal,
       peggingCards: this.peggingCards.map(card => card.toPlainObject),
       presentation: this.presentation,
-      players: this.players.map(player => player.toPlainObject()),
-      flipped: this.flipped.toPlainObject()
+      flipped: this.flipped.toPlainObject(),
+      crib: this.crib.map(card => card.toPlainObject())
     });
   }
 }

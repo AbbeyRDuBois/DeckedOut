@@ -25,10 +25,9 @@ export class EntryModel {
     const player = new Player(playerId, username);
 
     setDBInstance(
-      await new Database().init("rooms", {
+      await new Database().init("rooms", player, {
         hostId: playerId,
         gameType,
-        players: { [playerId]: player.toPlainObject() },
         started: false
       })
     );
@@ -49,15 +48,13 @@ export class EntryModel {
     setDBInstance(this.db);
 
     // Pull current room state
-    const roomData = await this.db.pullState();
-    if (!roomData) throw new Error("Room does not exist");
-    if (roomData.started) throw new Error("Game already started");
+    const state = await this.db.pullState();
+    if (!state) throw new Error("Room does not exist");
+    if (state.started) throw new Error("Game already started");
 
-    const players: Player[] = Object.entries(roomData.players || {}).map(([id, p]) =>
-      Player.fromPlainObject(p as DocumentData)
-    );
+    const players: Player[] = state.players.map((p:any) => Player.fromPlainObject(p));
 
-    if (roomData.maxPlayers && players.length >= roomData.maxPlayers) {
+    if (state.maxPlayers && players.length >= state.maxPlayers) {
       throw new Error("Game is full");
     }
 
@@ -72,6 +69,6 @@ export class EntryModel {
         name: username
     });
 
-    return roomData.gameType;
+    return state.gameType;
   }
 }

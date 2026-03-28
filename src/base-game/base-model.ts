@@ -42,9 +42,10 @@ export abstract class BaseGame {
   protected events = new EventEmitter<BaseEvents>();
   protected db: Database;
 
-  constructor( deck: Deck, players: Player[], db: Database){
+  constructor( deck: Deck, players: Player[], teams: Team[], db: Database){
     this.deck = deck;
     this.players = players;
+    this.teams = teams;
     this.db = db;
   }
 
@@ -56,7 +57,6 @@ export abstract class BaseGame {
   // ----- Basic Getters / Setters -----
   getEnded(): boolean { return this.ended; }
   getDeck(): Deck { return this.deck; }
-  setPlayers(players: Player[]) { this.players = players; }
   getMaxPlayers() { return this.maxPlayers; }
   getMinPlayers() { return this.minPlayers; }
   getPlayerById(id: string): Player | undefined { return this.players.find(p => p.id === id); }
@@ -66,6 +66,11 @@ export abstract class BaseGame {
   getOpponents() { return this.players.filter(p => p.id !== localStorage.getItem('playerId')!); }
   getCurrentPlayer() { return this.currentPlayer; }
   getPlayers() { return this.players; }
+  setPlayers(players: any) {
+    this.players = players.map((p:any) => Player.fromPlainObject(p));
+    this.players.sort((a, b) => a.getOrder() - b.getOrder());
+    this.events.emit('stateChanged', {});
+  }
   getTeams(): Team[] { return this.teams; }
   setTeams(teams: any) {
     this.teams = teams.map((t:any) => Team.fromPlainObject(t));
@@ -128,11 +133,6 @@ export abstract class BaseGame {
 
   // ----- State Updates -----
   updateLocalState(data: any) {
-    if (data.players) {
-      this.players = Object.entries(data.players).map(([id, p]) => Player.fromPlainObject(p as DocumentData));
-      this.players.sort((a, b) => a.getOrder() - b.getOrder());
-    }
-
     this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer) : this.currentPlayer;
     this.ended = data.ended ?? false;
 
@@ -141,6 +141,10 @@ export abstract class BaseGame {
 
   async updateTeam(team: Team){
     await this.db.updateTeam(team.toPlainObject());
+  }
+
+  async updatePlayer(player: Player){
+    await this.db.updatePlayer(player.toPlainObject());
   }
 
 

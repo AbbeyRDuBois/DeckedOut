@@ -49,14 +49,17 @@ export class Database{
     actionsRef() { return collection(this.roomRef, "actions"); }
     logsRef() { return collection(this.roomRef, "logs"); }
     teamsRef() { return collection(this.roomRef, "teams"); }
+    playersRef() { return collection(this.roomRef, "players"); }
     getRoomRef(): any { return this.roomRef; }
     getRoomId(): string { return this.roomId; }
     setGame(game: BaseGame) { this.game = game; }
     setRoom(room: Room) { this.room = room; }
 
-    async init(name: string, initialValues: any): Promise<Database>{
+    async init(name: string, host: Player, initialValues: any): Promise<Database>{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
         this.roomRef = doc(this.db, name, this.roomId);
+        await this.updatePlayer(host.toPlainObject());
+        await this.updateTeam((new Team(host.name, [host.id], 0)).toPlainObject());
         return this;
     }
 
@@ -68,9 +71,12 @@ export class Database{
       const teamsSnap = await getDocs(this.teamsRef());
       const teams = teamsSnap.docs.map(doc => doc.data());
 
+      const playersSnap = await getDocs(this.playersRef());
+      const players = playersSnap.docs.map(doc => doc.data());
+
       const gameSnap = (await getDoc(this.roomRef)).data()!;
 
-      return {...gameSnap, teams};
+      return {...gameSnap, teams, players};
     }
 
     setupListeners(){
@@ -78,6 +84,7 @@ export class Database{
       this.listenForUpdates();
       this.listenForLogs();
       this.listenForTeams();
+      this.listenForPlayers();
     }
 
     //Only allows host to do the writing, the others just sent the intent.
@@ -108,6 +115,14 @@ export class Database{
     async updateTeam(team: any){
       try {
         await setDoc(doc(this.teamsRef(), team.id), team, { merge: true });
+      } catch (e) {
+        console.error("Error adding log:", e);
+      }
+    }
+
+    async updatePlayer(player: any){
+      try {
+        await setDoc(doc(this.playersRef(), player.id), player, { merge: true });
       } catch (e) {
         console.error("Error adding log:", e);
       }
@@ -153,27 +168,12 @@ export class Database{
                 const player = new Player(action.playerId, action.name);
                 const team = new Team(player.name, [player.id], Object.keys(snap.teams || {}).length);
 
-                // Build the patch that will be applied to Firestore
-                patch = {
-                    [`players.${action.playerId}`]: player.toPlainObject()
-                };
-
-                // apply locally to both room and game so the host UI updates instantly
-                // (before the document snapshot arrives)
-                this.applyPatchLocally(patch);
-                this.updateTeam(team.toPlainObject());
+                await this.updateTeam(team.toPlainObject());
+                await this.updatePlayer(player.toPlainObject());
                 break;
             }
 
             case "LEAVE_ROOM": {
-
-                const player = snap.players?.[action.playerId];
-                if (!player) return;
-
-                const patch: any = {
-                    [`players.${action.playerId}`]: deleteField()
-                };
-
                 // Remove player from teams
                 const updatedTeams = Object.fromEntries(
                     Object.entries(snap.teams).map(([teamName, teamObj]: [string, any]) => {
@@ -187,12 +187,10 @@ export class Database{
                     })
                 );
 
-                updatedTeams.array.forEach((team: any) => {
-                  this.updateTeam(team);
-                });;
+                updatedTeams.array.forEach(async (team: any) => await this.updateTeam(team));
 
-                // apply locally so host game state stays in sync immediately
-                this.applyPatchLocally(patch);
+                const updatedPlayers = this.game?.getPlayers().filter(p => p.id !== action.playerId);
+                updatedPlayers?.forEach(async p => await this.updatePlayer(p.toPlainObject()));
 
                 // If host leaves or game started -> delete room
                 if (action.playerId === snap.hostId || snap.started) {
@@ -200,7 +198,6 @@ export class Database{
                     return;
                 }
 
-                this.update(patch);
                 break;
             }
 
@@ -248,9 +245,9 @@ export class Database{
                             // add the player/team locally
                             if (!this.room) break;
                             const player = new Player(action.playerId, action.name);
-                            this.room.updateLocalState({
-                                players: { [action.playerId]: player.toPlainObject()},
-                            });
+                            const players = this.game?.getPlayers()!;
+                            players.push(player);
+                            players.forEach(async p => await this.updatePlayer(p));
                             break;
                         }
                         case "LEAVE_ROOM": {
@@ -258,16 +255,12 @@ export class Database{
                             // remove player and clean up teams locally
                             const playerId = action.playerId;
                             const state = this.room.getState();
-                            const remainingPlayers = state.players.filter((p: any) => p.id !== playerId);
 
+                            const remainingPlayers = state.players.filter((p: any) => p.id !== playerId);
                             const remainingTeams = state.teams.filter((t: any) => !t.playerIds.includes(playerId));
 
-                            // patch the local room state directly
-                            this.room.updateLocalState({
-                                players: Object.fromEntries(remainingPlayers.map((p: any) => [p.id, p.toPlainObject()])),
-                            });
-
-                            this.room.updateTeams(remainingTeams);
+                            remainingTeams.foreach(async (t: Team) => await this.updateTeam(t.toPlainObject()));
+                            remainingPlayers.forEach(async (p: Player) => await this.updatePlayer(p.toPlainObject()));
                             break;
                         }
                     }
@@ -292,6 +285,16 @@ export class Database{
             ...doc.data()
         }));
         this.game?.setTeams(teams);
+      })
+    }
+
+    listenForPlayers(){
+      return onSnapshot(this.playersRef(), (snapshot: any) => {
+        const players = snapshot.docs.map((doc: any) => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        this.game?.setPlayers(players);
       })
     }
 
