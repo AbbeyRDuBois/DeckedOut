@@ -227,7 +227,7 @@ export class Cribbage extends BaseGame {
   // Guest is for optimistic updates to reduce the feel of lag on their end
   // Host is the only one that actually talks to the database though
   async cardPlayed(playerId: string, cardId: number) {
-    const player = this.findPlayerById(playerId);
+    const player = this.getPlayer(playerId);
     if (!player) return;
 
     const cardIndex = player.hand.findIndex(c => c.id === cardId);
@@ -316,7 +316,7 @@ export class Cribbage extends BaseGame {
 
 //Handle a joker being turned into another card
   async applyJokerCard(card: Card, playerId: string) {
-    const player = this.findPlayerById(playerId);
+    const player = this.getPlayer(playerId);
     if (!player) return;
 
     // Joker in hand
@@ -585,7 +585,7 @@ export class Cribbage extends BaseGame {
 
   async findNibs(){
     if (this.flipped.rank == "J"){
-      const player = this.findPlayerById(this.cribOwner.id);
+      const player = this.getPlayer(this.cribOwner.id);
       const team = this.findTeamByPlayer(player)!;
       team.score += 2;
       player.score += 2;
@@ -769,7 +769,7 @@ export class Cribbage extends BaseGame {
       if (this.ended) return;
 
       if (slide.type === "HAND") {
-        const player = this.findPlayerById(slide.playerId);
+        const player = this.getPlayer(slide.playerId);
         const team = this.findTeamByPlayer(player)!;
 
         team.score += slide.points;
@@ -783,7 +783,7 @@ export class Cribbage extends BaseGame {
       }
 
       if (slide.type === "CRIB") {
-        const player = this.findPlayerById(slide.dealerId);
+        const player = this.getPlayer(slide.dealerId);
         const team = this.findTeamByPlayer(player)!;
 
         team.score += slide.points;

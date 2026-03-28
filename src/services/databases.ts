@@ -102,11 +102,8 @@ export class Database{
             await updateDoc(this.roomRef, changes);
             return;
         }
-        else{
-            this.applyPatchLocally(changes); // Apply instantly
-        }
 
-        // Guests send a GAME_ACTION intent
+        this.applyPatchLocally(changes); // Apply instantly
         await this.sendAction({
             type: "GAME_ACTION",
             playerId: localStorage.getItem("playerId")!,

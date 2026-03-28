@@ -60,7 +60,6 @@ export abstract class BaseGame {
   getDeck(): Deck { return this.deck; }
   getMaxPlayers() { return this.maxPlayers; }
   getMinPlayers() { return this.minPlayers; }
-  getPlayerById(id: string): Player | undefined { return this.players.find(p => p.id === id); }
   getStarted() { return this.started; }
   setStarted(started: boolean) { this.started = started; }
   getUserPlayer() { return this.players.find((p) => p.id === localStorage.getItem('playerId')!)!; }
@@ -76,7 +75,7 @@ export abstract class BaseGame {
     this.events.emit('stateChanged', {});
   }
   getPlayer(playerId: string): Player{
-    return this.players.find(p => p.id = playerId)!;
+    return this.players.find(p => p.id === playerId)!;
   }
   setPlayer(player: Player){
     const index = this.players.findIndex(p => p.id = player.id);
@@ -129,7 +128,7 @@ export abstract class BaseGame {
       stillHasPlayers = false;
       for (const t of tempTeams) {
         if (t.players.length > 0) {
-          const player = this.getPlayerById(t.players.shift()!)!;
+          const player = this.getPlayer(t.players.shift()!);
           player.setOrder(order++);
           newOrder.push(player);
           stillHasPlayers = true;
@@ -228,10 +227,6 @@ export abstract class BaseGame {
 
   findTeamByPlayer(player: Player): Team {
     return this.teams.find(team => team.playerIds.includes(player.id))!;
-  }
-
-  findPlayerById(playerId: string): Player {
-    return this.players.find(p => p.id === playerId)!;
   }
 
   //Shuffles the player/team order
