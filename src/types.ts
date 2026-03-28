@@ -1,6 +1,3 @@
-import { Player } from "./player";
-import { Team } from "./team";
-
 export type CardPlain = {
   id: number;
   value: string;
@@ -23,6 +20,7 @@ export type TeamPlain = {
   name: string;
   score: number;
   playerIds: string[];
+  order: number;
 };
 
 export type RoomAction =
@@ -34,8 +32,6 @@ export type RoomAction =
 export type RoomState = {
   roomId: string;
   gameType: string;
-  players: Player[];
-  teams: Team[];
   started: boolean;
   settingsOpen: boolean;
   theme: string;

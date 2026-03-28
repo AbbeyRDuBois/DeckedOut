@@ -1,6 +1,6 @@
 import { DocumentData } from "firebase/firestore";
 
-export const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+export const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 export const SUITS = [
     { name: 'Clubs', symbol: '♣', color: 'black' },
     { name: 'Diamonds', symbol: '♦', color: 'crimson' },
@@ -17,13 +17,13 @@ export type CardOptions = {
 
 export class Card {
     id: number;
-    value: string;
+    rank: string;
     suit: string;
     isFlipped: boolean;
     isPlayed: boolean;
 
-    constructor(id: number, value = "", suit = "", isFlipped = false, isPlayed = false) {
-        this.value = value;
+    constructor(id: number, rank = "", suit = "", isFlipped = false, isPlayed = false) {
+        this.rank = rank;
         this.suit = suit;
         this.id = id;
         this.isFlipped = isFlipped;
@@ -31,20 +31,20 @@ export class Card {
     }
 
     toInt(counting = false): number {
-        switch (this.value) {
+        switch (this.rank) {
             case 'A': return 1;
             case 'J': return counting ? 10 : 11;
             case 'Q': return counting ? 10 : 12;
             case 'K': return counting ? 10 : 13;
             case 'JK': return this.suit == "Red" ? 1 : 2;
-            default: return parseInt(this.value);
+            default: return parseInt(this.rank);
         }
     }
 
     toHTML(): string {
         if (this.suit != ""){
             var suit = SUITS.filter(suit => suit.name == this.suit)[0];
-            return `${this.value}<span style="color: ${suit.color};">${suit.symbol}</span>`;
+            return `${this.rank}<span style="color: ${suit.color};">${suit.symbol}</span>`;
         }
         return "";
     }
@@ -52,7 +52,7 @@ export class Card {
     toPlainObject() {
         return {
             id: this.id,
-            value: this.value,
+            value: this.rank,
             suit: this.suit,
             isFlipped: this.isFlipped,
             isPlayed: this.isPlayed
@@ -64,7 +64,7 @@ export class Card {
         const suitNames = SUITS.map(suit => suit.name);
 
         return cards.sort((a, b) =>
-            VALUES.indexOf(a.value) - VALUES.indexOf(b.value) ||
+            RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank) ||
             suitNames.indexOf(a.suit) - suitNames.indexOf(b.suit)
         );
     }

@@ -10,13 +10,13 @@
 
 import { BaseGame } from "./base-model";
 import { Database } from "../services/databases";
-import { BaseView } from "./base-view";
+import { BaseView, BaseViewHandlers } from "./base-view";
+import { Team } from "../team";
 
 export abstract class BaseController<
   TGame extends BaseGame,
   TView extends BaseView
 > {
-
   constructor(protected game: TGame, protected view: TView, protected db: Database) {
     //All (this.game.on) define the events that were emitted from the model
 
@@ -47,13 +47,89 @@ export abstract class BaseController<
         this.view.render(gameObject, localId, cardId => this.onCardPlayed(localId, cardId));
       }
     });
+
+
+    const handlers: BaseViewHandlers = {
+      onStart: async () => { await this.onStartGame();},
+      onAddTeam: async () => {
+        // create new team and append locally so UI updates immediately
+        const teams = this.game.getTeams();
+        if (teams.length < this.game.getPlayers().length) {
+          const newTeam = new Team(`Team ${teams.length + 1}`, [], teams.length);
+          teams.push(newTeam);
+          this.game.updateTeams(teams);
+        }
+      },
+      onTeamNameChange: async (idx, name) => { 
+        const teams = this.game.getTeams();
+        teams[idx].name = name;
+        await this.game.updateTeam(teams[idx]); 
+      },
+      onRemoveTeam: async () => { 
+        const teams = this.game.getTeams(); 
+        if (teams.length > 1) { 
+          const removed = teams.pop(); 
+
+          // Push players from removed team back into remaining teams
+          if (removed){
+            removed.playerIds.forEach((id, i) => {
+              teams[i % teams.length].playerIds.push(id);
+            });
+          }
+
+          // make sure orders are contiguous after removal
+          teams.forEach((t, idx) => t.order = idx);
+          this.game.updateTeams(teams);
+        } 
+      },
+      onRandomize: async (size) => {
+        //Randomizes the teams
+        const players = this.game.getPlayers().slice();
+        const shuffled = players.sort(() => Math.random() - 0.5);
+        const newTeams: any[] = [];
+        for (let i = 0; i < shuffled.length; i += size) {
+          const slice = shuffled.slice(i, i + size);
+          newTeams.push({ name: `Team ${newTeams.length + 1}`, playerIds: slice.map(p => p.id) });
+        }
+        this.game.updateTeams(newTeams);
+      },
+      onMovePlayer: async (playerId, fromIndex, toIndex) => {
+        const teams = this.game.getTeams();
+        if (!teams[fromIndex] || !teams[toIndex]) return;
+        // Remove from source
+        teams[fromIndex].playerIds = teams[fromIndex].playerIds.filter((id: string) => id !== playerId);
+        // Add to destination
+        teams[toIndex].playerIds.push(playerId);
+        await this.game.updateTeam(teams[fromIndex]);
+        await this.game.updateTeam(teams[toIndex]);
+      }
+    };
+    this.view.setHandlers(handlers);
   }
 
   abstract onStateChanged() : Promise<void>;
   abstract gameOptions() : any;
-  
+
+  async onStartGame() {
+    if (this.game.getPlayers().length < 2){
+      alert('Not Enough Players to Start Game.');
+      return;
+    }
+
+    if (!this.game?.getStarted()){
+      // Start the game model (deal cards, set flipped, etc.) and save game state
+      await this.game?.start();
+    }
+  }
+
   //Need this to trigger rerender to game when changes happen in the room (like changing card theme)
   gameRerender(){
+    if (!this.game.getStarted()){
+      this.gameOptions();
+      this.view.renderTeams(this.game.getTeams(), this.game.getPlayers());
+      this.view.renderPlayerList(this.game.getPlayers());
+    }
+
     const localId = localStorage.getItem('playerId')!;
     this.view.render(this.game.toPlainObject(), localId, cardId => this.onCardPlayed(localId, cardId));
   }

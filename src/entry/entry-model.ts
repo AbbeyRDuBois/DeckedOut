@@ -5,11 +5,8 @@
  *      Handles the nitty gritty of actually joining or creating the room and updates/creates the db accordingly
  * 
  ****************************************************************************/
-
-import { DocumentData } from "firebase/firestore";
 import { v4 } from "uuid";
 import { Player } from "../player";
-import { Team } from "../team";
 import { Database, getDBInstance, setDBInstance } from "../services/databases";
 
 export class EntryModel {
@@ -25,11 +22,9 @@ export class EntryModel {
     const player = new Player(playerId, username);
 
     setDBInstance(
-      await new Database().init("rooms", {
+      await new Database().init("rooms", player, {
         hostId: playerId,
         gameType,
-        players: { [playerId]: player.toPlainObject() },
-        teams: {[username]: new Team(player.name, [player.id], 0).toPlainObject()},
         started: false
       })
     );
@@ -50,35 +45,20 @@ export class EntryModel {
     setDBInstance(this.db);
 
     // Pull current room state
-    const roomData = await this.db.pullState();
-    if (!roomData) throw new Error("Room does not exist");
-    if (roomData.started) throw new Error("Game already started");
+    const state = await this.db.pullState();
+    if (!state) throw new Error("Room does not exist");
+    if (state.started) throw new Error("Game already started");
 
-    const players: Player[] = Object.entries(roomData.players || {}).map(([id, p]) =>
-      Player.fromPlainObject(p as DocumentData)
-    );
+    const players: Player[] = state.players.map((p:any) => Player.fromPlainObject(p));
 
-    if (roomData.maxPlayers && players.length >= roomData.maxPlayers) {
-        throw new Error("Game is full");
+    if (state.maxPlayers && players.length >= state.maxPlayers) {
+      throw new Error("Game is full");
     }
 
-    // Create a local player object
-    const newPlayer = new Player(playerId, username);
-
-    // Update the local Room state immediately
-    if (this.db.room) {
-        // Add to players
-        players.push(newPlayer);
-        this.db.room.getState().players = players;
-
-        // Add to a team (or create a new one)
-        const newTeam = new Team(username, [playerId], this.db.room.getState().teams.length);        
-        this.db.room.getState().teams.push(newTeam);
-
-        // Emit stateChanged immediately so UI updates
-        this.db.events.emit("stateChanged", this.db.room.getState());
+    if (players.find(p => p.name === username)){
+      throw new Error("Person Already has that Username");
     }
-
+    
     // Notify the host
     await this.db.sendAction({
         type: "JOIN_ROOM",
@@ -86,6 +66,6 @@ export class EntryModel {
         name: username
     });
 
-    return roomData.gameType;
+    return state.gameType;
   }
 }

@@ -47,15 +47,12 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
   }
 
   override async onStateChanged() {
-    if (!this.game.getStarted()){
-      this.gameOptions();
-      return;
-    }
-
+    this.gameRerender();
+    
     if(this.game.getEnded()){
       const winner = this.game.getTeams().find(t => t.score >= this.game.getPointGoal());
       const losers = this.game.getTeams().filter(t => t.name != winner?.name);
-      const winnerPlayers = winner?.playerIds.map(id => this.game.getPlayerById(id));
+      const winnerPlayers = winner?.playerIds.map(id => this.game.getPlayer(id));
 
       this.view.renderWinner(winner, losers, winnerPlayers);
       return;
@@ -187,14 +184,14 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
       this.view.setHandEnabled(false);
     } else {
       // Reset local hand enabled state based on current round and player
-      const localPlayerObj = this.game.findPlayerById(localId);
+      const localPlayerObj = this.game.getPlayer(localId);
       this.game.setHandState(localPlayerObj);
     }
 
-    const localPlayer = this.game.findPlayerById(localId);
+    const localPlayer = this.game.getPlayer(localId);
 
     // Check if local player has a Joker in hand
-    if (localPlayer?.hand.some((c: Card) => c.value === 'JK') && state != RoundState.Pointing && state != RoundState.Scoring) {
+    if (localPlayer?.hand.some((c: Card) => c.rank === 'JK') && state != RoundState.Pointing && state != RoundState.Scoring) {
       const fullDeck = new Deck();
       this.view.renderJokerPopup(
         this.game.getFullPlainDeck(),
@@ -210,7 +207,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView>{
     }
 
     // Check if flipped card is a Joker
-    if (this.game.getFlipped().value === 'JK' 
+    if (this.game.getFlipped().rank === 'JK' 
         && state != RoundState.Pointing && state != RoundState.Scoring
         && localId === cribOwner.id
         && this.game.getFlipped().isFlipped) {
