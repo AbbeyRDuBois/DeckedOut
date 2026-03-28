@@ -188,7 +188,6 @@ export class Database{
                 );
 
                 updatedTeams.array.forEach(async (team: any) => await this.updateTeam(team));
-
                 const updatedPlayers = this.game?.getPlayers().filter(p => p.id !== action.playerId);
                 updatedPlayers?.forEach(async p => await this.updatePlayer(p.toPlainObject()));
 

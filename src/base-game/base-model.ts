@@ -143,8 +143,16 @@ export abstract class BaseGame {
     await this.db.updateTeam(team.toPlainObject());
   }
 
+  updateTeams(teams: Team[]){
+    teams.forEach(async t => await this.updateTeam(t));
+  }
+
   async updatePlayer(player: Player){
     await this.db.updatePlayer(player.toPlainObject());
+  }
+
+  updatePlayers(players: Player[]){
+    players.forEach(async player => await this.updatePlayer(player));
   }
 
 

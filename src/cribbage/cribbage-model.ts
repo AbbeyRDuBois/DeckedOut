@@ -185,8 +185,8 @@ export class Cribbage extends BaseGame {
     this.setFlipped();
     this.roundState = RoundState.Throwing;
     this.started = true;
-    this.teams.forEach(async team => await this.updateTeam(team));
-    this.players.forEach(async player => await this.updatePlayer(player));
+    this.updateTeams(this.teams);
+    this.updatePlayers(this.players);
 
     await this.db.update({
       cribOwner: this.cribOwner.toPlainObject(),
@@ -308,7 +308,7 @@ export class Cribbage extends BaseGame {
     changes.peggingTotal =  this.peggingTotal;
     changes.ended = this.ended;
 
-    this.players.forEach(async player => await this.updatePlayer(player));
+    this.updatePlayers(this.players);
 
     await this.db.update(changes);
     this.events.emit('stateChanged', changes);
@@ -603,8 +603,8 @@ export class Cribbage extends BaseGame {
     if (team.score >= this.pointGoal){
       this.ended = true;
       await this.db.addLog(`${player.name} won the game!`);
-      this.teams.forEach(async team => await this.updateTeam(team));
-      this.players.forEach(async player => await this.updatePlayer(player));
+      this.updateTeams(this.teams);
+      this.updatePlayers(this.players);
       await this.db.update({
         ended: this.ended
       });
@@ -696,8 +696,8 @@ export class Cribbage extends BaseGame {
       index: 0
     };
 
-    this.teams.forEach(async team => await this.updateTeam(team));
-    this.players.forEach(async player => await this.updatePlayer(player));
+    this.updateTeams(this.teams);
+    this.updatePlayers(this.players);
 
     await this.db.update({
       roundState: this.roundState,
@@ -830,8 +830,8 @@ export class Cribbage extends BaseGame {
     this.presentation = {slides:[], index:0};
 
     await this.nextCribOwner();
-    this.teams.forEach(async team => await this.updateTeam(team));
-    this.players.forEach(async player => await this.updatePlayer(player));
+    this.updateTeams(this.teams);
+    this.updatePlayers(this.players);
 
     await this.db.update({
       currentPlayer: this.currentPlayer.toPlainObject(),

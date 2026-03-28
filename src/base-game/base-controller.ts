@@ -57,8 +57,7 @@ export abstract class BaseController<
         if (teams.length < this.game.getPlayers().length) {
           const newTeam = new Team(`Team ${teams.length + 1}`, [], teams.length);
           teams.push(newTeam);
-          // re-sync database using the shared helper (handles object formatting)
-          teams.forEach(async t => await this.game.updateTeam(t));
+          this.game.updateTeams(teams);
         }
       },
       onTeamNameChange: async (idx, name) => { 
@@ -80,8 +79,7 @@ export abstract class BaseController<
 
           // make sure orders are contiguous after removal
           teams.forEach((t, idx) => t.order = idx);
-
-          teams.forEach(async t => await this.game.updateTeam(t)); 
+          this.game.updateTeams(teams);
         } 
       },
       onRandomize: async (size) => {
@@ -93,7 +91,7 @@ export abstract class BaseController<
           const slice = shuffled.slice(i, i + size);
           newTeams.push({ name: `Team ${newTeams.length + 1}`, playerIds: slice.map(p => p.id) });
         }
-        newTeams.forEach(async t => await this.game.updateTeam(t));
+        this.game.updateTeams(newTeams);
       },
       onMovePlayer: async (playerId, fromIndex, toIndex) => {
         const teams = this.game.getTeams();
