@@ -55,7 +55,6 @@ export class Cribbage extends BaseGame {
   getSkunkLength(): number { return this.skunkLength; }
   getRoundState(): string { return this.roundState; }
   getPointGoal(): number { return this.pointGoal; }
-  setIsTurn(turn: boolean){ this.isTurn = turn; }
   getGameMode(): string { return this.gameMode; }
   getDeckMode(): string { return this.deckMode; }
 
@@ -127,27 +126,11 @@ export class Cribbage extends BaseGame {
     return this.awaitingJokerSelection;
   }
 
-  override toPlainObject() {
-    return{
-      ...super.toPlainObject(),
-      pointGoal: this.pointGoal,
-      skunkLength: this.skunkLength,
-      handSize: this.handSize,
-      flipped: this.flipped.toPlainObject(),
-      crib: this.crib.map(c => c.toPlainObject()),
-      cribOwner: this.cribOwner.toPlainObject(),
-      roundState: this.roundState,
-      peggingCards: this.peggingCards.map(c => c.toPlainObject()),
-      peggingTotal: this.peggingTotal,
-      awaitingJokerSelection: this.awaitingJokerSelection,
-      deckMode: this.deckMode,
-      gameMode: this.gameMode,
-      presentation: this.presentation,
-      logs: this.logs
-    }
-  }
-
-    //Updates the local state from DB values
+  /******************************************
+   * 
+   *  State Updates
+   * 
+   ******************************************/
   override updateLocalState(data: DocumentData): void {
     this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
     this.crib = data.crib?.map((c: any) => new Card(c.id, c.value, c.suit)) ?? this.crib;
@@ -174,10 +157,30 @@ export class Cribbage extends BaseGame {
     super.updateLocalState(data); //Call this last for the stateChange event
   }
 
+  override toPlainObject() {
+    return{
+      ...super.toPlainObject(),
+      pointGoal: this.pointGoal,
+      skunkLength: this.skunkLength,
+      handSize: this.handSize,
+      flipped: this.flipped.toPlainObject(),
+      crib: this.crib.map(c => c.toPlainObject()),
+      cribOwner: this.cribOwner.toPlainObject(),
+      roundState: this.roundState,
+      peggingCards: this.peggingCards.map(c => c.toPlainObject()),
+      peggingTotal: this.peggingTotal,
+      awaitingJokerSelection: this.awaitingJokerSelection,
+      deckMode: this.deckMode,
+      gameMode: this.gameMode,
+      presentation: this.presentation,
+      logs: this.logs
+    }
+  }
+
   //The beginning of it all!
   async start(): Promise<void> {
     this.teams = this.teams.filter(t => t.playerIds.length > 0);
-    this.getPlayerOrder();
+    this.setPlayerOrder();
     this.cribOwner = this.players[0];
     this.currentPlayer = this.players[1];
     await this.deal();

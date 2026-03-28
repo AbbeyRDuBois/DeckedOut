@@ -36,7 +36,6 @@ export abstract class BaseGame {
   protected started: boolean = false;
   protected ended: boolean = false;
   protected currentPlayer: Player = new Player("", "");
-  protected isTurn: boolean = false;
   protected logs: string[] = [];
   protected playedOffset: number = -65; //How much the cards cover the past played
   protected events = new EventEmitter<BaseEvents>();
@@ -54,17 +53,30 @@ export abstract class BaseGame {
   abstract guestSetup(data: DocumentData): void;
   abstract cardPlayed(playerId: string, cardId: number): void | Promise<void>;
 
-  // ----- Basic Getters / Setters -----
+  /******************************************
+   * 
+   *  Basic Getters/Setters
+   * 
+   ******************************************/
   isHost(): boolean{ return this.db.isHost(); }
   getEnded(): boolean { return this.ended; }
-  getDeck(): Deck { return this.deck; }
-  getMaxPlayers() { return this.maxPlayers; }
-  getMinPlayers() { return this.minPlayers; }
   getStarted() { return this.started; }
   setStarted(started: boolean) { this.started = started; }
-  getUserPlayer() { return this.players.find((p) => p.id === localStorage.getItem('playerId')!)!; }
-  getOpponents() { return this.players.filter(p => p.id !== localStorage.getItem('playerId')!); }
-  getCurrentPlayer() { return this.currentPlayer; }
+  getLogs(): string[] { return this.logs; }
+  setLogs(logs: string[]) { 
+    this.logs = logs;
+    this.events.emit('stateChanged', {}); 
+  }
+  setHandState(player: Player){
+    // Model informs that the hand/state should change.
+    this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
+  }
+
+  /******************************************
+   * 
+   *  Player Getters/Setters
+   * 
+   ******************************************/
   getPlayers() { return this.players; }
   setPlayers(players: Player[]){
     this.players = players;
@@ -81,31 +93,7 @@ export abstract class BaseGame {
     const index = this.players.findIndex(p => p.id = player.id);
     this.players[index] = player;
   }
-
-  getTeams(): Team[] { return this.teams; }
-  setTeams(teams: Team[]){
-    this.teams = teams;
-  }
-  setTeam(team: Team){
-    const index = this.teams.findIndex(t => t.id = team.id);
-    this.teams[index] = team;
-  }
-  setTeamsFromDB(teams: any) {
-    this.teams = teams.map((t:any) => Team.fromPlainObject(t));
-    this.teams.sort((a, b) => a.getOrder() - b.getOrder());
-    this.events.emit('stateChanged', {});
-  }
-  getLogs(): string[] { return this.logs; }
-  setLogs(logs: string[]) { 
-    this.logs = logs;
-    this.events.emit('stateChanged', {}); 
-  }
-
-  getPlayerTeam(playerId: string): Team | null {
-    return this.teams.find(team => team.playerIds.includes(playerId)) || null;
-  }
-
-  getPlayerOrder(){
+  setPlayerOrder(){
     // If no teams exist, preserve players and just shuffle the player order
     if (!this.teams || this.teams.length === 0) {
       this.players = this.shuffle(this.players);
@@ -139,7 +127,29 @@ export abstract class BaseGame {
     this.players = newOrder;
   }
 
-    //Allows the controller/view to subscribe to event
+  /******************************************
+   * 
+   *  Team Getters/Setters
+   * 
+   ******************************************/
+  getTeams(): Team[] { return this.teams; }
+  setTeams(teams: Team[]){
+    this.teams = teams;
+  }
+  setTeam(team: Team){
+    const index = this.teams.findIndex(t => t.id = team.id);
+    this.teams[index] = team;
+  }
+  setTeamsFromDB(teams: any) {
+    this.teams = teams.map((t:any) => Team.fromPlainObject(t));
+    this.teams.sort((a, b) => a.getOrder() - b.getOrder());
+    this.events.emit('stateChanged', {});
+  }
+  getPlayerTeam(playerId: string): Team | null {
+    return this.teams.find(team => team.playerIds.includes(playerId)) || null;
+  }
+
+  //Allows the controller/view to subscribe to event
   on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
     this.events.on(event, listener);
   }
@@ -149,11 +159,14 @@ export abstract class BaseGame {
     this.events.off(event, listener);
   }
 
-  // ----- State Updates -----
+  /******************************************
+   * 
+   *  State Updates
+   * 
+   ******************************************/
   updateLocalState(data: any) {
     this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer) : this.currentPlayer;
     this.ended = data.ended ?? false;
-
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
@@ -202,6 +215,7 @@ export abstract class BaseGame {
     };
   }
 
+  //For Joker Popup
   getFullPlainDeck(): CardPlain[] {
     const deck = new Deck();
     return deck.deck.map(card => ({
@@ -213,15 +227,9 @@ export abstract class BaseGame {
     }));
   }
 
-  setHandState(player: Player){
-    // Model informs that the hand/state should change.
-    this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
-  }
-
   async nextPlayer(): Promise<any> {
     const index = this.players.findIndex(p => p.id === this.currentPlayer.id);
     this.currentPlayer = this.players[(index + 1) % this.players.length];
-    this.isTurn = this.currentPlayer.id === localStorage.getItem("playerId");
     return { currentPlayer: this.currentPlayer.toPlainObject() };
   }
 
