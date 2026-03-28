@@ -35,8 +35,8 @@ export class Database{
     db: Firestore;
     guestActionTimeout: NodeJS.Timeout | null = null;
     events =  new EventEmitter<{stateChanged: any;}>();
-
-    
+    hostId: string = "";
+  
     constructor(){
         this.db = initializeFirestore(app, {
           localCache: persistentLocalCache({
@@ -45,7 +45,7 @@ export class Database{
         });
     }
 
-    isHost(): boolean { return this.room?.getState().hostId === localStorage.getItem('playerId')!; }
+    isHost(): boolean { return this.hostId === localStorage.getItem('playerId')!; }
     actionsRef() { return collection(this.roomRef, "actions"); }
     logsRef() { return collection(this.roomRef, "logs"); }
     teamsRef() { return collection(this.roomRef, "teams"); }
@@ -58,6 +58,7 @@ export class Database{
     async init(name: string, host: Player, initialValues: any): Promise<Database>{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
         this.roomRef = doc(this.db, name, this.roomId);
+        this.hostId = host.id;
         await this.updatePlayer(host.toPlainObject());
         await this.updateTeam((new Team(host.name, [host.id], 0)).toPlainObject());
         return this;
@@ -68,23 +69,23 @@ export class Database{
     }
     
     async pullState(): Promise<DocumentData> {
-      const teamsSnap = await getDocs(this.teamsRef());
-      const teams = teamsSnap.docs.map(doc => doc.data());
+        const teamsSnap = await getDocs(this.teamsRef());
+        const teams = teamsSnap.docs.map(doc => doc.data());
 
-      const playersSnap = await getDocs(this.playersRef());
-      const players = playersSnap.docs.map(doc => doc.data());
+        const playersSnap = await getDocs(this.playersRef());
+        const players = playersSnap.docs.map(doc => doc.data());
 
-      const gameSnap = (await getDoc(this.roomRef)).data()!;
+        const gameSnap = (await getDoc(this.roomRef)).data()!;
 
-      return {...gameSnap, teams, players};
+        return {...gameSnap, teams, players};
     }
 
     setupListeners(){
-      this.listenForActions();
-      this.listenForUpdates();
-      this.listenForLogs();
-      this.listenForTeams();
-      this.listenForPlayers();
+        this.listenForActions();
+        this.listenForUpdates();
+        this.listenForLogs();
+        this.listenForTeams();
+        this.listenForPlayers();
     }
 
     //Only allows host to do the writing, the others just sent the intent.
@@ -113,19 +114,21 @@ export class Database{
     }
 
     async updateTeam(team: any){
-      try {
-        await setDoc(doc(this.teamsRef(), team.id), team, { merge: true });
-      } catch (e) {
-        console.error("Error adding log:", e);
-      }
+        if (!this.isHost()) return;
+        try {
+            await setDoc(doc(this.teamsRef(), team.id), team, { merge: true });
+        } catch (e) {
+            console.error("Error adding log:", e);
+        }
     }
 
     async updatePlayer(player: any){
-      try {
-        await setDoc(doc(this.playersRef(), player.id), player, { merge: true });
-      } catch (e) {
-        console.error("Error adding log:", e);
-      }
+        if(!this.isHost()) return;
+        try {
+            await setDoc(doc(this.playersRef(), player.id), player, { merge: true });
+        } catch (e) {
+            console.error("Error adding log:", e);
+        }
     }
 
 
@@ -164,7 +167,6 @@ export class Database{
             }
             case "JOIN_ROOM": {
                 if (snap.players?.[action.playerId]) return;
-
                 const player = new Player(action.playerId, action.name);
                 const team = new Team(player.name, [player.id], Object.keys(snap.teams || {}).length);
 
@@ -217,14 +219,21 @@ export class Database{
     }
 
     async addLog(message: string) {
-      try {
-        await addDoc(this.logsRef(), {
-          message: message,
-          timestamp: serverTimestamp()
-        });
-      } catch (e) {
-        console.error("Error adding log:", e);
-      }
+        if(!this.isHost()){
+            var updatedLogs = this.game?.getLogs()!;
+            updatedLogs.push(message);
+            this.game?.setLogs(updatedLogs);
+            return;
+        }
+
+        try {
+            await addDoc(this.logsRef(), {
+                message: message,
+                timestamp: serverTimestamp()
+            });
+        } catch (e) {
+            console.error("Error adding log:", e);
+        }
     }
 
     listenForActions() {
@@ -246,7 +255,7 @@ export class Database{
                             const player = new Player(action.playerId, action.name);
                             const players = this.game?.getPlayers()!;
                             players.push(player);
-                            players.forEach(async p => await this.updatePlayer(p));
+                            this.game?.setPlayers(players);
                             break;
                         }
                         case "LEAVE_ROOM": {
@@ -258,8 +267,8 @@ export class Database{
                             const remainingPlayers = state.players.filter((p: any) => p.id !== playerId);
                             const remainingTeams = state.teams.filter((t: any) => !t.playerIds.includes(playerId));
 
-                            remainingTeams.foreach(async (t: Team) => await this.updateTeam(t.toPlainObject()));
-                            remainingPlayers.forEach(async (p: Player) => await this.updatePlayer(p.toPlainObject()));
+                            this.game?.setTeams(remainingTeams);
+                            this.game?.setPlayers(remainingPlayers);
                             break;
                         }
                     }
@@ -269,32 +278,32 @@ export class Database{
     }
 
     listenForLogs(){
-      const q = query(this.logsRef(), orderBy("timestamp", "asc"));
+        const q = query(this.logsRef(), orderBy("timestamp", "asc"));
 
-      return onSnapshot(q, (snapshot) => {
-        const logs = snapshot.docs.map(doc => doc.data().message);
-        this.game?.setLogs(logs);
-      });
+        return onSnapshot(q, (snapshot) => {
+            const logs = snapshot.docs.map(doc => doc.data().message);
+            this.game?.setLogs(logs);
+        });
     }
 
     listenForTeams(){
-      return onSnapshot(this.teamsRef(), (snapshot: any) => {
-        const teams = snapshot.docs.map((doc: any) => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        this.game?.setTeams(teams);
-      })
+        return onSnapshot(this.teamsRef(), (snapshot: any) => {
+            const teams = snapshot.docs.map((doc: any) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            this.game?.setTeamsFromDB(teams);
+        })
     }
 
     listenForPlayers(){
-      return onSnapshot(this.playersRef(), (snapshot: any) => {
-        const players = snapshot.docs.map((doc: any) => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        this.game?.setPlayers(players);
-      })
+        return onSnapshot(this.playersRef(), (snapshot: any) => {
+            const players = snapshot.docs.map((doc: any) => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            this.game?.setPlayersFromDB(players);
+        })
     }
 
     listenForUpdates(){
@@ -324,6 +333,7 @@ export class Database{
     async join(name: string, roomId: string): Promise<this> {
         this.roomId = roomId;
         this.roomRef = doc(this.db, name, roomId);
+        this.hostId = (await this.pullState()).hostId;
         return this;
     }
 }

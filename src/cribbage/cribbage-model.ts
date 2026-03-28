@@ -58,7 +58,6 @@ export class Cribbage extends BaseGame {
   setIsTurn(turn: boolean){ this.isTurn = turn; }
   getGameMode(): string { return this.gameMode; }
   getDeckMode(): string { return this.deckMode; }
-  isHost(): boolean{ return this.db.isHost(); }
 
   getScoringSlide() {
     const { slides, index } = this.presentation;
@@ -224,18 +223,10 @@ export class Cribbage extends BaseGame {
     this.db.listenForPlayers();
   }
 
+  // Both Guest and Host run through Logic
+  // Guest is for optimistic updates to reduce the feel of lag on their end
+  // Host is the only one that actually talks to the database though
   async cardPlayed(playerId: string, cardId: number) {
-    if (!this.isHost()) {
-      // Guest sends intent only
-      await this.db.sendAction({
-        type: "PLAY_CARD",
-        playerId,
-        cardId
-      });
-      return;
-    }
-
-    // Host executes logic
     const player = this.findPlayerById(playerId);
     if (!player) return;
 
@@ -303,13 +294,22 @@ export class Cribbage extends BaseGame {
       }
     }
 
+    // Guest sends intent
+    if (!this.isHost()) {
+      await this.db.sendAction({
+        type: "PLAY_CARD",
+        playerId,
+        cardId
+      });
+      return;
+    }
+
     changes.currentPlayer = this.currentPlayer.toPlainObject();
     changes.peggingCards = this.peggingCards.map(c => c.toPlainObject());
     changes.peggingTotal =  this.peggingTotal;
     changes.ended = this.ended;
 
     this.updatePlayers(this.players);
-
     await this.db.update(changes);
     this.events.emit('stateChanged', changes);
 }

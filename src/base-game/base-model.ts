@@ -55,6 +55,7 @@ export abstract class BaseGame {
   abstract cardPlayed(playerId: string, cardId: number): void | Promise<void>;
 
   // ----- Basic Getters / Setters -----
+  isHost(): boolean{ return this.db.isHost(); }
   getEnded(): boolean { return this.ended; }
   getDeck(): Deck { return this.deck; }
   getMaxPlayers() { return this.maxPlayers; }
@@ -66,13 +67,31 @@ export abstract class BaseGame {
   getOpponents() { return this.players.filter(p => p.id !== localStorage.getItem('playerId')!); }
   getCurrentPlayer() { return this.currentPlayer; }
   getPlayers() { return this.players; }
-  setPlayers(players: any) {
+  setPlayers(players: Player[]){
+    this.players = players;
+  }
+  setPlayersFromDB(players: any) {
     this.players = players.map((p:any) => Player.fromPlainObject(p));
     this.players.sort((a, b) => a.getOrder() - b.getOrder());
     this.events.emit('stateChanged', {});
   }
+  getPlayer(playerId: string): Player{
+    return this.players.find(p => p.id = playerId)!;
+  }
+  setPlayer(player: Player){
+    const index = this.players.findIndex(p => p.id = player.id);
+    this.players[index] = player;
+  }
+
   getTeams(): Team[] { return this.teams; }
-  setTeams(teams: any) {
+  setTeams(teams: Team[]){
+    this.teams = teams;
+  }
+  setTeam(team: Team){
+    const index = this.teams.findIndex(t => t.id = team.id);
+    this.teams[index] = team;
+  }
+  setTeamsFromDB(teams: any) {
     this.teams = teams.map((t:any) => Team.fromPlainObject(t));
     this.teams.sort((a, b) => a.getOrder() - b.getOrder());
     this.events.emit('stateChanged', {});
@@ -140,18 +159,34 @@ export abstract class BaseGame {
   }
 
   async updateTeam(team: Team){
+    if (!this.isHost()) {
+      this.updateTeam(team);
+      return;
+    }
     await this.db.updateTeam(team.toPlainObject());
   }
 
   updateTeams(teams: Team[]){
+    if (!this.isHost()) {
+      this.setTeams(teams);
+      return;
+    }
     teams.forEach(async t => await this.updateTeam(t));
   }
 
   async updatePlayer(player: Player){
+    if(!this.isHost()) {
+      this.setPlayer(player);
+      return;
+    }
     await this.db.updatePlayer(player.toPlainObject());
   }
 
   updatePlayers(players: Player[]){
+    if(!this.isHost()) {
+      this.setPlayers(players);
+      return;
+    }
     players.forEach(async player => await this.updatePlayer(player));
   }
 

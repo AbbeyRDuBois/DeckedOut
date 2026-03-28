@@ -5,11 +5,8 @@
  *      Handles the nitty gritty of actually joining or creating the room and updates/creates the db accordingly
  * 
  ****************************************************************************/
-
-import { DocumentData } from "firebase/firestore";
 import { v4 } from "uuid";
 import { Player } from "../player";
-import { Team } from "../team";
 import { Database, getDBInstance, setDBInstance } from "../services/databases";
 
 export class EntryModel {
