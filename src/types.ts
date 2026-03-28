@@ -1,6 +1,3 @@
-import { Player } from "./player";
-import { Team } from "./team";
-
 export type CardPlain = {
   id: number;
   value: string;

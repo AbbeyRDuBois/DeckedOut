@@ -22,8 +22,6 @@ export type BaseViewHandlers = {
   onMovePlayer: (playerId: string, fromIndex: number, toIndex: number) => Promise<void> | void;
 };
 
-
-
 export abstract class BaseView {
   //SpriteSheet is a purely visual class. No knowledge of game rules/logic so it's okay to have in the View
   private spriteSheet: SpriteSheet;
@@ -57,6 +55,11 @@ export abstract class BaseView {
     this.renderPlayed(state, localPlayerId);
   }
 
+  /******************************************
+   * 
+   *  Waiting Overlay
+   * 
+   ******************************************/
   renderPlayerList(players: any[]) {
     const list = document.getElementById('waiting-list');
     if (!list) return;
@@ -68,7 +71,6 @@ export abstract class BaseView {
     `;
   }
 
-  //Renders Team containers in the Waiting overlay where teams can be edited
   renderTeams(teams: any[], players: any[]) {
     const innerContainer = document.getElementById('teams-container');
     if (!innerContainer) return;
@@ -131,49 +133,10 @@ export abstract class BaseView {
     innerContainer.prepend(teamsContainer);
   }
 
-  createPlayerElement(players: PlayerPlain[], playerId: string, teamIndex: number, teamAmount: number): HTMLDivElement{
-      const player = document.createElement('div');
-      player.className = 'team-player';
-      const nameSpan = document.createElement("span");
-      const name = players.find(p => p.id === playerId)?.name;
-
-      if (!name) return document.createElement("div");
-      nameSpan.textContent = name;
-
-      const controls = document.createElement("div");
-
-      if (teamIndex > 0) {
-        const leftBtn = document.createElement("button");
-        leftBtn.className = "move-player";
-        leftBtn.textContent = "←";
-        leftBtn.onclick = async () => {
-          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex - 1);
-        };
-        controls.appendChild(leftBtn);
-      }
-
-      if (teamIndex < teamAmount - 1) {
-        const rightBtn = document.createElement("button");
-        rightBtn.className = "move-player";
-        rightBtn.textContent = "→";
-        rightBtn.onclick = async () => {
-          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex + 1);
-        };
-        controls.appendChild(rightBtn);
-      }
-
-      player.appendChild(nameSpan);
-      player.appendChild(controls);
-      return player;
-  }
-
-  // Expose the game view instance so controllers can wire a game controller to the same vie
   showWaitingOverlay(show: boolean) {
     const el = document.getElementById('waiting-overlay')!;
     el.style.display = show ? 'flex' : 'none';
   }
-
-
 
   //This just sets up/creates the Game options container
   //Games will implement what actually goes in here (if applicable)
@@ -191,7 +154,16 @@ export abstract class BaseView {
     }
   };
 
-  //Render local player's hand
+  /******************************************
+   * 
+   *  Player Side Renders
+   * 
+   ******************************************/
+  setHandEnabled(enabled: boolean) {
+    const hand = document.getElementById("hand")!;
+    enabled ? hand.classList.remove('hand-disabled') : hand.classList.add('hand-disabled');
+  }
+
   renderHand(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
     const player = state.players[localPlayerId];
     if (!player) return;
@@ -303,7 +275,11 @@ export abstract class BaseView {
     });
   }
 
-  // Render teams and players scores
+  /******************************************
+   * 
+   *  Community Renders (same for everyone)
+   * 
+   ******************************************/
   renderScoreboard(state: any) {
     const container = document.getElementById('scoreboard');
     if (!container) return;
@@ -392,12 +368,6 @@ export abstract class BaseView {
     console.log(`Animate play for ${playerId} ${card.id}`);
   }
 
-  // Enables/disables the local hand UI
-  setHandEnabled(enabled: boolean) {
-    const hand = document.getElementById("hand")!;
-    enabled ? hand.classList.remove('hand-disabled') : hand.classList.add('hand-disabled');
-  }
-
   //Render the Winner! (and the losers I suppose)
   renderWinner(winner: any, losers: any, winnerPlayers: any) {
     const winnerPopup = document.getElementById('winner-overlay');
@@ -420,6 +390,11 @@ export abstract class BaseView {
     winnerPopup.appendChild(loserEl);
   }
 
+  /******************************************
+   * 
+   *  Helpers
+   * 
+   ******************************************/
   setSpriteSheet(sheet: string) {
     switch(sheet){
       case "Classic":
@@ -523,5 +498,41 @@ export abstract class BaseView {
     }
 
     return cardDiv;
+  }
+
+  createPlayerElement(players: PlayerPlain[], playerId: string, teamIndex: number, teamAmount: number): HTMLDivElement{
+    const player = document.createElement('div');
+    player.className = 'team-player';
+    const nameSpan = document.createElement("span");
+    const name = players.find(p => p.id === playerId)?.name;
+
+    if (!name) return document.createElement("div");
+    nameSpan.textContent = name;
+
+    const controls = document.createElement("div");
+
+    if (teamIndex > 0) {
+      const leftBtn = document.createElement("button");
+      leftBtn.className = "move-player";
+      leftBtn.textContent = "←";
+      leftBtn.onclick = async () => {
+        this.handlers.onMovePlayer(playerId, teamIndex, teamIndex - 1);
+      };
+      controls.appendChild(leftBtn);
+    }
+
+    if (teamIndex < teamAmount - 1) {
+      const rightBtn = document.createElement("button");
+      rightBtn.className = "move-player";
+      rightBtn.textContent = "→";
+      rightBtn.onclick = async () => {
+        this.handlers.onMovePlayer(playerId, teamIndex, teamIndex + 1);
+      };
+      controls.appendChild(rightBtn);
+    }
+
+    player.appendChild(nameSpan);
+    player.appendChild(controls);
+    return player;
   }
 }

@@ -5,7 +5,7 @@
  * 
  ****************************************************************************/
 
-import { addDoc, collection, deleteDoc, deleteField, doc, DocumentData, Firestore, getDoc, getDocs, initializeFirestore, onSnapshot, orderBy, persistentLocalCache, persistentSingleTabManager, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, DocumentData, Firestore, getDoc, getDocs, initializeFirestore, onSnapshot, orderBy, persistentLocalCache, persistentSingleTabManager, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
 import EventEmitter from "events";
@@ -33,7 +33,6 @@ export class Database{
     game: BaseGame | undefined;
     room: Room | undefined;
     db: Firestore;
-    guestActionTimeout: NodeJS.Timeout | null = null;
     events =  new EventEmitter<{stateChanged: any;}>();
     hostId: string = "";
   
@@ -59,8 +58,16 @@ export class Database{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
         this.roomRef = doc(this.db, name, this.roomId);
         this.hostId = host.id;
+
         await this.updatePlayer(host.toPlainObject());
         await this.updateTeam((new Team(host.name, [host.id], 0)).toPlainObject());
+        return this;
+    }
+
+    async join(name: string, roomId: string): Promise<this> {
+        this.roomId = roomId;
+        this.roomRef = doc(this.db, name, roomId);
+        this.hostId = (await this.pullState()).hostId;
         return this;
     }
 
@@ -68,6 +75,7 @@ export class Database{
         await deleteDoc(this.roomRef);
     }
     
+    //Pulls everything in the game data and in the Teams/Players collections
     async pullState(): Promise<DocumentData> {
         const teamsSnap = await getDocs(this.teamsRef());
         const teams = teamsSnap.docs.map(doc => doc.data());
@@ -80,16 +88,9 @@ export class Database{
         return {...gameSnap, teams, players};
     }
 
-    setupListeners(){
-        this.listenForActions();
-        this.listenForUpdates();
-        this.listenForLogs();
-        this.listenForTeams();
-        this.listenForPlayers();
-    }
-
-    //Only allows host to do the writing, the others just sent the intent.
-    //Prevents race conditions/flickering
+    //Only allows host to do the writing
+    //Guests do optimistic updates on their end and sends intention of what they wanted to do
+    //Host only prevents race conditions/flickering
     async update(changes: any = {}) {
         if (!changes || Object.keys(changes).length === 0) return;
 
@@ -113,6 +114,7 @@ export class Database{
         });
     }
 
+    //Updates the Team in the DB
     async updateTeam(team: any){
         if (!this.isHost()) return;
         try {
@@ -122,6 +124,7 @@ export class Database{
         }
     }
 
+    //Updates the Player in the DB
     async updatePlayer(player: any){
         if(!this.isHost()) return;
         try {
@@ -131,7 +134,26 @@ export class Database{
         }
     }
 
+    //Adds the log to the DB
+    async addLog(message: string) {
+        if(!this.isHost()){
+            var updatedLogs = this.game?.getLogs()!;
+            updatedLogs.push(message);
+            this.game?.setLogs(updatedLogs);
+            return;
+        }
 
+        try {
+            await addDoc(this.logsRef(), {
+                message: message,
+                timestamp: serverTimestamp()
+            });
+        } catch (e) {
+            console.error("Error adding log:", e);
+        }
+    }
+
+    //Optimistic Updates for Guest
     applyPatchLocally(patch: any) {
         if (!this.room || !this.game) return;
         this.game.updateLocalState(patch);
@@ -139,9 +161,7 @@ export class Database{
         this.events.emit('stateChanged', this.room.getState());
     }
 
-    /**
-     * Guest Only function
-     */
+    //Guest sends intention of action that host will pick up
     async sendAction(action: RoomAction) {
         await addDoc(this.actionsRef(), {
             ...action,
@@ -149,9 +169,7 @@ export class Database{
         });
     }
 
-    /**
-    * Host-only action processor
-    */
+    //Host processing the actions guest made
     async processAction(action: RoomAction) {
         const snap = await this.pullState();
         if (!snap) return;
@@ -206,74 +224,40 @@ export class Database{
                 if (!snap.players?.[action.playerId]) return;
 
                 patch = { ...action.payload };
-                // host should immediately merge these changes into its own state so
-                // there is no momentary lag before the snapshot listener fires
+                // host applies changes so theirs no lag in between the snapshots
                 if (Object.keys(patch).length > 0) {
                     this.applyPatchLocally(patch);
                 }
                 break;
             }
         }
-
         await updateDoc(this.roomRef, patch);
     }
 
-    async addLog(message: string) {
-        if(!this.isHost()){
-            var updatedLogs = this.game?.getLogs()!;
-            updatedLogs.push(message);
-            this.game?.setLogs(updatedLogs);
-            return;
-        }
-
-        try {
-            await addDoc(this.logsRef(), {
-                message: message,
-                timestamp: serverTimestamp()
-            });
-        } catch (e) {
-            console.error("Error adding log:", e);
-        }
+    /******************************************
+     * 
+     *  Listeners
+     * 
+     ******************************************/
+    setupListeners(){
+        this.listenForActions();
+        this.listenForUpdates();
+        this.listenForLogs();
+        this.listenForTeams();
+        this.listenForPlayers();
     }
 
+    //Only Host takes care of this
     listenForActions() {
         return onSnapshot(this.actionsRef(), snap => {
-            snap.docChanges().forEach(async change => {
-                if (change.type !== "added") return;
-                const action = change.doc.data() as RoomAction;
-
-                //Guests can only do updates on the Join_room/Leave events to keep their local as updated as possible
-                if (this.isHost()) {
+            if (this.isHost()) {
+                snap.docChanges().forEach(async change => {
+                    if (change.type !== "added") return;
+                    const action = change.doc.data() as RoomAction;
                     await this.processAction(action);
                     await deleteDoc(change.doc.ref);
-                } else {
-                    // the action the room snapshot listener will update every client.
-                    switch (action.type) {
-                        case "JOIN_ROOM": {
-                            // add the player/team locally
-                            if (!this.room) break;
-                            const player = new Player(action.playerId, action.name);
-                            const players = this.game?.getPlayers()!;
-                            players.push(player);
-                            this.game?.setPlayers(players);
-                            break;
-                        }
-                        case "LEAVE_ROOM": {
-                            if (!this.room) break;
-                            // remove player and clean up teams locally
-                            const playerId = action.playerId;
-                            const state = this.room.getState();
-
-                            const remainingPlayers = state.players.filter((p: any) => p.id !== playerId);
-                            const remainingTeams = state.teams.filter((t: any) => !t.playerIds.includes(playerId));
-
-                            this.game?.setTeams(remainingTeams);
-                            this.game?.setPlayers(remainingPlayers);
-                            break;
-                        }
-                    }
-                }
-            });
+                });
+            }  
         });
     }
 
@@ -306,34 +290,24 @@ export class Database{
         })
     }
 
+    //Generic game state listener
     listenForUpdates(){
         return onSnapshot(this.roomRef, (docSnap: any) => {
-            this.snapFunctionality(docSnap);
+            if (!docSnap.exists()) {
+                alert("Room deleted or closed.");
+                window.location.href = "index.html";
+            }
+
+            const remote = docSnap.data();
+
+            this.game?.updateLocalState(remote);
+            this.room?.updateLocalState(remote);
+            this.events.emit('stateChanged', this.room?.getState());
+
+            // If the room has started and this client hasn't started the game yet, run guest setup
+            if (remote?.started && !this.game?.getStarted()) {
+                this.game?.guestSetup(remote);
+            }
         });
-    }
-
-    snapFunctionality(docSnap: any){
-        if (!docSnap.exists()) {
-            alert("Room deleted or closed.");
-            window.location.href = "index.html";
-        }
-
-        const remote = docSnap.data();
-
-        this.game?.updateLocalState(remote);
-        this.room?.updateLocalState(remote);
-        this.events.emit('stateChanged', this.room?.getState());
-
-        // If the room has started and this client hasn't started the game yet, run guest setup
-        if (remote?.started && !this.game?.getStarted()) {
-            this.game?.guestSetup(remote);
-        }
-    }
-
-    async join(name: string, roomId: string): Promise<this> {
-        this.roomId = roomId;
-        this.roomRef = doc(this.db, name, roomId);
-        this.hostId = (await this.pullState()).hostId;
-        return this;
     }
 }
