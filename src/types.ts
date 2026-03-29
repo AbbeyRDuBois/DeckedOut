@@ -28,7 +28,10 @@ export type RoomAction =
 | { type: "LEAVE_ROOM"; playerId: string;}
 | { type: "GAME_ACTION"; playerId: string; payload: any;}
 | { type: "PLAY_CARD"; playerId: string; cardId: number;}
-| { type: "MOVE_PLAYER"; playerId: string; fromTeam: any; toTeam: any;};
+| { type: "MOVE_PLAYER"; playerId: string; fromTeam: any; toTeam: any;}
+| { type: "UPDATE_NAME"; name: string; team: any}
+| { type: "ADD_TEAM";}
+| { type: "REMOVE_TEAM";};
 
 export type RoomState = {
   roomId: string;

@@ -18,7 +18,6 @@ export type BaseViewHandlers = {
   onTeamNameChange: (teamIndex: number, name: string) => Promise<void> | void;
   onAddTeam: () => Promise<void> | void;
   onRemoveTeam: () => Promise<void> | void;
-  onRandomize: (size: number) => Promise<void> | void;
   onMovePlayer: (playerId: string, fromIndex: number, toIndex: number) => Promise<void> | void;
 };
 

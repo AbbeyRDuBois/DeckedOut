@@ -677,38 +677,8 @@ body {
 .add-del-btn:hover {
   background: color-mix(in srgb, var(--text-bg) 80%, black)
 }
-#random-teams {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 5px;
-  justify-content: center;
-}
-#random-teams .team-label {
-  font-weight: bold;
-}
-.team-size {
-  background: var(--text-bg);
-  padding: 6px;
-  border-radius: 8px;
-  border: 1px solid;
-  text-align: center;
-}
-#random-btn {
-  background: var(--gn-btn);
-  color: black;
-  padding: 4px 7px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-}
-#random-btn:hover {
-  background: color-mix(in srgb, var(--gn-btn) 80%, black)
-}
 
 /*Game mode selection part of popup*/
-
 #teams-container{
   display:flex;
   align-items: center;

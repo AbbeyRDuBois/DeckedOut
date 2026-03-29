@@ -52,23 +52,38 @@ export abstract class BaseController<
     const handlers: BaseViewHandlers = {
       onStart: async () => { await this.onStartGame();},
       onAddTeam: async () => {
-        // create new team and append locally so UI updates immediately
+        if(!this.db.isHost()){
+          await this.db.sendAction({type: "ADD_TEAM"});
+          return;
+        }
         const teams = this.game.getTeams();
         if (teams.length < this.game.getPlayers().length) {
-          const newTeam = new Team(`Team ${teams.length + 1}`, [], teams.length);
-          teams.push(newTeam);
-          this.game.updateTeams(teams);
+          this.game.updateTeam(new Team(`Team ${teams.length + 1}`, [], teams.length));
         }
       },
       onTeamNameChange: async (idx, name) => { 
         const teams = this.game.getTeams();
         teams[idx].name = name;
+
+        if(!this.db.isHost()){
+          await this.db.sendAction({
+            type: "UPDATE_NAME",
+            name,
+            team: teams[idx].toPlainObject()
+          });
+          return;
+        }
+
         await this.game.updateTeam(teams[idx]); 
       },
       onRemoveTeam: async () => { 
+        if(!this.db.isHost()){
+          await this.db.sendAction({type: "REMOVE_TEAM"});
+          return;
+        }
         const teams = this.game.getTeams(); 
         if (teams.length > 1) { 
-          const removed = teams.pop(); 
+          const removed = teams.pop()!; 
 
           // Push players from removed team back into remaining teams
           if (removed){
@@ -77,21 +92,11 @@ export abstract class BaseController<
             });
           }
 
-          // make sure orders are contiguous after removal
-          teams.forEach((t, idx) => t.order = idx);
+          // make sure teams are in order after removal
+          teams.sort((a, b) => a.getOrder() - b.getOrder());
           this.game.updateTeams(teams);
+          this.db.removeTeam(removed.id);
         } 
-      },
-      onRandomize: async (size) => {
-        //Randomizes the teams
-        const players = this.game.getPlayers().slice();
-        const shuffled = players.sort(() => Math.random() - 0.5);
-        const newTeams: any[] = [];
-        for (let i = 0; i < shuffled.length; i += size) {
-          const slice = shuffled.slice(i, i + size);
-          newTeams.push({ name: `Team ${newTeams.length + 1}`, playerIds: slice.map(p => p.id) });
-        }
-        this.game.updateTeams(newTeams);
       },
       onMovePlayer: async (playerId, fromIndex, toIndex) => {
         const teams = this.game.getTeams();

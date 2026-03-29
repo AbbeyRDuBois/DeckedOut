@@ -140,6 +140,12 @@ export class Database{
         }
     }
 
+    async removeTeam(teamId: string){
+        const teams = await getDocs(this.teamsRef());
+        const teamRef = teams.docs.find(t => t.id === teamId)!;
+        await deleteDoc(teamRef.ref);
+    }
+
     //Updates the Player in the DB
     async updatePlayer(player: any){
         if(!this.isHost()) return;
@@ -193,12 +199,6 @@ export class Database{
         let patch: any = {};
 
         switch (action.type) {
-            case "PLAY_CARD": {
-                if (this.isHost()) {
-                    await this.game?.cardPlayed(action.playerId, action.cardId);
-                }
-                break;
-            }
             case "JOIN_ROOM": {
                 if (snap.players?.[action.playerId]) return;
                 const player = new Player(action.playerId, action.name);
@@ -231,11 +231,50 @@ export class Database{
                 await this.updateTeam(action.toTeam);
                 break;
             }
+            case "UPDATE_NAME": {
+                action.team.name = action.name;
+                await this.updateTeam(action.team);
+                break;
+            }
+            case "ADD_TEAM": {
+                const teams = this.game?.getTeams()!;
+                const players = this.game?.getPlayers()!;
+                if (teams.length < players.length) {
+                    const newTeam = new Team(`Team ${teams.length + 1}`, [], teams.length);
+                    this.updateTeam(newTeam.toPlainObject());
+                }
+                break;
+            }
+            case "REMOVE_TEAM": {
+                const teams = this.game?.getTeams()!; 
+                if (teams.length > 1) { 
+                    const removed = teams.pop()!; 
+
+                    // Push players from removed team back into remaining teams
+                    if (removed){
+                        removed.playerIds.forEach((id, i) => {
+                            teams[i % teams.length].playerIds.push(id);
+                        });
+                    }
+
+                    // make sure teams are in order after removal
+                    teams.sort((a, b) => a.getOrder() - b.getOrder());
+                    teams.forEach(t => this.updateTeam(t.toPlainObject()));
+                    this.removeTeam(removed.id);
+                } 
+                break;
+            }
+            case "PLAY_CARD": {
+                if (this.isHost()) {
+                    await this.game?.cardPlayed(action.playerId, action.cardId);
+                }
+                break;
+            }
             case "GAME_ACTION": {
                 if (!snap.players?.[action.playerId]) return;
 
                 patch = { ...action.payload };
-                // host applies changes so theirs no lag in between the snapshots
+                // host applies changes so theres no lag in between the snapshots
                 if (Object.keys(patch).length > 0) {
                     this.applyPatchLocally(patch);
                 }
