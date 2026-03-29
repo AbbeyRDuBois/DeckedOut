@@ -72,6 +72,25 @@ export class Database{
     }
 
     async delete(){
+        // Delete players
+        const players = await getDocs(this.playersRef());
+        for (const docSnap of players.docs) {
+            await deleteDoc(docSnap.ref);
+        }
+
+        // Delete teams
+        const teams = await getDocs(this.teamsRef());
+        for (const docSnap of teams.docs) {
+            await deleteDoc(docSnap.ref);
+        }
+
+        // Delete logs
+        const logs = await getDocs(this.logsRef());
+        for (const docSnap of logs.docs) {
+            await deleteDoc(docSnap.ref);
+        }
+
+        // Finally delete the room
         await deleteDoc(this.roomRef);
     }
     
@@ -189,34 +208,23 @@ export class Database{
                 await this.updatePlayer(player.toPlainObject());
                 break;
             }
-
             case "LEAVE_ROOM": {
-                // Remove player from teams
-                const updatedTeams = Object.fromEntries(
-                    Object.entries(snap.teams).map(([teamName, teamObj]: [string, any]) => {
-                        return [
-                        teamName,
-                        {
-                            ...teamObj,
-                            playerIds: teamObj.playerIds.filter((id: string) => id !== action.playerId)
-                        }
-                        ];
-                    })
-                );
+                const deleteTeam = snap.teams.filter((t: any) => t.playerIds.includes(action.playerId))!;
+                const teamPlayers = snap.players.filter((id: any) => id !== action.playerId);
 
-                updatedTeams.array.forEach(async (team: any) => await this.updateTeam(team));
-                const updatedPlayers = this.game?.getPlayers().filter(p => p.id !== action.playerId);
-                updatedPlayers?.forEach(async p => await this.updatePlayer(p.toPlainObject()));
-
-                // If host leaves or game started -> delete room
-                if (action.playerId === snap.hostId || snap.started) {
-                    this.delete();
-                    return;
+                //If they were the last ones in team delete them, otherwise just remove them from the team
+                if (teamPlayers.length === 0){
+                    await deleteDoc(doc(this.db, "teams", deleteTeam.id));
+                }
+                else{
+                    await updateDoc(doc(this.teamsRef(), deleteTeam.id), {playerIds: teamPlayers});
                 }
 
+                await deleteDoc(doc(this.db, "players", action.playerId));
                 break;
             }
-
+                break;
+            }
             case "GAME_ACTION": {
                 if (!snap.players?.[action.playerId]) return;
 
@@ -251,8 +259,8 @@ export class Database{
                 snap.docChanges().forEach(async change => {
                     if (change.type !== "added") return;
                     const action = change.doc.data() as RoomAction;
-                    await this.processAction(action);
                     await deleteDoc(change.doc.ref);
+                    await this.processAction(action);
                 });
             }  
         });

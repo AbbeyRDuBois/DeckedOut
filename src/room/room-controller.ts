@@ -64,16 +64,6 @@ export class RoomController {
         });
       }
     });
-
-    window.addEventListener("beforeunload", async () => {
-      const playerId = localStorage.getItem("playerId");
-      if (!playerId) return;
-
-      await this.model.getDbInstance().sendAction({
-        type: "LEAVE_ROOM",
-        playerId
-      });
-    });
   }
 
   async init() {
@@ -116,12 +106,19 @@ export class RoomController {
 
   async onLeaveRoom() {
     const playerId = localStorage.getItem("playerId")!;
+    const db = this.model.getDbInstance();
 
-    // Tell host you're leaving
-    await this.model.getDbInstance().sendAction({
-      type: "LEAVE_ROOM",
-      playerId
-    });
-    this.view.navigateToHome();
+    //If the host leaves or if game is started bomb everything
+    if (db.isHost() || this.game?.getStarted()){
+      db.delete();
+    }
+    else{
+      // Guest tell Host their leaving
+      await db.sendAction({
+        type: "LEAVE_ROOM",
+        playerId
+      });
+      this.view.navigateToHome(); 
+    }
   }
 }

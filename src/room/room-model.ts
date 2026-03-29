@@ -57,19 +57,11 @@ export class Room {
     }
   }
 
-  async closeRoom () {
-    await this.db.delete();
-  }
-
   toggleSettings() {
     this.state.settingsOpen = !this.state.settingsOpen;
     this.events.emit('stateChanged', this.getState());
   }
-
-  isSettingsOpen(): boolean {
-    return this.state.settingsOpen;
-  }
-
+  
   //Updates state from Database values
   updateLocalState(remote: any) {
     if (typeof remote.started === 'boolean') {
