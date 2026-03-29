@@ -271,13 +271,8 @@ export class Database{
                 break;
             }
             case "GAME_ACTION": {
-                if (!snap.players?.[action.playerId]) return;
-
-                patch = { ...action.payload };
-                // host applies changes so theres no lag in between the snapshots
-                if (Object.keys(patch).length > 0) {
-                    this.applyPatchLocally(patch);
-                }
+                // host applies changes
+                this.update(action.payload);
                 break;
             }
         }
