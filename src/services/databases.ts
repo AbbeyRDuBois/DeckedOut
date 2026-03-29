@@ -223,6 +223,12 @@ export class Database{
                 await deleteDoc(doc(this.db, "players", action.playerId));
                 break;
             }
+            case "MOVE_PLAYER": {
+                action.fromTeam.playerIds = action.fromTeam.playerIds.filter((id: string) => id !== action.playerId);
+                // Add to destination
+                action.toTeam.playerIds.push(action.playerId);
+                await this.updateTeam(action.fromTeam);
+                await this.updateTeam(action.toTeam);
                 break;
             }
             case "GAME_ACTION": {

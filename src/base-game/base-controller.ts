@@ -96,6 +96,17 @@ export abstract class BaseController<
       onMovePlayer: async (playerId, fromIndex, toIndex) => {
         const teams = this.game.getTeams();
         if (!teams[fromIndex] || !teams[toIndex]) return;
+
+        if (!this.db.isHost()){
+          await this.db.sendAction({
+            type: "MOVE_PLAYER",
+            playerId,
+            fromTeam: teams[fromIndex].toPlainObject(),
+            toTeam: teams[toIndex].toPlainObject()
+          });
+          return;
+        }
+
         // Remove from source
         teams[fromIndex].playerIds = teams[fromIndex].playerIds.filter((id: string) => id !== playerId);
         // Add to destination

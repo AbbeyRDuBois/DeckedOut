@@ -171,34 +171,22 @@ export abstract class BaseGame {
   }
 
   async updateTeam(team: Team){
-    if (!this.isHost()) {
-      this.updateTeam(team);
-      return;
-    }
+    if (!this.isHost()) return;
     await this.db.updateTeam(team.toPlainObject());
   }
 
   updateTeams(teams: Team[]){
-    if (!this.isHost()) {
-      this.setTeams(teams);
-      return;
-    }
+    if (!this.isHost()) return;
     teams.forEach(async t => await this.updateTeam(t));
   }
 
   async updatePlayer(player: Player){
-    if(!this.isHost()) {
-      this.setPlayer(player);
-      return;
-    }
+    if(!this.isHost()) return;
     await this.db.updatePlayer(player.toPlainObject());
   }
 
   updatePlayers(players: Player[]){
-    if(!this.isHost()) {
-      this.setPlayers(players);
-      return;
-    }
+    if(!this.isHost()) return;
     players.forEach(async player => await this.updatePlayer(player));
   }
 
