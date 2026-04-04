@@ -209,18 +209,18 @@ export class Database{
                 break;
             }
             case "LEAVE_ROOM": {
-                const deleteTeam = snap.teams.filter((t: any) => t.playerIds.includes(action.playerId))!;
-                const teamPlayers = snap.players.filter((id: any) => id !== action.playerId);
+                const deleteTeam = snap.teams.find((t: any) => t.playerIds.includes(action.playerId))!;
+                const teamPlayers = deleteTeam.playerIds.filter((id: any) => id !==action.playerId)!;
 
                 //If they were the last ones in team delete them, otherwise just remove them from the team
                 if (teamPlayers.length === 0){
-                    await deleteDoc(doc(this.db, "teams", deleteTeam.id));
+                    await deleteDoc(doc(this.teamsRef(), deleteTeam.id));
                 }
                 else{
                     await updateDoc(doc(this.teamsRef(), deleteTeam.id), {playerIds: teamPlayers});
                 }
 
-                await deleteDoc(doc(this.db, "players", action.playerId));
+                await deleteDoc(doc(this.playersRef(), action.playerId));
                 break;
             }
             case "MOVE_PLAYER": {
