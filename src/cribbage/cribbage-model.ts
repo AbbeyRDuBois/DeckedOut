@@ -695,7 +695,7 @@ export class Cribbage extends BaseGame {
     await this.db.addLog(`Flipped Card: ${this.flipped.toHTML()}`);
 
     //Get all the slides
-    const slides = this.computeScoringSlides();
+    const slides = this.createScoringSlides();
 
     this.roundState = RoundState.Scoring;
     this.presentation = {
@@ -717,7 +717,7 @@ export class Cribbage extends BaseGame {
     return false as any; // pause round progression
   }
 
-  computeScoringSlides(): ScoringSlide[] {
+  createScoringSlides(): ScoringSlide[] {
     const slides: ScoringSlide[] = [];
     const currIndex = this.players.findIndex(p => p.getId() === this.cribOwner.getId());
     let ownerPoints = 0;
@@ -744,7 +744,7 @@ export class Cribbage extends BaseGame {
       type: "CRIB",
       dealerId: this.cribOwner.getId(),
       points: cribPoints,
-      grandTotal: cribPoints + ownerPoints + this.cribOwner.getScore()
+      grandTotal: cribPoints + ownerPoints + this.players[currIndex].getScore()
     });
 
     return slides;
