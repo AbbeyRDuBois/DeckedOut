@@ -12,17 +12,19 @@ import genshinSheet from "./assets/Card_Themes/Genshin_Deck.png";
 import hollowSheet from "./assets/Card_Themes/Hollow_Deck.png";
 
 export class SpriteSheet {
-    sheet_width = 1300;
-    sheet_height = 750;
-    card_width = 90;
-    card_height = 150;
-    image = `url(${classicSheet})`;
-    back_row = 4;
-    back_col = 3;
-    gap = 5;
+    protected sheet_width = 1300;
+    protected sheet_height = 750;
+    protected card_width = 90;
+    protected card_height = 150;
+    protected image = `url(${classicSheet})`;
+    protected back_row = 4;
+    protected back_col = 3;
+    protected gap = 5;
 
     getImage(): string { return this.image; }
     setImage(){}; //Placeholder for other sheets that have random chance of sheets (looking at you pokemon)
+    getBackRow(): number { return this.back_row; }
+    getBackCol(): number { return this.back_col; }
 
     getCardLocation(x: number, y: number, targetWidth: number, targetHeight: number): {col: number, row: number}{
         const col = (x -1) * (this.card_width + 2 * this.gap) + this.gap;

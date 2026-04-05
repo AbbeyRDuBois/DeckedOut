@@ -44,7 +44,7 @@ export abstract class BaseController<
         let gameObject = this.game.toPlainObject();
         const localId = localStorage.getItem('playerId')!;
         // Render the view and set up those cardClicks
-        this.view.render(gameObject, localId, cardId => this.onCardPlayed(localId, cardId));
+        this.view.render(gameObject, localId, this.db.getHostId(), cardId => this.onCardPlayed(localId, cardId));
       }
     });
 
@@ -63,7 +63,7 @@ export abstract class BaseController<
       },
       onTeamNameChange: async (idx, name) => { 
         const teams = this.game.getTeams();
-        teams[idx].name = name;
+        teams[idx].setName(name);
 
         if(!this.db.isHost()){
           await this.db.sendAction({
@@ -87,15 +87,15 @@ export abstract class BaseController<
 
           // Push players from removed team back into remaining teams
           if (removed){
-            removed.playerIds.forEach((id, i) => {
-              teams[i % teams.length].playerIds.push(id);
+            removed.getPlayerIds().forEach((id, i) => {
+              teams[i % teams.length].addPlayerId(id);
             });
           }
 
           // make sure teams are in order after removal
           teams.sort((a, b) => a.getOrder() - b.getOrder());
           this.game.updateTeams(teams);
-          this.db.removeTeam(removed.id);
+          this.db.removeTeam(removed.getId());
         } 
       },
       onMovePlayer: async (playerId, fromIndex, toIndex) => {
@@ -113,9 +113,10 @@ export abstract class BaseController<
         }
 
         // Remove from source
-        teams[fromIndex].playerIds = teams[fromIndex].playerIds.filter((id: string) => id !== playerId);
+        teams[fromIndex].removePlayerId(playerId);
         // Add to destination
-        teams[toIndex].playerIds.push(playerId);
+        teams[toIndex].addPlayerId(playerId);
+
         await this.game.updateTeam(teams[fromIndex]);
         await this.game.updateTeam(teams[toIndex]);
       }
@@ -124,7 +125,7 @@ export abstract class BaseController<
   }
 
   abstract onStateChanged() : Promise<void>;
-  abstract gameOptions() : any;
+  abstract gameOptions(hostId: string) : any;
 
   async onStartGame() {
     if (this.game.getPlayers().length < 2){
@@ -141,13 +142,15 @@ export abstract class BaseController<
   //Need this to trigger rerender to game when changes happen in the room (like changing card theme)
   gameRerender(){
     if (!this.game.getStarted()){
-      this.gameOptions();
-      this.view.renderTeams(this.game.getTeams(), this.game.getPlayers());
+      this.gameOptions(this.db.getHostId());
+      const plainTeams = this.game.getTeams().map(t => t.toPlainObject());
+      const plainPlayers = this.game.getPlayers().map(p => p.toPlainObject());
+      this.view.renderTeams(plainTeams, plainPlayers);
       this.view.renderPlayerList(this.game.getPlayers());
     }
 
     const localId = localStorage.getItem('playerId')!;
-    this.view.render(this.game.toPlainObject(), localId, cardId => this.onCardPlayed(localId, cardId));
+    this.view.render(this.game.toPlainObject(), localId, this.db.getHostId(), cardId => this.onCardPlayed(localId, cardId));
   }
 
   // Called by View when a user clicks a card, Model then is called to handle it

@@ -1,9 +1,9 @@
 export type CardPlain = {
   id: number;
-  value: string;
+  rank: string;
   suit: string;
-  isFlipped: boolean;
-  isPlayed: boolean;
+  flipped: boolean;
+  played: boolean;
 };
 
 export type PlayerPlain = {
@@ -21,6 +21,7 @@ export type TeamPlain = {
   score: number;
   playerIds: string[];
   order: number;
+  id: string;
 };
 
 export type RoomAction =

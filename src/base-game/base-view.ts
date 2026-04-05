@@ -45,8 +45,8 @@ export abstract class BaseView {
   }
 
   //Basic Render of the Game
-  render(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
-    this.showWaitingOverlay(!state.started);
+  render(state: any, localPlayerId: string, hostId: string, onCardClick?: (cardId: number) => void) {
+    this.showWaitingOverlay(!state.started, hostId);
     this.renderScoreboard(state);
     this.renderOpponents(state, localPlayerId);
     this.renderLogs(state);
@@ -65,12 +65,12 @@ export abstract class BaseView {
     list.innerHTML = `
       <div class="waiting-list-container">
         <h3 class="waiting-title">Players in room:</h3>
-        ${players.map(p => `<div class="player-name">${p.name}</div>`).join('')}
+        ${players.map(p => `<div class="player-name">${p.getName()}</div>`).join('')}
       </div>
     `;
   }
 
-  renderTeams(teams: any[], players: any[]) {
+  renderTeams(teams: TeamPlain[], players: PlayerPlain[]) {
     const innerContainer = document.getElementById('teams-container');
     if (!innerContainer) return;
 
@@ -100,6 +100,11 @@ export abstract class BaseView {
           await this.handlers.onTeamNameChange(teamIndex, newName);
         }
       });
+      //Disable People who aren't in the team from changing team name
+      if (!team.playerIds.find((id: string) => id === localStorage.getItem('playerId'))){
+        teamNameInput.readOnly = true;
+      }
+
       column.appendChild(teamNameInput);
 
       team.playerIds.forEach((id: string) => {
@@ -132,14 +137,20 @@ export abstract class BaseView {
     innerContainer.prepend(teamsContainer);
   }
 
-  showWaitingOverlay(show: boolean) {
+  showWaitingOverlay(show: boolean, hostId: string) {
     const el = document.getElementById('waiting-overlay')!;
     el.style.display = show ? 'flex' : 'none';
+
+    //Only Host can start game
+    const startBtn = document.getElementById('start-game')!;
+    if (hostId != localStorage.getItem('playerId')) {
+      startBtn.style.display = 'none';
+    }
   }
 
   //This just sets up/creates the Game options container
   //Games will implement what actually goes in here (if applicable)
-  renderGameOptions(options: any) {
+  renderGameOptions(options: any, hostId: string) {
     const optionsContainer = document.getElementById('options-container')!;
     const line = document.getElementById('divide')!;
 
@@ -250,7 +261,7 @@ export abstract class BaseView {
       // Request is here so that card containers sizes are set in order for the cards to be sized correctly (otherwise they are invisible)
       requestAnimationFrame(() =>{
         // Unplayed (cards still in opponent's hand) - show as face-down stacked
-        const unplayedCards = opp.hand.filter((c: CardPlain) => !c.isPlayed);
+        const unplayedCards = opp.hand.filter((c: CardPlain) => !c.played);
         unplayedCards.forEach((card: CardPlain) => {
           const cardDiv = this.createCardElement(card, { container: oppUnplayed });
           oppUnplayed.appendChild(cardDiv);
@@ -461,9 +472,9 @@ export abstract class BaseView {
       }
     };
 
-    const colRow = this.spriteSheet.getCardLocation(valueToInt(card.value), getRowFromSuit(card.suit), width, height);
+    const colRow = this.spriteSheet.getCardLocation(valueToInt(card.rank), getRowFromSuit(card.suit), width, height);
 
-    cardDiv.className = 'card' + (startsFlipped || card.isFlipped ? '' : ' flipped');
+    cardDiv.className = 'card' + (startsFlipped || card.flipped ? '' : ' flipped');
     cardDiv.setAttribute('card-id', String(card.id));
     cardDiv.style.height = `${height}px`;
     cardDiv.style.width = `${width}px`;
@@ -482,7 +493,7 @@ export abstract class BaseView {
     //Back of the Card
     const back = document.createElement('div');
     back.className = 'card-back';
-    const backPos = this.spriteSheet.getCardLocation(this.spriteSheet.back_col, this.spriteSheet.back_row, width, height);
+    const backPos = this.spriteSheet.getCardLocation(this.spriteSheet.getBackCol(), this.spriteSheet.getBackRow(), width, height);
     back.style.backgroundPosition = `${backPos.col}px ${backPos.row}px`;
     back.style.backgroundSize = `${bgWidth}px ${bgHeight}px`;
     back.style.backgroundImage = this.spriteSheet.getImage();
@@ -510,24 +521,27 @@ export abstract class BaseView {
 
     const controls = document.createElement("div");
 
-    if (teamIndex > 0) {
-      const leftBtn = document.createElement("button");
-      leftBtn.className = "move-player";
-      leftBtn.textContent = "←";
-      leftBtn.onclick = async () => {
-        this.handlers.onMovePlayer(playerId, teamIndex, teamIndex - 1);
-      };
-      controls.appendChild(leftBtn);
-    }
+    //Only show move buttons for Local Player Element
+    if (playerId === localStorage.getItem('playerId')){
+      if (teamIndex > 0) {
+        const leftBtn = document.createElement("button");
+        leftBtn.className = "move-player";
+        leftBtn.textContent = "←";
+        leftBtn.onclick = async () => {
+          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex - 1);
+        };
+        controls.appendChild(leftBtn);
+      }
 
-    if (teamIndex < teamAmount - 1) {
-      const rightBtn = document.createElement("button");
-      rightBtn.className = "move-player";
-      rightBtn.textContent = "→";
-      rightBtn.onclick = async () => {
-        this.handlers.onMovePlayer(playerId, teamIndex, teamIndex + 1);
-      };
-      controls.appendChild(rightBtn);
+      if (teamIndex < teamAmount - 1) {
+        const rightBtn = document.createElement("button");
+        rightBtn.className = "move-player";
+        rightBtn.textContent = "→";
+        rightBtn.onclick = async () => {
+          this.handlers.onMovePlayer(playerId, teamIndex, teamIndex + 1);
+        };
+        controls.appendChild(rightBtn);
+      }
     }
 
     player.appendChild(nameSpan);

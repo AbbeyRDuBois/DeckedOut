@@ -16,20 +16,27 @@ export type CardOptions = {
 };
 
 export class Card {
-    id: number;
-    rank: string;
-    suit: string;
-    isFlipped: boolean;
-    isPlayed: boolean;
+    private id: number;
+    private rank: string;
+    private suit: string;
+    private flipped: boolean;
+    private played: boolean;
 
-    constructor(id: number, rank = "", suit = "", isFlipped = false, isPlayed = false) {
+    constructor(id: number, rank = "", suit = "", flipped = false, played = false) {
         this.rank = rank;
         this.suit = suit;
         this.id = id;
-        this.isFlipped = isFlipped;
-        this.isPlayed = isPlayed;
+        this.flipped = flipped;
+        this.played = played;
     }
 
+    getId(): number { return this.id; }
+    getRank(): string { return this.rank; }
+    getSuit(): string { return this.suit; }
+    getFlipped(): boolean { return this.flipped; }
+    setFlipped(flipped: boolean){ this.flipped = flipped; }
+    setPlayed(played: boolean){ this.played = played; }
+    
     toInt(counting = false): number {
         switch (this.rank) {
             case 'A': return 1;
@@ -52,14 +59,14 @@ export class Card {
     toPlainObject() {
         return {
             id: this.id,
-            value: this.rank,
+            rank: this.rank,
             suit: this.suit,
-            isFlipped: this.isFlipped,
-            isPlayed: this.isPlayed
+            flipped: this.flipped,
+            played: this.played
         };
     }
 
-    //Sort by Value then by Suit
+    //Sort by Rank then by Suit
     static sort(cards: Card[]){
         const suitNames = SUITS.map(suit => suit.name);
 
@@ -73,6 +80,6 @@ export class Card {
         if (data == null){
             return new Card(0, "", "", false, false);
         }
-        return new Card(data.id, data.value, data.suit, data.isFlipped, data.isPlayed);
+        return new Card(data.id, data.rank, data.suit, data.flipped, data.played);
     }
 }

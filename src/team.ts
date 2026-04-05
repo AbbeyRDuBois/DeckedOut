@@ -2,11 +2,11 @@ import { DocumentData } from "firebase/firestore";
 import { v4 } from "uuid";
 
 export class Team {
-    name: string;
-    playerIds: string[];
-    order: number;
-    score: number = 0;
-    id: string;
+    private name: string;
+    private playerIds: string[];
+    private order: number;
+    private score: number = 0;
+    private id: string;
 
     constructor(name: string, playerIds: string[], order: number, score: number = 0, id: string = ""){
         this.name = name;
@@ -21,9 +21,18 @@ export class Team {
         }
     }
 
-    setPlayers(players: string[]){this.playerIds = players;}  
-    getPlayers(): string[] {return this.playerIds;}
+    setPlayerIds(players: string[]){this.playerIds = players;}  
+    getPlayerIds(): string[] {return this.playerIds;}
     getOrder(): number {return this.order;}
+    getName(): string {return this.name; }
+    setName(name: string) { this.name = name; }
+    getId(): string { return this.id; }
+    getScore(): number { return this.score; }
+    setScore(score: number) { this.score = score; }
+
+    addPlayerId(playerId: string) { this.playerIds.push(playerId); }
+    removePlayerId(playerId: string) { this.playerIds = this.playerIds.filter((id: string) => id !== playerId)}
+    addToScore(points: number) { this.score += points;}
     
     toPlainObject() {
         return {

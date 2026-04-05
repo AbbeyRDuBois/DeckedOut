@@ -28,13 +28,13 @@ export function getDBInstance(): Database {
 }
 
 export class Database{
-    roomRef: any;
-    roomId: string = "";
-    game: BaseGame | undefined;
-    room: Room | undefined;
-    db: Firestore;
-    events =  new EventEmitter<{stateChanged: any;}>();
-    hostId: string = "";
+    private roomRef: any;
+    private roomId: string = "";
+    private game: BaseGame | undefined;
+    private room: Room | undefined;
+    private db: Firestore;
+    private events =  new EventEmitter<{stateChanged: any;}>();
+    private hostId: string = "";
   
     constructor(){
         this.db = initializeFirestore(app, {
@@ -53,14 +53,15 @@ export class Database{
     getRoomId(): string { return this.roomId; }
     setGame(game: BaseGame) { this.game = game; }
     setRoom(room: Room) { this.room = room; }
+    getHostId(): string { return this.hostId; }
 
     async init(name: string, host: Player, initialValues: any): Promise<Database>{
         this.roomId = (await addDoc(collection(this.db, name), initialValues)).id;
         this.roomRef = doc(this.db, name, this.roomId);
-        this.hostId = host.id;
+        this.hostId = host.getId();
 
         await this.updatePlayer(host.toPlainObject());
-        await this.updateTeam((new Team(host.name, [host.id], 0)).toPlainObject());
+        await this.updateTeam((new Team(host.getName(), [host.getId()], 0)).toPlainObject());
         return this;
     }
 
@@ -202,7 +203,7 @@ export class Database{
             case "JOIN_ROOM": {
                 if (snap.players?.[action.playerId]) return;
                 const player = new Player(action.playerId, action.name);
-                const team = new Team(player.name, [player.id], Object.keys(snap.teams || {}).length);
+                const team = new Team(player.getName(), [player.getId()], Object.keys(snap.teams || {}).length);
 
                 await this.updateTeam(team.toPlainObject());
                 await this.updatePlayer(player.toPlainObject());
@@ -252,15 +253,15 @@ export class Database{
 
                     // Push players from removed team back into remaining teams
                     if (removed){
-                        removed.playerIds.forEach((id, i) => {
-                            teams[i % teams.length].playerIds.push(id);
+                        removed.getPlayerIds().forEach((id, i) => {
+                            teams[i % teams.length].getPlayerIds().push(id);
                         });
                     }
 
                     // make sure teams are in order after removal
                     teams.sort((a, b) => a.getOrder() - b.getOrder());
                     teams.forEach(t => this.updateTeam(t.toPlainObject()));
-                    this.removeTeam(removed.id);
+                    this.removeTeam(removed.getId());
                 } 
                 break;
             }
