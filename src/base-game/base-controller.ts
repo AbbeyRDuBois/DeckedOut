@@ -44,7 +44,7 @@ export abstract class BaseController<
         let gameObject = this.game.toPlainObject();
         const localId = localStorage.getItem('playerId')!;
         // Render the view and set up those cardClicks
-        this.view.render(gameObject, localId, cardId => this.onCardPlayed(localId, cardId));
+        this.view.render(gameObject, localId, this.db.getHostId(), cardId => this.onCardPlayed(localId, cardId));
       }
     });
 
@@ -52,54 +52,71 @@ export abstract class BaseController<
     const handlers: BaseViewHandlers = {
       onStart: async () => { await this.onStartGame();},
       onAddTeam: async () => {
-        // create new team and append locally so UI updates immediately
+        if(!this.db.isHost()){
+          await this.db.sendAction({type: "ADD_TEAM"});
+          return;
+        }
         const teams = this.game.getTeams();
         if (teams.length < this.game.getPlayers().length) {
-          const newTeam = new Team(`Team ${teams.length + 1}`, [], teams.length);
-          teams.push(newTeam);
-          this.game.updateTeams(teams);
+          this.game.updateTeam(new Team(`Team ${teams.length + 1}`, [], teams.length));
         }
       },
       onTeamNameChange: async (idx, name) => { 
         const teams = this.game.getTeams();
-        teams[idx].name = name;
+        teams[idx].setName(name);
+
+        if(!this.db.isHost()){
+          await this.db.sendAction({
+            type: "UPDATE_NAME",
+            name,
+            team: teams[idx].toPlainObject()
+          });
+          return;
+        }
+
         await this.game.updateTeam(teams[idx]); 
       },
       onRemoveTeam: async () => { 
+        if(!this.db.isHost()){
+          await this.db.sendAction({type: "REMOVE_TEAM"});
+          return;
+        }
         const teams = this.game.getTeams(); 
         if (teams.length > 1) { 
-          const removed = teams.pop(); 
+          const removed = teams.pop()!; 
 
           // Push players from removed team back into remaining teams
           if (removed){
-            removed.playerIds.forEach((id, i) => {
-              teams[i % teams.length].playerIds.push(id);
+            removed.getPlayerIds().forEach((id, i) => {
+              teams[i % teams.length].addPlayerId(id);
             });
           }
 
-          // make sure orders are contiguous after removal
-          teams.forEach((t, idx) => t.order = idx);
+          // make sure teams are in order after removal
+          teams.sort((a, b) => a.getOrder() - b.getOrder());
           this.game.updateTeams(teams);
+          this.db.removeTeam(removed.getId());
         } 
-      },
-      onRandomize: async (size) => {
-        //Randomizes the teams
-        const players = this.game.getPlayers().slice();
-        const shuffled = players.sort(() => Math.random() - 0.5);
-        const newTeams: any[] = [];
-        for (let i = 0; i < shuffled.length; i += size) {
-          const slice = shuffled.slice(i, i + size);
-          newTeams.push({ name: `Team ${newTeams.length + 1}`, playerIds: slice.map(p => p.id) });
-        }
-        this.game.updateTeams(newTeams);
       },
       onMovePlayer: async (playerId, fromIndex, toIndex) => {
         const teams = this.game.getTeams();
         if (!teams[fromIndex] || !teams[toIndex]) return;
+
+        if (!this.db.isHost()){
+          await this.db.sendAction({
+            type: "MOVE_PLAYER",
+            playerId,
+            fromTeam: teams[fromIndex].toPlainObject(),
+            toTeam: teams[toIndex].toPlainObject()
+          });
+          return;
+        }
+
         // Remove from source
-        teams[fromIndex].playerIds = teams[fromIndex].playerIds.filter((id: string) => id !== playerId);
+        teams[fromIndex].removePlayerId(playerId);
         // Add to destination
-        teams[toIndex].playerIds.push(playerId);
+        teams[toIndex].addPlayerId(playerId);
+
         await this.game.updateTeam(teams[fromIndex]);
         await this.game.updateTeam(teams[toIndex]);
       }
@@ -108,7 +125,7 @@ export abstract class BaseController<
   }
 
   abstract onStateChanged() : Promise<void>;
-  abstract gameOptions() : any;
+  abstract gameOptions(hostId: string) : any;
 
   async onStartGame() {
     if (this.game.getPlayers().length < 2){
@@ -125,13 +142,15 @@ export abstract class BaseController<
   //Need this to trigger rerender to game when changes happen in the room (like changing card theme)
   gameRerender(){
     if (!this.game.getStarted()){
-      this.gameOptions();
-      this.view.renderTeams(this.game.getTeams(), this.game.getPlayers());
+      this.gameOptions(this.db.getHostId());
+      const plainTeams = this.game.getTeams().map(t => t.toPlainObject());
+      const plainPlayers = this.game.getPlayers().map(p => p.toPlainObject());
+      this.view.renderTeams(plainTeams, plainPlayers);
       this.view.renderPlayerList(this.game.getPlayers());
     }
 
     const localId = localStorage.getItem('playerId')!;
-    this.view.render(this.game.toPlainObject(), localId, cardId => this.onCardPlayed(localId, cardId));
+    this.view.render(this.game.toPlainObject(), localId, this.db.getHostId(), cardId => this.onCardPlayed(localId, cardId));
   }
 
   // Called by View when a user clicks a card, Model then is called to handle it

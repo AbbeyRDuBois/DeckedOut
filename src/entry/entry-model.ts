@@ -55,7 +55,7 @@ export class EntryModel {
       throw new Error("Game is full");
     }
 
-    if (players.find(p => p.name === username)){
+    if (players.find(p => p.getName() === username)){
       throw new Error("Person Already has that Username");
     }
     

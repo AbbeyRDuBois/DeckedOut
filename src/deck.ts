@@ -2,7 +2,7 @@ import { DocumentData } from "firebase/firestore";
 import { Card, SUITS, RANKS } from "./card";
 
 export class Deck{
-    deck: Card[] = [];
+    protected deck: Card[] = [];
 
     constructor(deck: Card[] = []){
         if (deck.length ===  0){
@@ -24,7 +24,7 @@ export class Deck{
         this.deck = [];
         let idCounter = 0;
 
-        //Adds in a card of each value/suit
+        //Adds in a card of each rank/suit
         for (const suit of SUITS){
             for(const rank of RANKS){
                 this.deck.push(new Card(idCounter++, rank, suit.name));
@@ -38,7 +38,7 @@ export class Deck{
 
     static fromPlainObject(data: DocumentData): Deck{
         return new Deck(Array.isArray(data)
-            ? data.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped, c.isPlayed))
+            ? data.map((c: any) => new Card(c.id, c.rank, c.suit, c.flipped, c.played))
             : []);
     }
 
@@ -60,7 +60,7 @@ export class JokerDeck extends Deck{
 
     static fromPlainObject(data: DocumentData): JokerDeck{
         return new JokerDeck(Array.isArray(data)
-            ? data.map((c: any) => new Card(c.id, c.value, c.suit, c.isFlipped, c.isPlayed))
+            ? data.map((c: any) => new Card(c.id, c.rank, c.suit, c.flipped, c.played))
             : []);
     }
 }

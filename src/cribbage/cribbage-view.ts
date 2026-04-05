@@ -14,8 +14,8 @@ export class CribbageView extends BaseView {
   onDeckChange?: (mode: string) => void;
   onGameModeChange?: (mode: string) => void;
 
-  render(state: any, localPlayerId: string, onCardClick?: (cardId: number) => void) {
-    super.render(state, localPlayerId, onCardClick); //Calls base first then does specific game renders
+  render(state: any, localPlayerId: string, hostId: string, onCardClick?: (cardId: number) => void) {
+    super.render(state, localPlayerId, hostId, onCardClick); //Calls base first then does specific game renders
     this.renderPeggingTotal(state);
     this.renderFlipped(state);
     this.renderIndicators(state, localPlayerId);
@@ -34,8 +34,8 @@ export class CribbageView extends BaseView {
   }
 
   //Cribbage Specific Options when setting up the game
-  override renderGameOptions(options: any) {
-    super.renderGameOptions(options);
+  override renderGameOptions(options: any, hostId: string) {
+    super.renderGameOptions(options, hostId);
     let optionsContainer = document.getElementById('options-content')!;
     optionsContainer.innerHTML = '';
 
@@ -82,6 +82,12 @@ export class CribbageView extends BaseView {
       this.onGameModeChange?.(modeSelect.value);
 
     modeOption.append(modeLabel, modeSelect);
+
+    //Disable Guests from selecting Game Options
+    if (hostId != localStorage.getItem('playerId')){
+      modeSelect.disabled = true;
+      deckSelect.disabled = true;
+    }
 
     optionsContainer.append(deckOption, modeOption);
   }
@@ -170,7 +176,7 @@ export class CribbageView extends BaseView {
       const cardDiv = this.createCardElement(card, {
         container: rowEl,
         clickable: true,
-        startsFlipped: card.isFlipped,
+        startsFlipped: card.flipped,
         onClick: () => onCardClick(card.id)
       });
 

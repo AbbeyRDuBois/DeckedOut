@@ -69,7 +69,7 @@ export abstract class BaseGame {
   }
   setHandState(player: Player){
     // Model informs that the hand/state should change.
-    this.events.emit('handStateChanged', { playerId: player.id, enabled: true });
+    this.events.emit('handStateChanged', { playerId: player.getId(), enabled: true });
   }
 
   /******************************************
@@ -87,11 +87,7 @@ export abstract class BaseGame {
     this.events.emit('stateChanged', {});
   }
   getPlayer(playerId: string): Player{
-    return this.players.find(p => p.id === playerId)!;
-  }
-  setPlayer(player: Player){
-    const index = this.players.findIndex(p => p.id = player.id);
-    this.players[index] = player;
+    return this.players.find(p => p.getId() === playerId)!;
   }
   setPlayerOrder(){
     // If no teams exist, preserve players and just shuffle the player order
@@ -104,11 +100,11 @@ export abstract class BaseGame {
     //Randomize Team Order and Player Order in the teams
     this.teams = this.shuffle(this.teams);
     for (const team of this.teams) {
-      team.setPlayers(this.shuffle(team.getPlayers()));
+      team.setPlayerIds(this.shuffle(team.getPlayerIds()));
     }
 
     const newOrder: Player[] = [];
-    const tempTeams = this.teams.map(t => ({ players: [...t.getPlayers()] }));
+    const tempTeams = this.teams.map(t => ({ players: [...t.getPlayerIds()] }));
     let stillHasPlayers = true;
     let order = 0;
 
@@ -133,20 +129,13 @@ export abstract class BaseGame {
    * 
    ******************************************/
   getTeams(): Team[] { return this.teams; }
-  setTeams(teams: Team[]){
-    this.teams = teams;
-  }
-  setTeam(team: Team){
-    const index = this.teams.findIndex(t => t.id = team.id);
-    this.teams[index] = team;
-  }
   setTeamsFromDB(teams: any) {
     this.teams = teams.map((t:any) => Team.fromPlainObject(t));
     this.teams.sort((a, b) => a.getOrder() - b.getOrder());
     this.events.emit('stateChanged', {});
   }
   getPlayerTeam(playerId: string): Team | null {
-    return this.teams.find(team => team.playerIds.includes(playerId)) || null;
+    return this.teams.find(team => team.getPlayerIds().includes(playerId)) || null;
   }
 
   //Allows the controller/view to subscribe to event
@@ -171,34 +160,22 @@ export abstract class BaseGame {
   }
 
   async updateTeam(team: Team){
-    if (!this.isHost()) {
-      this.updateTeam(team);
-      return;
-    }
+    if (!this.isHost()) return;
     await this.db.updateTeam(team.toPlainObject());
   }
 
   updateTeams(teams: Team[]){
-    if (!this.isHost()) {
-      this.setTeams(teams);
-      return;
-    }
+    if (!this.isHost()) return;
     teams.forEach(async t => await this.updateTeam(t));
   }
 
   async updatePlayer(player: Player){
-    if(!this.isHost()) {
-      this.setPlayer(player);
-      return;
-    }
+    if(!this.isHost()) return;
     await this.db.updatePlayer(player.toPlainObject());
   }
 
   updatePlayers(players: Player[]){
-    if(!this.isHost()) {
-      this.setPlayers(players);
-      return;
-    }
+    if(!this.isHost()) return;
     players.forEach(async player => await this.updatePlayer(player));
   }
 
@@ -206,8 +183,8 @@ export abstract class BaseGame {
   //Have to do this to send the state to Firebase (they only like plain objects)
   toPlainObject() {
     return {
-      players: Object.fromEntries(this.players.map(p => [p.id, p.toPlainObject()])),
-      teams: Object.fromEntries(this.teams.map(t => [t.name, t.toPlainObject()])),
+      players: Object.fromEntries(this.players.map(p => [p.getId(), p.toPlainObject()])),
+      teams: Object.fromEntries(this.teams.map(t => [t.getName(), t.toPlainObject()])),
       deck: this.deck.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       started: this.started,
@@ -218,23 +195,23 @@ export abstract class BaseGame {
   //For Joker Popup
   getFullPlainDeck(): CardPlain[] {
     const deck = new Deck();
-    return deck.deck.map(card => ({
-      id: card.id,
-      suit: card.suit,
-      value: card.rank,
-      isFlipped: true,
-      isPlayed: false
+    return deck.getDeck().map(card => ({
+      id: card.getId(),
+      suit: card.getSuit(),
+      rank: card.getRank(),
+      flipped: true,
+      played: false
     }));
   }
 
   async nextPlayer(): Promise<any> {
-    const index = this.players.findIndex(p => p.id === this.currentPlayer.id);
+    const index = this.players.findIndex(p => p.getId() === this.currentPlayer.getId());
     this.currentPlayer = this.players[(index + 1) % this.players.length];
     return { currentPlayer: this.currentPlayer.toPlainObject() };
   }
 
   findTeamByPlayer(player: Player): Team {
-    return this.teams.find(team => team.playerIds.includes(player.id))!;
+    return this.teams.find(team => team.getPlayerIds().includes(player.getId()))!;
   }
 
   //Shuffles the player/team order

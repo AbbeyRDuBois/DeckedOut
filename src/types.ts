@@ -1,9 +1,9 @@
 export type CardPlain = {
   id: number;
-  value: string;
+  rank: string;
   suit: string;
-  isFlipped: boolean;
-  isPlayed: boolean;
+  flipped: boolean;
+  played: boolean;
 };
 
 export type PlayerPlain = {
@@ -21,13 +21,18 @@ export type TeamPlain = {
   score: number;
   playerIds: string[];
   order: number;
+  id: string;
 };
 
 export type RoomAction =
 | { type: "JOIN_ROOM"; playerId: string; name: string;}
 | { type: "LEAVE_ROOM"; playerId: string;}
 | { type: "GAME_ACTION"; playerId: string; payload: any;}
-| { type: "PLAY_CARD"; playerId: string; cardId: number;};
+| { type: "PLAY_CARD"; playerId: string; cardId: number;}
+| { type: "MOVE_PLAYER"; playerId: string; fromTeam: any; toTeam: any;}
+| { type: "UPDATE_NAME"; name: string; team: any}
+| { type: "ADD_TEAM";}
+| { type: "REMOVE_TEAM";};
 
 export type RoomState = {
   roomId: string;

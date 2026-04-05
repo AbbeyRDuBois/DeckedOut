@@ -57,19 +57,11 @@ export class Room {
     }
   }
 
-  async closeRoom () {
-    await this.db.delete();
-  }
-
   toggleSettings() {
     this.state.settingsOpen = !this.state.settingsOpen;
     this.events.emit('stateChanged', this.getState());
   }
-
-  isSettingsOpen(): boolean {
-    return this.state.settingsOpen;
-  }
-
+  
   //Updates state from Database values
   updateLocalState(remote: any) {
     if (typeof remote.started === 'boolean') {
@@ -95,7 +87,7 @@ export class Room {
     const player = await this.findPlayerById(localStorage.getItem("playerId")!);
 
     var trueColor = role;
-    if (role === player.roleColor) trueColor = "lavender";
+    if (role === player.getRoleColor()) trueColor = "lavender";
 
     var roleName = "";
     switch (trueColor){
@@ -116,8 +108,8 @@ export class Room {
         break;
     }
 
-    this.db.addLog(`${player?.name} has become a ${roleName}!`);
-    await this.db.update({[`players.${player.id}.roleColor`]: trueColor});
+    this.db.addLog(`${player?.getName()} has become a ${roleName}!`);
+    await this.db.update({[`players.${player.getId()}.roleColor`]: trueColor});
     return roleName;
   }
 }
