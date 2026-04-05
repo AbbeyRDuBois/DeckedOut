@@ -300,6 +300,11 @@ export class Cribbage extends BaseGame {
       }
     }
 
+    changes.currentPlayer = this.currentPlayer.toPlainObject();
+    changes.peggingCards = this.peggingCards.map(c => c.toPlainObject());
+    changes.peggingTotal =  this.peggingTotal;
+    changes.ended = this.ended;
+
     // Guest sends intent
     if (!this.isHost()) {
       await this.db.sendAction({
@@ -307,16 +312,11 @@ export class Cribbage extends BaseGame {
         playerId,
         cardId
       });
-      return;
     }
-
-    changes.currentPlayer = this.currentPlayer.toPlainObject();
-    changes.peggingCards = this.peggingCards.map(c => c.toPlainObject());
-    changes.peggingTotal =  this.peggingTotal;
-    changes.ended = this.ended;
-
-    this.updatePlayers(this.players);
-    await this.db.update(changes);
+    else{
+      this.updatePlayers(this.players);
+      await this.db.update(changes);
+    }
     this.events.emit('stateChanged', changes);
 }
 
