@@ -72,26 +72,20 @@ export class Database{
         return this;
     }
 
-    async delete(){
-        // Delete players
+    async delete() {
+        //Delete Players
         const players = await getDocs(this.playersRef());
-        for (const docSnap of players.docs) {
-            await deleteDoc(docSnap.ref);
-        }
+        await Promise.all(players.docs.map(docSnap => deleteDoc(docSnap.ref)));
 
-        // Delete teams
+        //Delete Teams
         const teams = await getDocs(this.teamsRef());
-        for (const docSnap of teams.docs) {
-            await deleteDoc(docSnap.ref);
-        }
+        await Promise.all(teams.docs.map(docSnap => deleteDoc(docSnap.ref)));
 
-        // Delete logs
+        //Delete Logs
         const logs = await getDocs(this.logsRef());
-        for (const docSnap of logs.docs) {
-            await deleteDoc(docSnap.ref);
-        }
+        await Promise.all(logs.docs.map(docSnap => deleteDoc(docSnap.ref)));
 
-        // Finally delete the room
+        //Finally Delete Room
         await deleteDoc(this.roomRef);
     }
     
@@ -318,21 +312,35 @@ export class Database{
 
     listenForTeams(){
         return onSnapshot(this.teamsRef(), (snapshot: any) => {
-            const teams = snapshot.docs.map((doc: any) => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            this.game?.setTeamsFromDB(teams);
+            snapshot.docChanges().forEach((change: any) => {
+                const team = {
+                    id: change.doc.id,
+                    ...change.doc.data()
+                };
+
+                if (change.type === 'removed') {
+                    this.game?.removeTeamFromDB(team.id);
+                } else {
+                    this.game?.setTeamFromDB(team);
+                }
+            });
         })
     }
 
     listenForPlayers(){
         return onSnapshot(this.playersRef(), (snapshot: any) => {
-            const players = snapshot.docs.map((doc: any) => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            this.game?.setPlayersFromDB(players);
+            snapshot.docChanges().forEach((change: any) => {
+                const player = {
+                    id: change.doc.id,
+                    ...change.doc.data()
+                };
+
+                if (change.type === 'removed') {
+                    this.game?.removePlayerFromDB(player.id);
+                } else {
+                    this.game?.setPlayerFromDB(player);
+                }
+            });
         })
     }
 

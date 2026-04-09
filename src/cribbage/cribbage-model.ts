@@ -141,6 +141,7 @@ export class Cribbage extends BaseGame {
     this.awaitingJokerSelection = data.awaitingJokerSelection ?? this.awaitingJokerSelection;
     this.skunkLength = data.skunkLength ?? this.skunkLength;
     this.handSize = data.handSize ?? this.handSize;
+    this.pointGoal = data.pointGoal ?? this.pointGoal;
     this.deckMode = data.deckMode ?? this.deckMode;
     this.gameMode = data.gameMode ?? this.gameMode;
     this.presentation = data.presentation ?? this.presentation;
@@ -187,8 +188,8 @@ export class Cribbage extends BaseGame {
     this.setFlipped();
     this.roundState = RoundState.Throwing;
     this.started = true;
-    this.updateTeams(this.teams);
-    this.updatePlayers(this.players);
+    await this.updateTeams(this.teams);
+    await this.updatePlayers(this.players);
 
     await this.db.update({
       cribOwner: this.cribOwner.toPlainObject(),
@@ -312,9 +313,10 @@ export class Cribbage extends BaseGame {
         playerId,
         cardId
       });
+      this.setHandState(player)
     }
     else{
-      this.updatePlayers(this.players);
+      await this.updatePlayer(player);
       await this.db.update(changes);
     }
     this.events.emit('stateChanged', changes);
@@ -335,7 +337,8 @@ export class Cribbage extends BaseGame {
         player.addToHand(card);
 
         this.events.emit('stateChanged', {});
-        this.db.update({[`players.${player.getId()}`]: player.toPlainObject()});
+        this.updatePlayer(player);
+        this.db.addLog(`${player.getName()} turned their joker into ${card.toHTML()}`);
         return;
       }
     }
@@ -597,9 +600,6 @@ export class Cribbage extends BaseGame {
       team.addToScore(2);
       player.addToScore(2);
       await this.db.addLog(`${player.getName()} got Nibs! +2 points`);
-      return {
-        [`players.${player.getId()}`]: player.toPlainObject()
-      };
     }
   }
 
@@ -610,8 +610,8 @@ export class Cribbage extends BaseGame {
     if (team.getScore() >= this.pointGoal){
       this.ended = true;
       await this.db.addLog(`${player.getName()} won the game!`);
-      this.updateTeams(this.teams);
-      this.updatePlayers(this.players);
+      await this.updateTeams(this.teams);
+      await this.updatePlayers(this.players);
       await this.db.update({
         ended: this.ended
       });
@@ -703,8 +703,8 @@ export class Cribbage extends BaseGame {
       index: 0
     };
 
-    this.updateTeams(this.teams);
-    this.updatePlayers(this.players);
+    await this.updateTeams(this.teams);
+    await this.updatePlayers(this.players);
 
     await this.db.update({
       roundState: this.roundState,
@@ -837,7 +837,7 @@ export class Cribbage extends BaseGame {
     this.presentation = {slides:[], index:0};
 
     await this.nextCribOwner();
-    this.updateTeams(this.teams);
+    await this.updateTeams(this.teams);
     this.updatePlayers(this.players);
 
     await this.db.update({
