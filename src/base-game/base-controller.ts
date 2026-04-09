@@ -94,7 +94,7 @@ export abstract class BaseController<
 
           // make sure teams are in order after removal
           teams.sort((a, b) => a.getOrder() - b.getOrder());
-          this.game.updateTeams(teams);
+          await this.game.updateTeams(teams);
           this.db.removeTeam(removed.getId());
         } 
       },

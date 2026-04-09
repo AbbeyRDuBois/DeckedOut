@@ -21,6 +21,7 @@ export class Player {
     setOrder(order: number) { this.order = order; }
     getOrder(): number { return this.order; }
     getRoleColor(): string { return this.roleColor; }
+    setRoleColor(roleColor: string) { this.roleColor = roleColor; }
     getHand(): Card[] { return this.hand; }
     setHand(hand: Card[]) { this.hand = hand; }
     getPlayedCards(): Card[] { return this.playedCards; }

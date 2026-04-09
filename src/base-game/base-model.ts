@@ -81,11 +81,30 @@ export abstract class BaseGame {
   setPlayers(players: Player[]){
     this.players = players;
   }
+
   setPlayersFromDB(players: any) {
     this.players = players.map((p:any) => Player.fromPlainObject(p));
     this.players.sort((a, b) => a.getOrder() - b.getOrder());
     this.events.emit('stateChanged', {});
   }
+
+  setPlayerFromDB(player: any) {
+    const updatedPlayer = Player.fromPlainObject(player);
+    const index = this.players.findIndex(p => p.getId() === updatedPlayer.getId());
+    if (index !== -1) {
+      this.players[index] = updatedPlayer;
+    } else {
+      this.players.push(updatedPlayer);
+    }
+    this.players.sort((a, b) => a.getOrder() - b.getOrder());
+    this.events.emit('stateChanged', {});
+  }
+
+  removePlayerFromDB(playerId: string) {
+    this.players = this.players.filter(p => p.getId() !== playerId);
+    this.events.emit('stateChanged', {});
+  }
+
   getPlayer(playerId: string): Player{
     return this.players.find(p => p.getId() === playerId)!;
   }
@@ -134,6 +153,24 @@ export abstract class BaseGame {
     this.teams.sort((a, b) => a.getOrder() - b.getOrder());
     this.events.emit('stateChanged', {});
   }
+
+  setTeamFromDB(team: any) {
+    const updatedTeam = Team.fromPlainObject(team);
+    const index = this.teams.findIndex(t => t.getId() === updatedTeam.getId());
+    if (index !== -1) {
+      this.teams[index] = updatedTeam;
+    } else {
+      this.teams.push(updatedTeam);
+    }
+    this.teams.sort((a, b) => a.getOrder() - b.getOrder());
+    this.events.emit('stateChanged', {});
+  }
+
+  removeTeamFromDB(teamId: string) {
+    this.teams = this.teams.filter(t => t.getId() !== teamId);
+    this.events.emit('stateChanged', {});
+  }
+
   getPlayerTeam(playerId: string): Team | null {
     return this.teams.find(team => team.getPlayerIds().includes(playerId)) || null;
   }
@@ -164,9 +201,9 @@ export abstract class BaseGame {
     await this.db.updateTeam(team.toPlainObject());
   }
 
-  updateTeams(teams: Team[]){
+  async updateTeams(teams: Team[]){
     if (!this.isHost()) return;
-    teams.forEach(async t => await this.updateTeam(t));
+    await Promise.all(teams.map(t => this.updateTeam(t)));
   }
 
   async updatePlayer(player: Player){
@@ -174,9 +211,9 @@ export abstract class BaseGame {
     await this.db.updatePlayer(player.toPlainObject());
   }
 
-  updatePlayers(players: Player[]){
+  async updatePlayers(players: Player[]){
     if(!this.isHost()) return;
-    players.forEach(async player => await this.updatePlayer(player));
+    await Promise.all(players.map(player => this.updatePlayer(player)));
   }
 
 

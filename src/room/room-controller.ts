@@ -107,6 +107,7 @@ export class RoomController {
   async onLeaveRoom() {
     const playerId = localStorage.getItem("playerId")!;
     const db = this.model.getDbInstance();
+    this.view.navigateToHome();
 
     //If the host leaves or if game is started bomb everything
     if (db.isHost() || this.game?.getStarted()){
@@ -117,8 +118,7 @@ export class RoomController {
       await db.sendAction({
         type: "LEAVE_ROOM",
         playerId
-      });
-      this.view.navigateToHome(); 
+      }); 
     }
   }
 }
