@@ -10,6 +10,8 @@
 import { BaseView } from "../base-game/base-view";
 import { CardPlain, PlayerPlain } from "../types";
 
+const rankOrder = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+
 export class CribbageView extends BaseView {
   onDeckChange?: (mode: string) => void;
   onGameModeChange?: (mode: string) => void;
@@ -235,7 +237,9 @@ export class CribbageView extends BaseView {
       const player = Object.entries(state.players).find(([id]) => id == slide.playerId)?.[1] as PlayerPlain;
       nameEl.textContent = `${player.name}'s Hand`;
 
-      for (const card of player.hand) {
+      const sortedHand = player.hand.sort((a,b) => rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank));
+
+      for (const card of sortedHand) {
         const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
         cardEl.style.pointerEvents = 'none';
         handEl.appendChild(cardEl);
