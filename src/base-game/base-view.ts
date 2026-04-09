@@ -24,6 +24,7 @@ export type BaseViewHandlers = {
 export abstract class BaseView {
   //SpriteSheet is a purely visual class. No knowledge of game rules/logic so it's okay to have in the View
   private spriteSheet: SpriteSheet;
+  private currentTheme: string = 'Classic';
   private handlers!: BaseViewHandlers;
   constructor() {
     this.spriteSheet = new SpriteSheet();
@@ -406,6 +407,9 @@ export abstract class BaseView {
    * 
    ******************************************/
   setSpriteSheet(sheet: string) {
+    if (this.currentTheme === sheet) return; // No change, skip setting
+
+    this.currentTheme = sheet;
     switch(sheet){
       case "Classic":
         this.spriteSheet = new SpriteSheet();
