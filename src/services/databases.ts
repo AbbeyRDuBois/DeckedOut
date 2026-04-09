@@ -127,7 +127,13 @@ export class Database{
 
     //Updates the Team in the DB
     async updateTeam(team: any){
-        if (!this.isHost()) return;
+        if(!this.isHost()) {
+            await this.sendAction({
+                type: "UPDATE_TEAM",
+                team: team.toPlainObject()
+            });
+            return;
+        }
         try {
             await setDoc(doc(this.teamsRef(), team.id), team, { merge: true });
         } catch (e) {
@@ -143,7 +149,13 @@ export class Database{
 
     //Updates the Player in the DB
     async updatePlayer(player: any){
-        if(!this.isHost()) return;
+        if(!this.isHost()) {
+            await this.sendAction({
+                type: "UPDATE_PLAYER",
+                player: player.toPlainObject()
+            });
+            return;
+        }
         try {
             await setDoc(doc(this.playersRef(), player.id), player, { merge: true });
         } catch (e) {
@@ -153,16 +165,17 @@ export class Database{
 
     //Adds the log to the DB
     async addLog(message: string) {
-        if(!this.isHost()){
-            var updatedLogs = this.game?.getLogs()!;
-            updatedLogs.push(message);
-            this.game?.setLogs(updatedLogs);
+        if(!this.isHost()) {
+            await this.sendAction({
+                type: "ADD_LOG",
+                log: message
+            });
             return;
         }
 
         try {
             await addDoc(this.logsRef(), {
-                message: message,
+                message,
                 timestamp: serverTimestamp()
             });
         } catch (e) {
@@ -216,6 +229,18 @@ export class Database{
                 }
 
                 await deleteDoc(doc(this.playersRef(), action.playerId));
+                break;
+            }
+            case "UPDATE_PLAYER": {
+                this.updatePlayer(action.player);
+                break;
+            }
+            case "UPDATE_TEAM": {
+                this.updateTeam(action.team);
+                break;
+            }
+            case "ADD_LOG": {
+                this.addLog(action.log);
                 break;
             }
             case "MOVE_PLAYER": {
