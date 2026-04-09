@@ -644,6 +644,7 @@ export class Cribbage extends BaseGame {
         player.addToScore(1);
         await this.updateTeam(team);
         await this.db.addLog(`Nobody else could play! ${player.getName()} got the point.`);
+        this.checkIfWon(player);
       }
 
       // Check if any cards left
