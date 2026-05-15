@@ -6,33 +6,37 @@
   <title>Game Selection</title>
 </head>
 <body>
-  <h1 class="title">DeckedOut</h1>
-  <div class="sign-in">
-    <button id="signInBtn" class="sign-in-btn">Sign In</button>
-    <div id="firebaseui-auth-container"></div>
-  </div>
-  <div class="container">
-    <div id="usernameInput" class="menu-input">
-      <label for="username">Your Name:</label>
-      <input type="text" id="username" class="input" placeholder="Enter your name" />
-    </div>
+  <div class="page-shell">
+    <header class="page-header">
+      <h1 class="title">DeckedOut</h1>
+      <button id="signInBtn" class="sign-in-btn">Sign In</button>
+    </header>
 
-    <div class="sections">
-      <!-- Join Section -->
-      <div class="join-section">
-        <label for= roomId>Join:</label>
-        <input type="text" id="roomId" class="input" placeholder="Room Code" />
-        <button id="joinBtn" class="join-btn">Join</button>
-      </div>
-      <!-- Host Section -->
-      <div class="host-section">
-        <h2>Host</h2>
-        <div class="game-buttons">
-          <button class="create-room-btn" data-game-type="cribbage">Cribbage</button>
-          <!-- Add more games here -->
-        </div>
-      </div>
-    </div>
+    <main class="selection-page">
+      <section class="panel user-panel">
+        <h2>Enter Username:</h2>
+        <input type="text" id="username" class="menu-input input" placeholder="Username" />
+      </section>
+
+      <section class="panel panel-card host-panel">
+          <div class="panel-heading">Host a game</div>
+          <p class="panel-copy">More games will be available soon. (Definitely... Probably... Eventually...)</p>
+          <div class="game-buttons">
+            <button class="create-room-btn" data-game-type="cribbage">Cribbage</button>
+            <!-- Add More Games Here -->
+          </div>
+        </section>
+      </section>
+
+      <section class="panel-grid">
+        <section class="panel panel-card join-panel">
+          <div class="panel-heading">Join a game</div>
+          <div class="join-section">
+            <input type="text" id="roomId" class="input" placeholder="Room Code" />
+            <button id="joinBtn" class="join-btn">Join</button>
+          </div>
+        </section>
+    </main>
   </div>
 </body>
 </html>

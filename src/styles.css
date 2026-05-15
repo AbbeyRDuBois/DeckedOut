@@ -206,152 +206,203 @@ body {
 * Game Selection Screen
 *
 *********************************************************************************************************************************************/
-.title{
-  text-align: center;
-  font-size: 2.5rem;
-  margin-bottom:10px;
-  color: #2c3e50
-}
-.container {
+.page-shell {
+  min-height: 100vh;
+  padding: 80px 20px 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+}
+.page-header {
+  width: 100%;
+  max-width: 980px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+.title {
+  margin: 0;
+  font-size: clamp(3.5rem, 5vw, 5.5rem);
+  line-height: 1.02;
+  color: var(--text-color);
 }
 #signInBtn {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  gap: 10px;
+  top: 0;
+  right: 0;
   background: var(--rd-btn);
-  padding: 10px 16px;
+  padding: 12px 18px;
   border: none;
   color: var(--text-color);
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  z-index: 2;
 }
 #signInBtn:hover {
-  background: color-mix(in srgb, var(--rd-btn) 80%, black)
+  background: color-mix(in srgb, var(--rd-btn) 80%, black);
+  transform: translateY(-1px);
 }
-/* #username-input{
-  text-align: center;
-  display:flex;
-  flex-direction: row;
-  gap: 10px;
+.selection-page {
+  width: 100%;
+  max-width: 980px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
-#username-input label {
-  text-align: center;
-  display: block;
-  padding: 5px;
-  font-weight: bold;
+.panel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.08);
+  padding: 28px;
+  backdrop-filter: blur(14px);
 }
-#username-input input {
-  width: 200px;
-  padding: 5px;
-  border-radius: 6px;
-  border: 1px solid var(--fg-color);
-  background-color: var(--fg-color);
+.user-panel {
+  grid-column: 1 / -1;
+  padding: 18px;
+  max-width: none;
+  width: 96%;
+  margin: 0;
+}
+.user-panel h2 {
+  margin: 0 0 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
   color: var(--text-color);
-} */
-.sections {
+}
+.panel-grid {
+  display: contents;
+}
+@media (max-width: 720px) {
+  .selection-page {
+    grid-template-columns: 1fr;
+  }
+  .user-panel {
+    grid-column: auto;
+  }
+}
+.panel-card {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-}
-.host-section{
-  display:flex;
-  flex-direction: column;
-  justify-content: center;
+  gap: 18px;
   align-items: center;
 }
-.section h2 {
-  text-align:center;
-  color: #34495e;
+.host-panel {
+  order: unset;
+}
+.panel-heading {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-color);
+  text-align: center;
+}
+.panel-copy {
+  margin: 0;
+  color: var(--text-color);
+  line-height: 1.65;
+  text-align: center;
+  opacity: 0.85;
+}
+.menu-input {
+  display: grid;
+  gap: 12px;
+  width: 90%;
+}
+.menu-input label {
+  font-weight: 700;
+  color: var(--text-color);
+}
+.menu-input.input {
+  width: 90%;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--text-bg);
+  color: var(--text-color);
+  outline: none;
+}
+.menu-input.input:focus {
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+}
+#usernameInput {
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--text-bg);
+  color: var(--text-color);
+  outline: none;
+}
+#usernameInput:focus {
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+}
+.join-section {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  grid-template-columns: 1fr;
+  align-items: center;
+}
+.join-section label {
+  font-weight: 700;
+  color: var(--text-color);
+}
+.join-section input {
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--text-bg);
+  color: var(--text-color);
+  outline: none;
+}
+.join-section input:focus {
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+}
+.join-btn {
+  width: auto;
+  padding: 14px 18px;
+  background: var(--gn-btn);
+  color: var(--text-color);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  justify-self: center;
+}
+.join-btn:hover {
+  background: color-mix(in srgb, var(--gn-btn) 80%, black);
+  transform: translateY(-1px);
 }
 .game-buttons {
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
 }
 .create-room-btn {
-  padding: 10px 16px;
+  padding: 14px 18px;
   border: none;
   background: var(--bl-btn);
   color: var(--text-color);
-  border-radius: 6px;
+  border-radius: 14px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
+  font-weight: 800;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
-.create-room-btn:hover{
-  background: color-mix(in srgb, var(--bl-btn) 80%, black)
-}
-.join-section{
-  display:flex;
-  flex-direction: row;
-  gap: 10px;
-}
-.join-section label {
-  text-align: center;
-  display: block;
-  padding: 5px;
-  font-weight: bold;
-}
-.join-section input {
-  width: 200px;
-  padding: 5px;
-  border-radius: 6px;
-  color: var(--text-color); 
-}
-.join-btn {
-  width: 70px;
-  background: var(--gn-btn);
-  color: var(--text-color) ;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
-}
-.join-btn:hover {
-  background: color-mix(in srgb, var(--gn-btn) 80%, black)
-}
-.menu-input{
-  text-align: center;
-  display:flex;
-  flex-direction: row;
-  gap: 10px;
-}
-.menu-input label {
-  text-align: center;
-  display: block;
-  padding: 5px;
-  font-weight: bold;
-}
-.menu-input input {
-  width: 200px;
-  padding: 5px;
-  border-radius: 6px;
-  color: var(--text-color);
-}
-.cribbage-btn {
-  padding: 10px 16px;
-  border: none;
-  background: var(--bl-btn);
-  color: var(--text-color);
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
-}
-.cribbage-btn:hover{
-  background: color-mix(in srgb, var(--bl-btn) 80%, black)
+.create-room-btn:hover {
+  background: color-mix(in srgb, var(--bl-btn) 80%, black);
+  transform: translateY(-1px);
 }
 /********************************************************************************************************************************************
 *
@@ -829,7 +880,7 @@ body {
   height: 3vmin;
   border-radius: 50%;
   margin-left: 10px;
-  display: none;
+  display: flex;
   justify-content: center;
   align-items: center;
 }
