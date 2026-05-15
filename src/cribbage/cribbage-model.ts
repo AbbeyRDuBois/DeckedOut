@@ -24,7 +24,7 @@ export enum RoundState {
 }
 
 export class Cribbage extends BaseGame {
-  private pointGoal: number = 5;
+  private pointGoal: number = 121;
   private skunkLength: number = 90;
   private handSize: number = 4;
   private flipped: Card = new Card(0);
