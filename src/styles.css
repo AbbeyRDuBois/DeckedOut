@@ -487,7 +487,7 @@ body {
   cursor: pointer;
   border-radius: 10px;
   border: none;
-  z-index: 30; 
+  z-index: 15; 
 }
 .theme-selector{
   background: var(--text-bg);
@@ -542,7 +542,7 @@ body {
   width: 100%;
   height: 100%;
   backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
-  background: rgba(0,0,0, 0.5); /* semi-transparent dark background*/
+  background: rgba(var(--background), 0.5); /* semi-transparent dark background*/
   align-items: center;
   justify-content: center;
   z-index: 40;
@@ -961,7 +961,6 @@ body {
   top: 45%;
   left: 10%;          
   transform: translateY(-50%);
-  height: 70%;
   pointer-events: none;   
   cursor: default;               
 }
@@ -1031,7 +1030,7 @@ body {
   position: fixed;
   inset: 0;
   backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
-  background: rgba(0,0,0,0.8);
+  background: rgba(var(--background),0.8);
   display: flex;
   flex-direction: column;
   align-items: center;
