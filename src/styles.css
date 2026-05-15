@@ -25,6 +25,7 @@
   --bl-btn:#005fff;
   --rd-btn:tomato;
   --gn-btn:#01b401;
+  --overlay-background: color-mix(in srgb, var(--background) 75%, black 25%);
 }
 
 body[data-theme='light'] {
@@ -41,6 +42,7 @@ body[data-theme='light'] {
   --bl-btn:#005fff;
   --rd-btn:red;
   --gn-btn:#01b401;
+  --overlay-background: color-mix(in srgb, var(--background) 75%, black 25%);
 }
 
 body[data-theme='pink_rose'] {
@@ -57,6 +59,7 @@ body[data-theme='pink_rose'] {
   --bl-btn:dodgerBlue;
   --rd-btn:tomato;
   --gn-btn:mediumSeaGreen;
+  --overlay-background: color-mix(in srgb, var(--background) 75%, black 25%);
 }
 
 body[data-theme='ocean'] {
@@ -73,6 +76,7 @@ body[data-theme='ocean'] {
   --bl-btn:dodgerBlue;
   --rd-btn:tomato;
   --gn-btn:mediumSeaGreen;
+  --overlay-background: color-mix(in srgb, var(--background) 75%, black 25%);
 }
 
 body[data-theme='navy'] {
@@ -89,6 +93,7 @@ body[data-theme='navy'] {
   --bl-btn:#213571;
   --rd-btn:#6f0000;
   --gn-btn:#154f30;
+  --overlay-background: color-mix(in srgb, var(--background) 75%, black 25%);
 }
 
 body[data-theme='cursed'] {
@@ -105,6 +110,7 @@ body[data-theme='cursed'] {
   --bl-btn:#005fff;
   --rd-btn:tomato;
   --gn-btn:#01b401;
+  --overlay-background: rgba(0, 0, 0, 0.78);
 }
 
 body[data-theme='blessed'] {
@@ -121,6 +127,7 @@ body[data-theme='blessed'] {
   --bl-btn:#39FF14;
   --rd-btn:#39FF14;
   --gn-btn:#39FF14;
+  --overlay-background: color-mix(in srgb, var(--background) 75%, black 25%);
 }
 
 body[data-theme='fancy'] {
@@ -137,6 +144,7 @@ body[data-theme='fancy'] {
   --bl-btn:#005fff;
   --rd-btn:tomato;
   --gn-btn:#01b401;
+  --overlay-background: rgba(0, 0, 0, 0.78);
 }
 
 /**************************************
@@ -542,7 +550,7 @@ body {
   width: 100%;
   height: 100%;
   backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
-  background: rgba(var(--background), 0.5); /* semi-transparent dark background*/
+  background-color: var(--overlay-background);
   align-items: center;
   justify-content: center;
   z-index: 40;
@@ -729,14 +737,87 @@ body {
 #winners {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
   font-size: xx-large;
   align-items: center;
   justify-content: center;
+  text-align: center;
+}
+
+#winner-team {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.winner-members,
+.loser-teams {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.winner-member,
+.loser-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  min-width: 12rem;
+}
+
+.winner-member {
+  min-width: 10rem;
+}
+
+.winner-member .member-name,
+.loser-team-name {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.winner-member .member-score,
+.loser-member span:last-child {
+  opacity: 0.85;
+}
+
+.winner-divider {
+  width: 90%;
+  max-width: 40rem;
+  height: 1px;
+  margin: 0;
+  border: none;
+  background: currentColor;
+  opacity: 0.15;
+}
+
+#losers {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.loser-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.loser-member {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.5rem;
 }
 
 #winner-popup {
   min-height: 50%;
   min-width: 60%;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 /***************************************
 *
@@ -1031,7 +1112,7 @@ body {
   position: fixed;
   inset: 0;
   backdrop-filter: blur(4px); /*Adds the blur effect to the background*/
-  background: rgba(var(--background),0.8);
+  background-color: var(--overlay-background);
   display: flex;
   flex-direction: column;
   align-items: center;
