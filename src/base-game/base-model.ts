@@ -190,20 +190,13 @@ export abstract class BaseGame {
    *  State Updates
    * 
    ******************************************/
-  updateLocalState(data: any) {
+  async updateLocalState(data: any) {
     this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer) : this.currentPlayer;
     this.ended = data.ended ?? false;
     this.events.emit('stateChanged', this.toPlainObject());
   }
 
   async updateTeam(team: Team){
-    if(!this.isHost()) {
-      await this.db.sendAction({
-          type: "UPDATE_TEAM",
-          team: team.toPlainObject()
-      });
-      return;
-    }
     await this.db.updateTeam(team.toPlainObject());
   }
 
@@ -212,13 +205,6 @@ export abstract class BaseGame {
   }
 
   async updatePlayer(player: Player){
-    if(!this.isHost()) {
-      await this.db.sendAction({
-          type: "UPDATE_PLAYER",
-          player: player.toPlainObject()
-      });
-      return;
-    }
     await this.db.updatePlayer(player.toPlainObject());
   }
 

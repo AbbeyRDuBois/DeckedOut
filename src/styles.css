@@ -959,7 +959,8 @@ body {
 #flipped {
   position: absolute; 
   top: 45%;
-  left: 10%;          
+  left: 10%;   
+  height: 70%;       
   transform: translateY(-50%);
   pointer-events: none;   
   cursor: default;               

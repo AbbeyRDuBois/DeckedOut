@@ -114,11 +114,7 @@ export class RoomController {
       db.delete();
     }
     else{
-      // Guest tell Host their leaving
-      await db.sendAction({
-        type: "LEAVE_ROOM",
-        playerId
-      }); 
+      db.leave();
     }
   }
 }
