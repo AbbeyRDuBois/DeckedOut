@@ -7,6 +7,7 @@
  ****************************************************************************/
 import { v4 } from "uuid";
 import { Player } from "../player";
+import { Team } from "../team";
 import { Database, getDBInstance, setDBInstance } from "../services/databases";
 
 export class EntryModel {
@@ -49,7 +50,8 @@ export class EntryModel {
     if (!state) throw new Error("Room does not exist");
     if (state.started) throw new Error("Game already started");
 
-    const players: Player[] = state.players.map((p:any) => Player.fromPlainObject(p));
+    const players: Player[] = (state.players || []).map((p:any) => Player.fromPlainObject(p));
+    const teams = state.teams || [];
 
     if (state.maxPlayers && players.length >= state.maxPlayers) {
       throw new Error("Game is full");
@@ -58,13 +60,11 @@ export class EntryModel {
     if (players.find(p => p.getName() === username)){
       throw new Error("Person Already has that Username");
     }
-    
-    // Notify the host
-    await this.db.sendAction({
-        type: "JOIN_ROOM",
-        playerId,
-        name: username
-    });
+
+    const player = new Player(playerId, username);
+    const team = new Team(player.getName(), [player.getId()], teams.length);
+
+    await this.db.addGuest(player.toPlainObject(), team.toPlainObject());
 
     return state.gameType;
   }

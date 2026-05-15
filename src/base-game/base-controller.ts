@@ -52,10 +52,6 @@ export abstract class BaseController<
     const handlers: BaseViewHandlers = {
       onStart: async () => { await this.onStartGame();},
       onAddTeam: async () => {
-        if(!this.db.isHost()){
-          await this.db.sendAction({type: "ADD_TEAM"});
-          return;
-        }
         const teams = this.game.getTeams();
         if (teams.length < this.game.getPlayers().length) {
           this.game.updateTeam(new Team(`Team ${teams.length + 1}`, [], teams.length));
@@ -64,23 +60,9 @@ export abstract class BaseController<
       onTeamNameChange: async (idx, name) => { 
         const teams = this.game.getTeams();
         teams[idx].setName(name);
-
-        if(!this.db.isHost()){
-          await this.db.sendAction({
-            type: "UPDATE_NAME",
-            name,
-            team: teams[idx].toPlainObject()
-          });
-          return;
-        }
-
         await this.game.updateTeam(teams[idx]); 
       },
       onRemoveTeam: async () => { 
-        if(!this.db.isHost()){
-          await this.db.sendAction({type: "REMOVE_TEAM"});
-          return;
-        }
         const teams = this.game.getTeams(); 
         if (teams.length > 1) { 
           const removed = teams.pop()!; 
@@ -101,16 +83,6 @@ export abstract class BaseController<
       onMovePlayer: async (playerId, fromIndex, toIndex) => {
         const teams = this.game.getTeams();
         if (!teams[fromIndex] || !teams[toIndex]) return;
-
-        if (!this.db.isHost()){
-          await this.db.sendAction({
-            type: "MOVE_PLAYER",
-            playerId,
-            fromTeam: teams[fromIndex].toPlainObject(),
-            toTeam: teams[toIndex].toPlainObject()
-          });
-          return;
-        }
 
         // Remove from source
         teams[fromIndex].removePlayerId(playerId);

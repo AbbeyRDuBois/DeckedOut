@@ -131,7 +131,7 @@ export class Cribbage extends BaseGame {
    *  State Updates
    * 
    ******************************************/
-  override updateLocalState(data: DocumentData): void {
+  override async updateLocalState(data: DocumentData) {
     this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
     this.crib = data.crib?.map((c: any) => new Card(c.id, c.rank, c.suit)) ?? this.crib;
     this.roundState = data.roundState ?? this.roundState;
@@ -155,7 +155,27 @@ export class Cribbage extends BaseGame {
       }
     }
 
-    super.updateLocalState(data); //Call this last for the stateChange event
+    //Check to see if all players have thrown, if they have move the state
+    if (this.roundState == RoundState.Throwing  && this.players.every(p => p.getHand().length === this.handSize)) {
+      this.roundState = RoundState.Pegging;
+      this.flipped.setFlipped(true);
+      await this.findNibs();
+
+      let changes: any = {};
+      changes.roundState = this.roundState;
+      changes.flipped = this.flipped.toPlainObject();
+
+      // If the flipped card is a Joker, we must pause pegging until the crib owner selects a replacement
+      if (this.flipped.getRank() === 'JK') {
+        this.awaitingJokerSelection = true;
+        changes.awaitingJokerSelection = true;
+      }
+
+      await this.db.update(changes);
+      this.setHandState(this.currentPlayer);
+    }
+
+    await super.updateLocalState(data); //Call this last for the stateChange event
   }
 
   override toPlainObject() {
@@ -221,15 +241,12 @@ export class Cribbage extends BaseGame {
   //Pushes the start of game changes to the other clients
   async guestSetup(data: DocumentData) {
     this.setStarted(true);
-    this.updateLocalState(data);
+    await this.updateLocalState(data);
     this.db.listenForLogs();
     this.db.listenForTeams();
     this.db.listenForPlayers();
   }
 
-  // Both Guest and Host run through Logic
-  // Guest is for optimistic updates to reduce the feel of lag on their end
-  // Host is the only one that actually talks to the database though
   async cardPlayed(playerId: string, cardId: number) {
     const player = this.getPlayer(playerId);
     if (!player) return;
@@ -240,6 +257,7 @@ export class Cribbage extends BaseGame {
     const card = player.getHand()[cardIndex];
 
     let changes: any = {};
+    let arrayUnion: any = {};
 
     if (this.roundState === RoundState.Throwing) {
       player.removeFromHand(cardIndex);
@@ -248,23 +266,7 @@ export class Cribbage extends BaseGame {
       this.crib.push(card);
       await this.db.addLog(`${player.getName()} has thrown a card to the crib.`);
 
-      changes.crib = this.crib.map(c => c.toPlainObject());
-
-      // If all players have thrown, move to pegging
-      if (this.players.every(p => p.getHand().length === this.handSize)) {
-        this.roundState = RoundState.Pegging;
-        this.flipped.setFlipped(true);
-        await this.findNibs();
-
-        changes.roundState = this.roundState;
-        changes.flipped = this.flipped.toPlainObject();
-
-        // If the flipped card is a Joker, we must pause pegging until the crib owner selects a replacement
-        if (this.flipped.getRank() === 'JK') {
-          this.awaitingJokerSelection = true;
-          changes.awaitingJokerSelection = true;
-        }
-      }
+      arrayUnion = { crib: [card.toPlainObject()] };
     } else {
       // Pegging: if we're waiting for a joker selection, block all plays
       if (this.awaitingJokerSelection) return;
@@ -306,19 +308,9 @@ export class Cribbage extends BaseGame {
     changes.peggingTotal =  this.peggingTotal;
     changes.ended = this.ended;
 
-    // Guest sends intent
-    if (!this.isHost()) {
-      await this.db.sendAction({
-        type: "PLAY_CARD",
-        playerId,
-        cardId
-      });
-      this.setHandState(player)
-    }
-    else{
-      await this.updatePlayer(player);
-      await this.db.update(changes);
-    }
+    await this.updatePlayer(player);
+    await this.db.update(changes, arrayUnion);
+    
     this.events.emit('stateChanged', changes);
 }
 
@@ -619,8 +611,6 @@ export class Cribbage extends BaseGame {
   }
 
   override async nextPlayer(): Promise<any> {
-    if (!this.isHost()) return; // Only host runs this
-
     const index = this.players.findIndex(p => p.getId() === this.currentPlayer.getId());
     let found = false;
 
