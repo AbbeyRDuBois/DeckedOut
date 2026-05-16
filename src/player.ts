@@ -58,10 +58,10 @@ export class Player {
         let player = new Player(data.id, data.name);
         
         player.hand = Array.isArray(data.hand)
-            ? data.hand.map((c: any) => new Card(c.id, c.rank, c.suit, c.flipped, c.played))
+            ? data.hand.map((c: any) => Card.fromPlainObject(c))
             : [];
         player.playedCards = Array.isArray(data.playedCards)
-            ? data.playedCards.map((c: any) => new Card(c.id, c.rank, c.suit, c.flipped, c.played))
+            ? data.playedCards.map((c: any) => Card.fromPlainObject(c))
             : [];
         
         player.team = data.team;

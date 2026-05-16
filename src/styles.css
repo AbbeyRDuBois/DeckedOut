@@ -1225,7 +1225,6 @@ body {
 ***************************************/
 .loading-overlay {
   display: flex;
-  opacity: 1;
   transition: opacity 0.3s ease;
   z-index: 70;
 }
@@ -1293,7 +1292,7 @@ body {
 * Wavelength
 *
 ******************************************************************************************/
-.wave-prompt { 
+.prompt { 
   font-size: 1.4rem; 
   font-weight: 700; 
   text-align: center; 
@@ -1310,7 +1309,7 @@ body {
   gap: 14px;
   overflow: hidden;
 }
-.wave-ticks { 
+.ticks { 
   width: 100%; 
   display:flex;
   flex-wrap: wrap;
@@ -1320,7 +1319,7 @@ body {
   position: relative; 
   z-index: 1;
 }
-.wave-tick {
+.tick {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1337,13 +1336,13 @@ body {
   justify-content: center;
   padding: 0 6px;
 }
-.wave-tick-label {
+.tick-label {
   z-index: 1;
   font-size: 0.7rem;
   color: var(--text-color);
   margin-bottom: 6px;
 }
-.wave-tick-button {
+.tick-button {
   position: relative;
   width: 26px;
   height: 26px;
@@ -1357,11 +1356,11 @@ body {
   z-index: 1;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
-.wave-tick-button.selected {
+.tick-button.selected {
   background: var(--bl-btn);
   border-color: var(--border);
 }
-.wave-tick-button:disabled {
+.tick-button:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }

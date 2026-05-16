@@ -21,6 +21,7 @@ export class WavelengthView extends BaseView {
     this.renderIndicators(state, localPlayerId);
     this.renderSubmit(state, localPlayerId);
     this.renderGoal(state, localPlayerId);
+    this.renderPrompt(state);
   }
 
   attachSubmitButton(){
@@ -45,7 +46,7 @@ export class WavelengthView extends BaseView {
     const allReset = guessValues.length > 0 && guessValues.every((v: number) => v < -10 || v > 10);
     if (allReset) {
       this.selectedValue = null;
-      const existingButtons = board.querySelectorAll<HTMLButtonElement>('.wave-tick-button');
+      const existingButtons = board.querySelectorAll<HTMLButtonElement>('.tick-button');
       existingButtons.forEach(b => b.classList.remove('selected'));
       const existingMarker = document.getElementById('wave-local-marker');
       if (existingMarker) {
@@ -54,7 +55,7 @@ export class WavelengthView extends BaseView {
       }
     }
 
-    const buttons = board.querySelectorAll<HTMLButtonElement>('.wave-tick-button');
+    const buttons = board.querySelectorAll<HTMLButtonElement>('.tick-button');
     buttons.forEach(button => {
       const value = Number(button.dataset.value);
       button.disabled = state.currentPlayer.id === localPlayerId;
@@ -80,7 +81,7 @@ export class WavelengthView extends BaseView {
 
   private updateSelectedTick(board: HTMLElement) {
     const marker = document.getElementById('wave-local-marker');
-    const buttons = board.querySelectorAll<HTMLButtonElement>('.wave-tick-button');
+    const buttons = board.querySelectorAll<HTMLButtonElement>('.tick-button');
     buttons.forEach(btn => {
       btn.classList.toggle('selected', Number(btn.dataset.value) === this.selectedValue);
     });
@@ -93,7 +94,7 @@ export class WavelengthView extends BaseView {
       return;
     }
 
-    const selectedButton = board.querySelector<HTMLButtonElement>(`.wave-tick-button[data-value="${this.selectedValue}"]`);
+    const selectedButton = board.querySelector<HTMLButtonElement>(`.tick-button[data-value="${this.selectedValue}"]`);
     if (!selectedButton) return;
 
     const boardRect = board.getBoundingClientRect();
@@ -178,5 +179,10 @@ export class WavelengthView extends BaseView {
 
     goal.hidden = !isCurrentPlayer;
     goal.style.display = isCurrentPlayer ? "inline-flex" : "none";
+  }
+
+  renderPrompt(state: any){
+    const prompt = document.getElementById('prompt')!;
+    prompt.innerHTML = state.prompt;
   }
 }

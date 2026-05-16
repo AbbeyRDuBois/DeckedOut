@@ -131,9 +131,9 @@ export class Cribbage extends BaseGame {
    ******************************************/
   override async updateLocalState(data: DocumentData) {
     this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
-    this.crib = data.crib?.map((c: any) => new Card(c.id, c.rank, c.suit)) ?? this.crib;
+    this.crib = data.crib?.map((c: any) => Card.fromPlainObject(c)) ?? this.crib;
     this.roundState = data.roundState ?? this.roundState;
-    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.rank, c.suit)) ?? this.peggingCards;
+    this.peggingCards = data.peggingCards?.map((c: any) => Card.fromPlainObject(c)) ?? this.peggingCards;
     this.peggingTotal = data.peggingTotal ?? this.peggingTotal;
     this.flipped = data.flipped ? Card.fromPlainObject(data.flipped): this.flipped;
     this.awaitingJokerSelection = data.awaitingJokerSelection ?? this.awaitingJokerSelection;

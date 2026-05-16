@@ -11,17 +11,24 @@ import { BaseGame } from "../base-game/base-model";
 import { Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
+import { DEFAULT_CARDS } from "./wave-cards";
+import { TextCard } from "../card";
 
 const DUMMY_GUESS_VALUE = 100;
 
 export class Wavelength extends BaseGame {
-    private prompt: string = "How hot is this?";
+    private prompt: string = "";
     private goal: number = 0; // Secret value in range -10..10
     private guesses: Record<string, number> = {};
 
     constructor(deck: Deck, players: Player[], teams: Team[], db: any){
         super(deck, players, teams, db);
         this.pointGoal = 30;
+        
+        var waveCards:TextCard[] = [];
+        DEFAULT_CARDS.forEach(card => waveCards.push(new TextCard(waveCards.length, card)));
+        this.deck = new Deck(waveCards);
+        this.setPrompt();
     }
 
     // Start a new game: set player order and pick initial goal
@@ -50,7 +57,7 @@ export class Wavelength extends BaseGame {
     }
 
     deal(): void {
-        // Wavelength doesn't use a deck
+        // Wavelength doesn't use a deck like this
     }
 
     async guestSetup(data: DocumentData): Promise<void> {
@@ -70,6 +77,7 @@ export class Wavelength extends BaseGame {
     }
 
     getPrompt() { return this.prompt; }
+    setPrompt() { this.prompt = this.deck.getCard()?.getText()!;} 
     getGoal() { return this.goal; }
     getGuesses() { return this.guesses; }
 
@@ -127,6 +135,10 @@ export class Wavelength extends BaseGame {
         changes.currentPlayer = this.currentPlayer.toPlainObject();
         changes.goal = this.goal;
         changes.guesses = this.guesses;
+
+        //Reset prompt
+        this.setPrompt()
+        changes.prompt = this.prompt;
 
         await this.db.update(changes);
         this.events.emit('stateChanged', changes);
