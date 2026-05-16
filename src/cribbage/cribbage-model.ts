@@ -593,21 +593,6 @@ export class Cribbage extends BaseGame {
     }
   }
 
-  //If someone won, trigger event to end the game
-  async checkIfWon(player: Player){
-    let team = this.findTeamByPlayer(player)!;
-
-    if (team.getScore() >= this.pointGoal){
-      this.ended = true;
-      await this.db.addLog(`${player.getName()} won the game!`);
-      await this.updateTeams(this.teams);
-      await this.updatePlayers(this.players);
-      await this.db.update({
-        ended: this.ended
-      });
-    }
-  }
-
   override async nextPlayer(): Promise<any> {
     const index = this.players.findIndex(p => p.getId() === this.currentPlayer.getId());
     let found = false;
