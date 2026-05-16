@@ -24,7 +24,6 @@ export enum RoundState {
 }
 
 export class Cribbage extends BaseGame {
-  private pointGoal: number = 121;
   private skunkLength: number = 90;
   private handSize: number = 4;
   private flipped: Card = new Card(0);
@@ -41,6 +40,7 @@ export class Cribbage extends BaseGame {
   constructor(deck: Deck, players: Player[], teams: Team[], db: Database){
     super(deck, players, teams, db);
     this.maxPlayers = 8;
+    this.pointGoal = 121;
   }
 
   /* ----------------------------------------------------- */
@@ -53,7 +53,6 @@ export class Cribbage extends BaseGame {
   getPeggingTotal(): number { return this.peggingTotal; }
   getSkunkLength(): number { return this.skunkLength; }
   getRoundState(): string { return this.roundState; }
-  getPointGoal(): number { return this.pointGoal; }
   getGameMode(): string { return this.gameMode; }
   getDeckMode(): string { return this.deckMode; }
 
@@ -132,9 +131,9 @@ export class Cribbage extends BaseGame {
    ******************************************/
   override async updateLocalState(data: DocumentData) {
     this.cribOwner = data.cribOwner ? Player.fromPlainObject(data.cribOwner): this.cribOwner;
-    this.crib = data.crib?.map((c: any) => new Card(c.id, c.rank, c.suit)) ?? this.crib;
+    this.crib = data.crib?.map((c: any) => Card.fromPlainObject(c)) ?? this.crib;
     this.roundState = data.roundState ?? this.roundState;
-    this.peggingCards = data.peggingCards?.map((c: any) => new Card(c.id, c.rank, c.suit)) ?? this.peggingCards;
+    this.peggingCards = data.peggingCards?.map((c: any) => Card.fromPlainObject(c)) ?? this.peggingCards;
     this.peggingTotal = data.peggingTotal ?? this.peggingTotal;
     this.flipped = data.flipped ? Card.fromPlainObject(data.flipped): this.flipped;
     this.awaitingJokerSelection = data.awaitingJokerSelection ?? this.awaitingJokerSelection;
@@ -591,21 +590,6 @@ export class Cribbage extends BaseGame {
       team.addToScore(2);
       player.addToScore(2);
       await this.db.addLog(`${player.getName()} got Nibs! +2 points`);
-    }
-  }
-
-  //If someone won, trigger event to end the game
-  async checkIfWon(player: Player){
-    let team = this.findTeamByPlayer(player)!;
-
-    if (team.getScore() >= this.pointGoal){
-      this.ended = true;
-      await this.db.addLog(`${player.getName()} won the game!`);
-      await this.updateTeams(this.teams);
-      await this.updatePlayers(this.players);
-      await this.db.update({
-        ended: this.ended
-      });
     }
   }
 

@@ -40,6 +40,7 @@ export abstract class BaseGame {
   protected playedOffset: number = -65; //How much the cards cover the past played
   protected events = new EventEmitter<BaseEvents>();
   protected db: Database;
+  protected pointGoal: number = 0; //Always should set this in game specific constructor
 
   constructor( deck: Deck, players: Player[], teams: Team[], db: Database){
     this.deck = deck;
@@ -71,6 +72,7 @@ export abstract class BaseGame {
     // Model informs that the hand/state should change.
     this.events.emit('handStateChanged', { playerId: player.getId(), enabled: true });
   }
+  getPointGoal(): number { return this.pointGoal; }
 
   /******************************************
    * 
@@ -237,10 +239,9 @@ export abstract class BaseGame {
     }));
   }
 
-  async nextPlayer(): Promise<any> {
+  nextPlayer() {
     const index = this.players.findIndex(p => p.getId() === this.currentPlayer.getId());
     this.currentPlayer = this.players[(index + 1) % this.players.length];
-    return { currentPlayer: this.currentPlayer.toPlainObject() };
   }
 
   findTeamByPlayer(player: Player): Team {
@@ -255,5 +256,20 @@ export abstract class BaseGame {
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
+  }
+
+    //If someone won, trigger event to end the game
+  async checkIfWon(player: Player){
+    let team = this.findTeamByPlayer(player)!;
+
+    if (team.getScore() >= this.pointGoal){
+      this.ended = true;
+      await this.db.addLog(`${player.getName()} won the game!`);
+      await this.updateTeams(this.teams);
+      await this.updatePlayers(this.players);
+      await this.db.update({
+        ended: this.ended
+      });
+    }
   }
 }

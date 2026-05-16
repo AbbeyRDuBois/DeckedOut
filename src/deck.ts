@@ -38,7 +38,7 @@ export class Deck{
 
     static fromPlainObject(data: DocumentData): Deck{
         return new Deck(Array.isArray(data)
-            ? data.map((c: any) => new Card(c.id, c.rank, c.suit, c.flipped, c.played))
+            ? data.map((c: any) => Card.fromPlainObject(c))
             : []);
     }
 
@@ -60,7 +60,7 @@ export class JokerDeck extends Deck{
 
     static fromPlainObject(data: DocumentData): JokerDeck{
         return new JokerDeck(Array.isArray(data)
-            ? data.map((c: any) => new Card(c.id, c.rank, c.suit, c.flipped, c.played))
+            ? data.map((c: any) => Card.fromPlainObject(c))
             : []);
     }
 }

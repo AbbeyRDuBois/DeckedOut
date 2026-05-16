@@ -883,6 +883,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  display: none;
 }
 .indicator.active {
   display: flex;
@@ -1224,7 +1225,6 @@ body {
 ***************************************/
 .loading-overlay {
   display: flex;
-  opacity: 1;
   transition: opacity 0.3s ease;
   z-index: 70;
 }
@@ -1285,4 +1285,107 @@ body {
     opacity: 1;
     transform: translateY(-0.75rem);
   }
+}
+
+/*****************************************************************************************
+*
+* Wavelength
+*
+******************************************************************************************/
+.prompt { 
+  font-size: 1.4rem; 
+  font-weight: 700; 
+  text-align: center; 
+  margin-bottom: 5%;
+}
+.wave-board { 
+  width: 100%;
+  border-radius: 24px; 
+  position: relative; 
+  padding: 10px 6px 8px; 
+  display:flex;
+  align-items:center; 
+  justify-content:center;
+  gap: 14px;
+  overflow: hidden;
+}
+.ticks { 
+  width: 100%; 
+  display:flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
+  position: relative; 
+  z-index: 1;
+}
+.tick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 42px;
+  max-width: 52px;
+}
+.wave-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+.tick-label {
+  z-index: 1;
+  font-size: 0.7rem;
+  color: var(--text-color);
+  margin-bottom: 6px;
+}
+.tick-button {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--overlay-background);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.tick-button.selected {
+  background: var(--bl-btn);
+  border-color: var(--border);
+}
+.tick-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.wave-submit { 
+  padding: 10px 18px; 
+  border-radius: 10px; 
+  border: none; 
+  background: var(--bl-btn); 
+  color: var(--text-color); 
+  cursor: pointer; 
+  font-weight: 800;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+.wave-submit:hover { 
+  background: color-mix(in srgb, var(--bl-btn) 85%, black); 
+}
+.goal {
+  padding: 10px 18px;
+  border-radius: 10px;
+  color: var(--text-color);
+  font-weight: 800;
+  font-size: xx-large;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }

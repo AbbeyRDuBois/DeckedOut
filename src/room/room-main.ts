@@ -8,13 +8,15 @@
  ****************************************************************************/
 
 import { CribbageView } from "../cribbage/cribbage-view";
+import { WavelengthView } from "../wavelength/wave-view";
 import { RoomController } from "./room-controller";
 import { Room } from "./room-model";
 import { RoomView } from "./room-view";
 import "../styles.css";
 
 const GameViewMap: Record<string, any> = {
-    'cribbage': CribbageView
+    'cribbage': CribbageView,
+    'wavelength': WavelengthView
 }
 
 //This sets up the main functionality of the rooms on load

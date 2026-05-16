@@ -16,11 +16,13 @@ export type CardOptions = {
 };
 
 export class Card {
-    private id: number;
-    private rank: string;
-    private suit: string;
-    private flipped: boolean;
-    private played: boolean;
+    protected id: number;
+    protected rank: string;
+    protected suit: string;
+    protected flipped: boolean;
+    protected played: boolean;
+    protected type: 'classic' | 'text' = 'classic';
+    protected text?: string;
 
     constructor(id: number, rank = "", suit = "", flipped = false, played = false) {
         this.rank = rank;
@@ -28,6 +30,7 @@ export class Card {
         this.id = id;
         this.flipped = flipped;
         this.played = played;
+        this.type = 'classic';
     }
 
     getId(): number { return this.id; }
@@ -36,6 +39,8 @@ export class Card {
     getFlipped(): boolean { return this.flipped; }
     setFlipped(flipped: boolean){ this.flipped = flipped; }
     setPlayed(played: boolean){ this.played = played; }
+    getType(): 'classic' | 'text' { return this.type; }
+    getText(): string | undefined { return this.text; }
     
     toInt(counting = false): number {
         switch (this.rank) {
@@ -49,6 +54,9 @@ export class Card {
     }
 
     toHTML(): string {
+        if (this.type === 'text') {
+            return this.text ?? '';
+        }
         if (this.suit != ""){
             var suit = SUITS.filter(suit => suit.name == this.suit)[0];
             return `${this.rank}<span style="color: ${suit.color};">${suit.symbol}</span>`;
@@ -62,7 +70,9 @@ export class Card {
             rank: this.rank,
             suit: this.suit,
             flipped: this.flipped,
-            played: this.played
+            played: this.played,
+            type: this.type,
+            text: this.text
         };
     }
 
@@ -80,6 +90,21 @@ export class Card {
         if (data == null){
             return new Card(0, "", "", false, false);
         }
+        if (data.type === 'text' || typeof data.text === 'string'){
+            const c = new Card(data.id, "", "", data.flipped, data.played);
+            c.type = 'text';
+            c.text = data.text;
+            return c;
+        }
         return new Card(data.id, data.rank, data.suit, data.flipped, data.played);
+    }
+}
+
+// Convenience class to create text-only cards
+export class TextCard extends Card {
+    constructor(id: number, text: string, flipped = false, played = false){
+        super(id, "", "", flipped, played);
+        this.type = 'text';
+        this.text = text;
     }
 }
