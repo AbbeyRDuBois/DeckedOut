@@ -21,7 +21,7 @@ export class Wavelength extends BaseGame {
 
     constructor(deck: Deck, players: Player[], teams: Team[], db: any){
         super(deck, players, teams, db);
-        this.pointGoal = 20;
+        this.pointGoal = 30;
     }
 
     // Start a new game: set player order and pick initial goal
@@ -77,13 +77,6 @@ export class Wavelength extends BaseGame {
         this.prompt = data.prompt ?? this.prompt;
         this.goal = data.goal ?? this.goal;
         this.guesses = data.guesses ?? this.guesses;
-
-        // If all non-current players have submitted, do scoring
-        const nonCurrent = this.players.filter(p => p.getId() !== this.currentPlayer.getId());
-        if (nonCurrent.every(p => this.guesses[p.getId()] != DUMMY_GUESS_VALUE)) {
-            await this.performScoring();
-        }
-
         await super.updateLocalState(data);
     }
 
@@ -115,11 +108,13 @@ export class Wavelength extends BaseGame {
         await this.db.addLog(`${this.currentPlayer.getName()} got ${totalForCurrent} points this round!`);
 
         // Give current player the sum of others' points
-        this.currentPlayer.addToScore(totalForCurrent);
+        this.players.find(player => player.getId() == this.currentPlayer.getId())?.addToScore(totalForCurrent);
         this.findTeamByPlayer(this.currentPlayer).addToScore(totalForCurrent);
 
         await this.updatePlayers(this.players);
         await this.updateTeams(this.teams);
+
+        this.players.forEach(player => this.checkIfWon(player));
 
         // Advance to next player and reset for next round
         this.nextPlayer();
@@ -148,19 +143,23 @@ export class Wavelength extends BaseGame {
         };
     }
 
-    async setChoice(choice: number) {
+    async guess(guess: number) {
         const playerId = localStorage.getItem('playerId');
         if (!playerId) return;
 
-        // Current player does not submit
-        if (this.currentPlayer && this.currentPlayer.getId() === playerId) return;
+        await this.db.addLog(`${this.getPlayer(playerId).getName()} guessed ${guess}.`);
 
-        // Update local map and push to DB
-        this.guesses[playerId] = choice;
+        this.guesses[playerId] = guess;
 
         const changes: any = {};
-        changes[`guesses.${playerId}`] = choice;
+        changes[`guesses.${playerId}`] = guess;
 
         await this.db.update(changes);
+
+        // If all non-current players have submitted, do scoring
+        const nonCurrent = this.players.filter(p => p.getId() !== this.currentPlayer.getId());
+        if (nonCurrent.every(p => this.guesses[p.getId()] != DUMMY_GUESS_VALUE)) {
+            await this.performScoring();
+        }
     }
 }

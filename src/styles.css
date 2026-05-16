@@ -883,6 +883,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  display: none;
 }
 .indicator.active {
   display: flex;
@@ -1299,7 +1300,7 @@ body {
   margin-bottom: 5%;
 }
 .wave-board { 
-  width: 98%;
+  width: 100%;
   border-radius: 24px; 
   position: relative; 
   padding: 10px 6px 8px; 
@@ -1327,7 +1328,6 @@ body {
   text-align: center;
   min-width: 42px;
   max-width: 52px;
-  flex: 0 1 42px;
 }
 .wave-controls {
   width: 100%;
@@ -1340,7 +1340,7 @@ body {
 .wave-tick-label {
   z-index: 1;
   font-size: 0.7rem;
-  color: rgba(255,255,255,0.9);
+  color: var(--text-color);
   margin-bottom: 6px;
 }
 .wave-tick-button {
@@ -1349,16 +1349,13 @@ body {
   height: 26px;
   border-radius: 50%;
   border: 2px solid var(--border);
-  background: rgba(0,0,0,0.4);
+  background: var(--overlay-background);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-}
-.wave-tick-button:hover:not(:disabled) {
-  transform: scale(1.08);
 }
 .wave-tick-button.selected {
   background: var(--bl-btn);

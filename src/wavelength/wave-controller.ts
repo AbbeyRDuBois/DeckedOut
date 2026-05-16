@@ -39,7 +39,7 @@ export class WavelengthController extends BaseController<Wavelength, WavelengthV
         }
     }
 
-    private handleSubmit = async (choice: number) => {
-        await this.game.setChoice(choice);
+    private handleSubmit = async (guess: number) => {
+        await this.game.guess(guess);
     };
 }

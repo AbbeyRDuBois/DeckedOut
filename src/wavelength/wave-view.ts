@@ -12,7 +12,7 @@ import { PlayerPlain } from "../types";
 
 export class WavelengthView extends BaseView {
   private selectedValue: number | null = null;
-  onSubmit?: (choice: number) => void;
+  onSubmit?: (guess: number) => void;
 
   render(state: any, localPlayerId: string, hostId: string, onCardClick?: (cardId: number) => void) {
     super.render(state, localPlayerId, hostId, onCardClick); //Calls base first then does specific game renders
@@ -38,6 +38,21 @@ export class WavelengthView extends BaseView {
 
   setupWaveBoard(state: any, localPlayerId: string) {
     const board = document.getElementById('wave-board')!;
+
+    // clear all selections so no previous round's selected buttons remain.
+    const guesses = state.guesses || {};
+    const guessValues = Object.values(guesses).filter((v: any) => typeof v === 'number');
+    const allReset = guessValues.length > 0 && guessValues.every((v: number) => v < -10 || v > 10);
+    if (allReset) {
+      this.selectedValue = null;
+      const existingButtons = board.querySelectorAll<HTMLButtonElement>('.wave-tick-button');
+      existingButtons.forEach(b => b.classList.remove('selected'));
+      const existingMarker = document.getElementById('wave-local-marker');
+      if (existingMarker) {
+        existingMarker.style.display = 'none';
+        existingMarker.dataset.value = '';
+      }
+    }
 
     const buttons = board.querySelectorAll<HTMLButtonElement>('.wave-tick-button');
     buttons.forEach(button => {
@@ -130,7 +145,6 @@ export class WavelengthView extends BaseView {
     const opponents = Object.fromEntries(Object.entries(state.players).filter(([id]) => id !== localPlayerId)) as Record<string, PlayerPlain>;
     Object.values(opponents).forEach((opponent: PlayerPlain) => {
       const oppTurn = document.getElementById(`${opponent.name}-turn`)!;
-
       if (state.currentPlayer.id == opponent.id){
         oppTurn.classList.add('active');
       } else {
@@ -159,6 +173,7 @@ export class WavelengthView extends BaseView {
 
   renderGoal(state: any, localPlayerId: string){
     const goal = document.getElementById('goal')!;
+    goal.innerHTML = state.goal;
     const isCurrentPlayer = state.currentPlayer?.id === localPlayerId;
 
     goal.hidden = !isCurrentPlayer;
