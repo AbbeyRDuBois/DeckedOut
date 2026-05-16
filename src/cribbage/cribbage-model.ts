@@ -24,7 +24,6 @@ export enum RoundState {
 }
 
 export class Cribbage extends BaseGame {
-  private pointGoal: number = 121;
   private skunkLength: number = 90;
   private handSize: number = 4;
   private flipped: Card = new Card(0);
@@ -41,6 +40,7 @@ export class Cribbage extends BaseGame {
   constructor(deck: Deck, players: Player[], teams: Team[], db: Database){
     super(deck, players, teams, db);
     this.maxPlayers = 8;
+    this.pointGoal = 121;
   }
 
   /* ----------------------------------------------------- */
@@ -53,7 +53,6 @@ export class Cribbage extends BaseGame {
   getPeggingTotal(): number { return this.peggingTotal; }
   getSkunkLength(): number { return this.skunkLength; }
   getRoundState(): string { return this.roundState; }
-  getPointGoal(): number { return this.pointGoal; }
   getGameMode(): string { return this.gameMode; }
   getDeckMode(): string { return this.deckMode; }
 
