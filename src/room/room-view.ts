@@ -31,6 +31,20 @@ export class RoomView {
   getGameView() { return this.gameView; }
   navigateToHome() { window.location.href = 'index.html'; }
 
+  showLoadingScreen() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('hidden');
+    }
+  }
+
+  hideLoadingScreen() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+    }
+  }
+
   //Outer call to set up listeners
   setHandlers(h: RoomViewHandlers) {
     this.handlers = h;

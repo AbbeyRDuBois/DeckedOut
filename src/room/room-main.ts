@@ -28,7 +28,13 @@ window.onload = async () => {
   const view = new RoomView(new GameViewMap[gameType]());
   const controller = new RoomController(model, view);
 
+  // Show loading screen immediately
+  view.showLoadingScreen();
+
   await view.renderGameContent(gameType)
 
   await controller.init();
+
+  // Hide loading screen after everything is loaded
+  view.hideLoadingScreen();
 };

@@ -105,7 +105,6 @@ export class RoomController {
   }
 
   async onLeaveRoom() {
-    const playerId = localStorage.getItem("playerId")!;
     const db = this.model.getDbInstance();
     this.view.navigateToHome();
 

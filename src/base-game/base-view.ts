@@ -387,18 +387,35 @@ export abstract class BaseView {
 
     const winners = document.getElementById('winners');
     if (!winners) return;
-    winners.innerHTML = `
-      <div id="winner-team">${winner.name} Won!</div><div class="winner-player">
-      ${winnerPlayers.map(((player: any) => `${player.name}: ${player.score}`)).join("<div>")}`;
 
-    const loserEl = document.createElement("div");
-    
-    loserEl.innerHTML = `
-        <div id="losers">Losers:</div><div class="loser-team">
-        ${losers.map((team: any) => `${team.name}: ${team.score}`).join("<div>")}
+    winners.innerHTML = `
+      <div id="winner-team">Winner: ${winner.name}</div>
+      <div class="winner-members">
+        ${winnerPlayers?.map((player: any) => `
+          <div class="winner-member">
+            <div class="member-name">${player.name}</div>
+            <div class="member-score">${player.score}</div>
+          </div>
+        `).join('') || ''}
+      </div>
+      <hr class="winner-divider" />
+      <div id="losers">Losers</div>
+      <div class="loser-teams">
+        ${losers.map((team: any) => `
+          <div class="loser-team">
+            <div class="loser-team-name">${team.name}: ${team.score}</div>
+            <div class="loser-members">
+              ${team.players?.map((player: any) => `
+                <div class="loser-member">
+                  <span>${player.name}</span>
+                  <span>${player.score}</span>
+                </div>
+              `).join('') || `<div class="loser-member"><span>${team.name}</span><span>${team.score}</span></div>`}
+            </div>
+          </div>
+        `).join('')}
+      </div>
     `;
-    
-    winnerPopup.appendChild(loserEl);
   }
 
   /******************************************
