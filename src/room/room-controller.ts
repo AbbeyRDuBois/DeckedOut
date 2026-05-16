@@ -14,11 +14,13 @@ import { Deck } from "../deck";
 import { CribbageController } from "../cribbage/cribbage-controller";
 import { Player } from "../player";
 import { Team } from "../team";
+import { WavelengthController } from "../wavelength/wave-controller";
+import { Wavelength } from "../wavelength/wave-model";
 
 export class RoomController {
   private resizePending = false;
-  private game: Cribbage | undefined;
-  private gameController: CribbageController | undefined;
+  private game: Cribbage | Wavelength | undefined;
+  private gameController: CribbageController | WavelengthController | undefined;
 
   constructor(private model: Room, private view: RoomView) {
     //Connect the listener handlers to actual functions outlined in the model
@@ -79,23 +81,31 @@ export class RoomController {
     const db = this.model.getDbInstance();
     const remote = await db.pullState();
 
-    if (state.gameType === 'cribbage') {
-      // If already setup, skip
-      if (this.game) return;
+    // If already setup, skip
+    if (this.game) return;
 
-      const players = remote.players.map((p: any) => Player.fromPlainObject(p));
-      const teams = remote.teams.map((t: any) => Team.fromPlainObject(t));
+    const players = remote.players.map((p: any) => Player.fromPlainObject(p));
+    const teams = remote.teams.map((t: any) => Team.fromPlainObject(t));
+    // Default deck - can be changed via game options UI
+    const deck = new Deck();
+    // Wire the shared game view (so room's game view is used)
+    const gameView: any = this.view.getGameView();
 
-      // Default deck - can be changed via game options UI
-      const deck = new Deck();
-      this.game = new Cribbage(deck, players, teams, db);
+    switch(state.gameType){
+      case 'cribbage':
+        this.game = new Cribbage(deck, players, teams, db);
+        this.gameController = new CribbageController((this.game as Cribbage), gameView, db);
+        break;
+      case 'wavelength':
+        this.game = new Wavelength(deck, players, teams, db);
+        this.gameController = new WavelengthController((this.game as Wavelength), gameView, db);
+        break;
+      default:
+    }
 
+    if (this.game){
       // Make sure DB knows about this game instance so snapshot handling can call guestSetup
       db.setGame(this.game);
-
-      // Wire the shared game view (so room's game view is used)
-      const gameView: any = this.view.getGameView();
-      this.gameController = new CribbageController((this.game as Cribbage), gameView, db);
 
       // If remote indicates the game started, run guest setup to populate local game state
       if (remote?.started && !this.game.getStarted()) {
