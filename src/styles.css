@@ -1296,26 +1296,46 @@ body {
   font-size: 1.4rem; 
   font-weight: 700; 
   text-align: center; 
+  margin-bottom: 5%;
 }
 .wave-board { 
-  width: 100%; 
-  min-height: 190px; 
+  width: 98%;
   border-radius: 24px; 
   position: relative; 
-  padding: 20px 12px 16px; 
-  display:flex; 
-  align-items:flex-start; 
-  justify-content:center; 
+  padding: 10px 6px 8px; 
+  display:flex;
+  align-items:center; 
+  justify-content:center;
+  gap: 14px;
   overflow: hidden;
 }
 .wave-ticks { 
-  top: 45%;
-  width: 90%; 
-  display:flex; 
-  justify-content:space-between; 
-  align-items: center;
+  width: 100%; 
+  display:flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
   position: relative; 
   z-index: 1;
+}
+.wave-tick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 42px;
+  max-width: 52px;
+  flex: 0 1 42px;
+}
+.wave-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
 }
 .wave-tick-label {
   z-index: 1;
@@ -1348,22 +1368,6 @@ body {
   opacity: 0.35;
   cursor: not-allowed;
 }
-.wave-choice-names {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-height: 42px;
-  width: 100%;
-}
-.wave-choice-name {
-  color: white;
-  padding: 3px 6px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  white-space: nowrap;
-}
 .wave-submit { 
   padding: 10px 18px; 
   border-radius: 10px; 
@@ -1372,7 +1376,20 @@ body {
   color: var(--text-color); 
   cursor: pointer; 
   font-weight: 800;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 .wave-submit:hover { 
   background: color-mix(in srgb, var(--bl-btn) 85%, black); 
+}
+.goal {
+  padding: 10px 18px;
+  border-radius: 10px;
+  color: var(--text-color);
+  font-weight: 800;
+  font-size: xx-large;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }

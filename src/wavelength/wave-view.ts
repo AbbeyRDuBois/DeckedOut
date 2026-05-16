@@ -114,15 +114,6 @@ export class WavelengthView extends BaseView {
         guessesByValue[this.selectedValue].push(localPlayer.name);
       }
     }
-
-    const ticks = board.querySelectorAll<HTMLDivElement>('.wave-tick');
-    ticks.forEach(tick => {
-      const tickValue = Number(tick.dataset.value);
-      const stack = tick.querySelector<HTMLDivElement>('.wave-choice-names');
-      if (!stack) return;
-      const names = guessesByValue[tickValue] || [];
-      stack.innerHTML = names.map(name => `<span class="wave-choice-name">${name}</span>`).join('');
-    });
   }
 
   renderIndicators(state: any, localPlayerId: string){
@@ -160,21 +151,17 @@ export class WavelengthView extends BaseView {
 
   renderSubmit(state: any, localPlayerId: string){
     const submitBtn = document.getElementById('wave-submit')!;
-    if(state.currentPlayer.id == localPlayerId){
-        submitBtn.style.display = "none";
-    }
-    else{
-        submitBtn.style.display = "flex";
-    }
+    const isCurrentPlayer = state.currentPlayer?.id === localPlayerId;
+
+    submitBtn.hidden = isCurrentPlayer;
+    submitBtn.style.display = isCurrentPlayer ? "none" : "inline-flex";
   }
 
   renderGoal(state: any, localPlayerId: string){
     const goal = document.getElementById('goal')!;
-    if(state.currentPlayer.id == localPlayerId){
-        goal.style.display = "flex";
-    }
-    else{
-        goal.style.display = "none";
-    }
+    const isCurrentPlayer = state.currentPlayer?.id === localPlayerId;
+
+    goal.hidden = !isCurrentPlayer;
+    goal.style.display = isCurrentPlayer ? "inline-flex" : "none";
   }
 }
