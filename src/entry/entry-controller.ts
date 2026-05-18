@@ -9,6 +9,7 @@
 import { EntryModel } from "./entry-model";
 import { EntryView } from "./entry-view";
 import { signInWithGoogle } from "../services/authentication";
+import { AchievementDatabase } from "../services/databases";
 
 export class EntryController {
   constructor(
@@ -57,8 +58,11 @@ export class EntryController {
   };
 
   private handleSignIn = async () => {
-    const [, name] = await signInWithGoogle();
+    const [email, name] = await signInWithGoogle();
     this.view.setUsername(String(name));
     this.view.hideSignIn();
+
+    const db = new AchievementDatabase();
+    db.logPlayer(String(email));
   };
 }
