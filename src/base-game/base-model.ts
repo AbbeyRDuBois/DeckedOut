@@ -17,7 +17,7 @@ import { CardPlain } from "../types";
 import { Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
-import { Database } from "../services/databases";
+import { AchievementDatabase, Database } from "../services/databases";
 
 //Defines event types that can occur in base game
 export type BaseEvents = {
@@ -40,6 +40,7 @@ export abstract class BaseGame {
   protected playedOffset: number = -65; //How much the cards cover the past played
   protected events = new EventEmitter<BaseEvents>();
   protected db: Database;
+  protected adb: AchievementDatabase;
   protected pointGoal: number = 0; //Always should set this in game specific constructor
 
   constructor( deck: Deck, players: Player[], teams: Team[], db: Database){
@@ -47,6 +48,7 @@ export abstract class BaseGame {
     this.players = players;
     this.teams = teams;
     this.db = db;
+    this.adb = new AchievementDatabase()
   }
 
   abstract start(): void;
@@ -270,6 +272,7 @@ export abstract class BaseGame {
       await this.db.update({
         ended: this.ended
       });
+      await this.adb.increment_achievement("total_games_played")
     }
   }
 }

@@ -20,13 +20,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Sign in with Google
+// Sign in with Google and set to local storage
 export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
 
-  return [user.email, user.displayName]
+  localStorage.setItem("userId", String(user.email))
+  localStorage.setItem("userName", String(user.displayName))
 }
 
 window.addEventListener('unhandledrejection', (event) => {
