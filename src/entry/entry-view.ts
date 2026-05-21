@@ -7,6 +7,15 @@
  ****************************************************************************/
 
 export class EntryView {
+
+  constructor() {
+    const name = String(localStorage.getItem("userName"));
+    if (name.length > 0) {
+      this.hideSignIn();
+      this.setUsername(name);
+    }
+  }
+  
   getUsername(): string { return (document.getElementById("username") as HTMLInputElement).value; }
   getRoomId(): string { return (document.getElementById("roomId") as HTMLInputElement).value; }
   setUsername(name: string) { (document.getElementById("username") as HTMLInputElement).value = name; }
