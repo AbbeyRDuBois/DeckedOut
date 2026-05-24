@@ -23,7 +23,7 @@ const auth = getAuth(app);
 // Sign in with Google and set to local storage
 export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
+  const result = await signInWithPopup(auth, provider); // TODO: Handle user closing popup???
   const user = result.user;
 
   localStorage.setItem("user_id", String(user.email));
