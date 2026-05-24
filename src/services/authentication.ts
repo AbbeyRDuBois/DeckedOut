@@ -26,8 +26,10 @@ export async function signInWithGoogle() {
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
 
-  localStorage.setItem("userId", String(user.email))
-  localStorage.setItem("userName", String(user.displayName))
+  localStorage.setItem("user_id", String(user.email));
+  localStorage.setItem("user_name", String(user.displayName));
+
+  return [user.email, user.displayName]
 }
 
 window.addEventListener('unhandledrejection', (event) => {

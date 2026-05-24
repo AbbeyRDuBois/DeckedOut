@@ -9,8 +9,8 @@
 export class EntryView {
 
   constructor() {
-    const name = String(localStorage.getItem("userName"));
-    if (localStorage.getItem("userName") != null && name.length > 0) {
+    const name = String(localStorage.getItem("user_name"));
+    if (localStorage.getItem("user_name") != null && name.length > 0) {
       this.hideSignIn();
       this.setUsername(name);
     }

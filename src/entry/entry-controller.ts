@@ -58,11 +58,11 @@ export class EntryController {
   };
 
   private handleSignIn = async () => {
-    await signInWithGoogle();
-    this.view.setUsername(String(localStorage.getItem("userName")));
+    const [userId, username] = await signInWithGoogle();
+    this.view.setUsername(String(username));
     this.view.hideSignIn();
 
     const db = new AchievementDatabase();
-    db.logPlayer(String(localStorage.getItem("userId")));
+    db.logPlayer(String(userId));
   };
 }

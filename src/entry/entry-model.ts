@@ -15,13 +15,12 @@ export class EntryModel {
 
   async createRoom(gameType: string, username: string): Promise<string> {
     const playerId = v4();  //Generates a unique playerId
-
     // Saves the player's Id in storage
     // This helps us be able to tell who is making actions later on in the application
     localStorage.setItem("playerId", playerId);
-
+    
     const player = new Player(playerId, username);
-
+    
     setDBInstance(
       await new Database().init("rooms", player, {
         hostId: playerId,

@@ -340,10 +340,10 @@ export class AchievementDatabase {
     //Call to increment a counter for the provided achievement
     async increment_achievement(achievement: string) {
         //Check if logged in
-        const player_name = String(localStorage.getItem("userId"))
+        const player_name = String(localStorage.getItem("user_id"))
 
         //If logged in
-        if (localStorage.getItem("userId") != null && player_name?.length > 0) {
+        if (localStorage.getItem("user_id") != null && player_name?.length > 0) {
             //Get player doc and previous data if it exists
             const playerRef = doc(this.db, "achievements", player_name);
             const snapshot = await getDoc(playerRef);
