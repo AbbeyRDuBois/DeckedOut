@@ -5,7 +5,7 @@
  * 
  ****************************************************************************/
 
-import { arrayUnion, collection, doc, DocumentData, Firestore, getDoc, getDocs, initializeFirestore, onSnapshot, orderBy, persistentLocalCache, persistentSingleTabManager, query, runTransaction, serverTimestamp, Transaction } from "firebase/firestore";
+import { arrayUnion, collection, doc, DocumentData, Firestore, getDoc, getDocs, initializeFirestore, onSnapshot, orderBy, persistentLocalCache, persistentSingleTabManager, query, runTransaction, serverTimestamp, setDoc, Transaction, updateDoc, where } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
 import EventEmitter from "events";
@@ -304,5 +304,55 @@ export class Database{
                 this.game?.guestSetup(remote);
             }
         });
+    }
+}
+
+export class AchievementDatabase {
+    private db: Firestore;
+
+    constructor(){
+        this.db = initializeFirestore(app, {
+          localCache: persistentLocalCache({
+            tabManager: persistentSingleTabManager({})
+          })
+        });
+    }
+
+    //Pass in username on log in to initialize/update players 
+    async logPlayer(player_name: string) {
+        //Get player doc
+        const playerRef = doc(this.db, "achievements", player_name);
+        const snapshot = await getDoc(playerRef);
+
+        //If player doesn't exist, create the player. Else, update data on login.
+        if (!snapshot.exists()) {
+            await setDoc(playerRef, {
+                last_date_played: new Date()
+            });
+        }
+        else {
+            await updateDoc(playerRef, {
+                last_date_played: new Date()
+            });
+        }
+    }
+
+    //Call to increment a counter for the provided achievement
+    async increment_achievement(achievement: string) {
+        //Check if logged in
+        const player_name = String(localStorage.getItem("userId"))
+
+        //If logged in
+        if (player_name?.length > 0) {
+            //Get player doc and previous data if it exists
+            const playerRef = doc(this.db, "achievements", player_name);
+            const snapshot = await getDoc(playerRef);
+            const value = (snapshot.data()?.[achievement] != undefined) ? Number(snapshot.data()?.[achievement])+1 : 1
+
+            //Update document
+            await updateDoc(playerRef, {
+                [achievement]: value
+            });
+        }
     }
 }
