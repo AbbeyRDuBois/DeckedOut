@@ -343,7 +343,7 @@ export class AchievementDatabase {
         const player_name = String(localStorage.getItem("userId"))
 
         //If logged in
-        if (player_name?.length > 0) {
+        if (localStorage.getItem("userId") != null && player_name?.length > 0) {
             //Get player doc and previous data if it exists
             const playerRef = doc(this.db, "achievements", player_name);
             const snapshot = await getDoc(playerRef);
