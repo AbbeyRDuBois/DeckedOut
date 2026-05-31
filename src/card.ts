@@ -22,7 +22,7 @@ export class Card {
     protected flipped: boolean;
     protected played: boolean;
     protected type: 'classic' | 'text' = 'classic';
-    protected text?: string;
+    protected text: string = "";
 
     constructor(id: number, rank = "", suit = "", flipped = false, played = false) {
         this.rank = rank;
@@ -90,11 +90,8 @@ export class Card {
         if (data == null){
             return new Card(0, "", "", false, false);
         }
-        if (data.type === 'text' || typeof data.text === 'string'){
-            const c = new Card(data.id, "", "", data.flipped, data.played);
-            c.type = 'text';
-            c.text = data.text;
-            return c;
+        if (data.type === 'text'){
+            return new TextCard(data.id, data.text, data.flipped, data.played);
         }
         return new Card(data.id, data.rank, data.suit, data.flipped, data.played);
     }

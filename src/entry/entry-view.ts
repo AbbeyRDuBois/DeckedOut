@@ -9,8 +9,8 @@
 export class EntryView {
 
   constructor() {
-    const name = String(localStorage.getItem("userName"));
-    if (name.length > 0) {
+    const name = String(localStorage.getItem("user_name"));
+    if (localStorage.getItem("user_name") != null && name.length > 0) {
       this.hideSignIn();
       this.setUsername(name);
     }
@@ -19,7 +19,7 @@ export class EntryView {
   getUsername(): string { return (document.getElementById("username") as HTMLInputElement).value; }
   getRoomId(): string { return (document.getElementById("roomId") as HTMLInputElement).value; }
   setUsername(name: string) { (document.getElementById("username") as HTMLInputElement).value = name; }
-  hideSignIn() { document.getElementById("signInBtn")!.style.display = "none"; }
+  hideSignIn() { document.getElementById("signInBtn")!.textContent = "Sign Out"; }
 
   showError(message: string) {
     alert(message);

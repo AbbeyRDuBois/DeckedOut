@@ -69,3 +69,12 @@ firebase deploy --only hosting
 > ```
 > 
 > If the website is already open in your browser, use `ctrl+R` or `f5` to do a hard reload and ensure that all deployed changes are loaded.
+
+> **NOTE**: If you see the following error when deploying:
+> ```
+> Error: Assertion failed: resolving hosting target of a site with no site name or target name. This should have caused an error earlier
+> ```
+> Then use the following command to reauthorize, which should fix the issue.
+> ```
+> firebase login --reauth
+> ```

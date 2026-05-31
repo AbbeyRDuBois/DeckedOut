@@ -58,11 +58,17 @@ export class EntryController {
   };
 
   private handleSignIn = async () => {
-    await signInWithGoogle();
-    this.view.setUsername(String(localStorage.getItem("userName")));
-    this.view.hideSignIn();
+    if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
+      localStorage.setItem("user_id", "");
+      localStorage.setItem("user_name", "");
+    }
+    else {
+      const [userId, username] = await signInWithGoogle();
+      this.view.setUsername(String(username));
+      this.view.hideSignIn();
 
-    const db = new AchievementDatabase();
-    db.logPlayer(String(localStorage.getItem("userId")));
+      const db = new AchievementDatabase();
+      db.logPlayer(String(userId));
+    }
   };
 }

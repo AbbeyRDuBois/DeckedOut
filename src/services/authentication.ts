@@ -23,11 +23,13 @@ const auth = getAuth(app);
 // Sign in with Google and set to local storage
 export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
+  const result = await signInWithPopup(auth, provider); // TODO: Handle user closing popup???
   const user = result.user;
 
-  localStorage.setItem("userId", String(user.email))
-  localStorage.setItem("userName", String(user.displayName))
+  localStorage.setItem("user_id", String(user.email));
+  localStorage.setItem("user_name", String(user.displayName));
+
+  return [user.email, user.displayName]
 }
 
 window.addEventListener('unhandledrejection', (event) => {
