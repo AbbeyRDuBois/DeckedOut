@@ -13,16 +13,13 @@ import { Room } from "../room/room-model";
 import { Player } from "../player";
 import { Team } from "../team";
 
-let currentDB: Database | null = null;
+let currentDB: Firestore | null = null;
 
-export function setDBInstance(db: Database) {
+export function setFirestoreInstance(db: Firestore) {
   currentDB = db;
 }
 
-export function getDBInstance(): Database {
-  if (!currentDB) {
-    throw new Error('Database not initialized yet!');
-  }
+export function getFirestoreInstance(): Firestore | null {
   return currentDB;
 }
 
@@ -37,11 +34,16 @@ export class Database{
     private localId: string = "";
   
     constructor(){
-        this.db = initializeFirestore(app, {
-          localCache: persistentLocalCache({
-            tabManager: persistentSingleTabManager({})
-          })
-        });
+        if(getFirestoreInstance() == null){
+            this.db = initializeFirestore(app, {
+                localCache: persistentLocalCache({
+                    tabManager: persistentSingleTabManager({})
+                })
+            }); 
+            setFirestoreInstance(this.db);
+        }else{
+            this.db = getFirestoreInstance()!;
+        }
     }
 
     isHost(): boolean { return this.hostId === localStorage.getItem('playerId')!; }
@@ -53,6 +55,7 @@ export class Database{
     setGame(game: BaseGame) { this.game = game; }
     setRoom(room: Room) { this.room = room; }
     getHostId(): string { return this.hostId; }
+    getFirestore(): Firestore {return this.db; }
 
     async init(name: string, host: Player, initialValues: any): Promise<Database>{
         const newRoomRef = doc(collection(this.db, name));
@@ -311,11 +314,16 @@ export class AchievementDatabase {
     private db: Firestore;
 
     constructor(){
-        this.db = initializeFirestore(app, {
-          localCache: persistentLocalCache({
-            tabManager: persistentSingleTabManager({})
-          })
-        });
+        if(getFirestoreInstance() == null){
+            this.db = initializeFirestore(app, {
+                localCache: persistentLocalCache({
+                    tabManager: persistentSingleTabManager({})
+                })
+            }); 
+            setFirestoreInstance(this.db);
+        }else{
+            this.db = getFirestoreInstance()!;
+        }
     }
 
     //Pass in username on log in to initialize/update players 
