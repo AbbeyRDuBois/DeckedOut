@@ -19,7 +19,7 @@ export class EntryView {
   getUsername(): string { return (document.getElementById("username") as HTMLInputElement).value; }
   getRoomId(): string { return (document.getElementById("roomId") as HTMLInputElement).value; }
   setUsername(name: string) { (document.getElementById("username") as HTMLInputElement).value = name; }
-  hideSignIn() { document.getElementById("signInBtn")!.style.display = "none"; }
+  hideSignIn() { document.getElementById("signInBtn")!.textContent = "Sign Out"; }
 
   showError(message: string) {
     alert(message);
