@@ -16,6 +16,7 @@ import { Player } from "../player";
 import { Team } from "../team";
 import { WavelengthController } from "../wavelength/wave-controller";
 import { Wavelength } from "../wavelength/wave-model";
+import { AchievementDatabase } from "../services/databases";
 
 export class RoomController {
   private resizePending = false;
@@ -117,6 +118,15 @@ export class RoomController {
   async onLeaveRoom() {
     const db = this.model.getDbInstance();
     this.view.navigateToHome();
+
+    if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
+      const adb = new AchievementDatabase()
+        await adb.logPlayer(String(localStorage.getItem("user_id")))
+        await adb.increment_achievement("total_games_played")
+        if (this.game instanceof Cribbage) {
+          await adb.increment_achievement("total_cribbage_games_played")
+        }
+      }
 
     //If the host leaves or if game is started bomb everything
     if (db.isHost() || this.game?.getStarted()){
