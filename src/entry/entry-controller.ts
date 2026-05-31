@@ -61,6 +61,7 @@ export class EntryController {
     if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
       localStorage.setItem("user_id", "");
       localStorage.setItem("user_name", "");
+      this.view.showSignIn();
     }
     else {
       const [userId, username] = await signInWithGoogle();

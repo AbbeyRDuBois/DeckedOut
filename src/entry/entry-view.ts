@@ -20,6 +20,7 @@ export class EntryView {
   getRoomId(): string { return (document.getElementById("roomId") as HTMLInputElement).value; }
   setUsername(name: string) { (document.getElementById("username") as HTMLInputElement).value = name; }
   hideSignIn() { document.getElementById("signInBtn")!.textContent = "Sign Out"; }
+  showSignIn() { document.getElementById("signInBtn")!.textContent = "Sign In"; }
 
   showError(message: string) {
     alert(message);
