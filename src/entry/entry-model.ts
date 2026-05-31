@@ -8,7 +8,7 @@
 import { v4 } from "uuid";
 import { Player } from "../player";
 import { Team } from "../team";
-import { Database, getDBInstance, setDBInstance } from "../services/databases";
+import { Database } from "../services/databases";
 
 export class EntryModel {
   private db!: Database;
@@ -20,16 +20,13 @@ export class EntryModel {
     localStorage.setItem("playerId", playerId);
     
     const player = new Player(playerId, username);
-    
-    setDBInstance(
-      await new Database().init("rooms", player, {
-        hostId: playerId,
-        gameType,
-        started: false
-      })
-    );
+  
+    this.db = await new Database().init("rooms", player, {
+      hostId: playerId,
+      gameType,
+      started: false
+    })
 
-    this.db = getDBInstance();
     return this.db.getRoomId();
   }
 
@@ -42,7 +39,6 @@ export class EntryModel {
     // Connect and set DB instance
     this.db = new Database();
     await this.db.join("rooms", roomId);
-    setDBInstance(this.db);
 
     // Pull current room state
     const state = await this.db.pullState();

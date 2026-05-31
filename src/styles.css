@@ -546,7 +546,7 @@ body {
   cursor: pointer;
   border-radius: 10px;
   border: none;
-  z-index: 15; 
+  z-index: 21; 
 }
 .theme-selector{
   background: var(--text-bg);
@@ -1169,7 +1169,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  z-index: 25;
 }
 .scoring-overlay.hidden {
   display: none !important;
