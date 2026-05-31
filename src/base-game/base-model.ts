@@ -18,6 +18,7 @@ import { Deck } from "../deck";
 import { Player } from "../player";
 import { Team } from "../team";
 import { AchievementDatabase, Database } from "../services/databases";
+import { Cribbage } from "../cribbage/cribbage-model";
 
 //Defines event types that can occur in base game
 export type BaseEvents = {
@@ -272,7 +273,13 @@ export abstract class BaseGame {
       await this.db.update({
         ended: this.ended
       });
-      await this.adb.increment_achievement("total_games_played")
+      if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
+        await this.adb.logPlayer(String(localStorage.getItem("user_id")))
+        await this.adb.increment_achievement("total_wins")
+        if (this instanceof Cribbage) {
+          await this.adb.increment_achievement("total_cribbage_wins")
+        }
+      }
     }
   }
 }

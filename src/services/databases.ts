@@ -335,13 +335,17 @@ export class AchievementDatabase {
         //If player doesn't exist, create the player. Else, update data on login.
         if (!snapshot.exists()) {
             await setDoc(playerRef, {
+                unique_days_played: 1,
                 last_date_played: new Date()
             });
         }
         else {
-            await updateDoc(playerRef, {
-                last_date_played: new Date()
-            });
+            if (String(snapshot.data().last_date_played).split(" at")[0] != String(new Date()).split(" at")[0]) {
+                await updateDoc(playerRef, {
+                    last_date_played: new Date()
+                });
+                this.increment_achievement("unique_days_played");
+            }
         }
     }
 
