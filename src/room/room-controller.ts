@@ -120,11 +120,11 @@ export class RoomController {
     this.view.navigateToHome();
 
     if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
-      const adb = new AchievementDatabase()
-        await adb.logPlayer(String(localStorage.getItem("user_id")))
-        await adb.increment_achievement("total_games_played")
+      const adb = new AchievementDatabase();
+        await adb.logPlayer(String(localStorage.getItem("user_id")));
+        await adb.increment_achievement("total_games_played");
         if (this.game instanceof Cribbage) {
-          await adb.increment_achievement("total_cribbage_games_played")
+          await adb.increment_achievement("total_cribbage_games_played");
         }
       }
 
