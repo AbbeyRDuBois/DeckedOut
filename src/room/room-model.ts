@@ -27,11 +27,13 @@ export class Room {
 
   setTheme(theme: string) {
     this.state.theme = theme;
+    localStorage.setItem("theme", theme)
     this.events.emit('stateChanged', this.getState());
   }
   
   setCardTheme(theme: string) {
     this.state.cardTheme = theme;
+    localStorage.setItem("card_theme", theme)
     this.events.emit('stateChanged', this.getState());
   }
 
