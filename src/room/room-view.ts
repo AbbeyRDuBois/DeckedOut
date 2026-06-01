@@ -95,13 +95,13 @@ export class RoomView {
 
     const themeSelector = document.getElementById('theme-selector') as HTMLSelectElement | null;
     if (localStorage.getItem("theme") != null && localStorage.getItem("theme")!.length > 0) {
-      themeSelector?.setAttribute("value", String(localStorage.getItem("theme")));
+      this.handlers.onThemeChange(String(localStorage.getItem("theme")))
     }
     themeSelector?.addEventListener('change', () => this.handlers.onThemeChange(themeSelector.value));
 
     const cardThemeSelector = document.getElementById('card-theme-selector') as HTMLSelectElement | null;
     if (localStorage.getItem("card_theme") != null && localStorage.getItem("card_theme")!.length > 0) {
-      cardThemeSelector?.setAttribute("value", String(localStorage.getItem("card_theme")));
+      this.handlers.onCardThemeChange(String(localStorage.getItem("card_theme")))
     }
     cardThemeSelector?.addEventListener('change', () => this.handlers.onCardThemeChange(cardThemeSelector.value));
 
