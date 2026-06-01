@@ -8,7 +8,7 @@
  ****************************************************************************/
 
 import { EventEmitter } from "../event-emitter";
-import { Database } from "../services/databases";
+import { AchievementDatabase, Database } from "../services/databases";
 import { Player } from "../player";
 import { RoomState } from "../types";
 
@@ -92,18 +92,23 @@ export class Room {
     if (role === player.roleColor) trueColor = "lavender";
 
     var roleName = "";
+    const adb = new AchievementDatabase();
     switch (trueColor){
       case "teal":
         roleName = "Garbage Man";
+        adb.increment_achievement("times_becoming_gm");
         break;
       case "lightgreen":
         roleName = "Dumpster Boy";
+        adb.increment_achievement("times_becoming_db");
         break;
       case "orange":
         roleName = "Glamour Girl";
+        adb.increment_achievement("times_becoming_gg");
         break;
       case "tomato":
         roleName = "Treasure Lady";
+        adb.increment_achievement("times_becoming_tl");
         break;
       default:
         roleName = "Neutral";
