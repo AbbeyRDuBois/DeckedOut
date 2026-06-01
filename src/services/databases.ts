@@ -336,13 +336,13 @@ export class AchievementDatabase {
         if (!snapshot.exists()) {
             await setDoc(playerRef, {
                 unique_days_played: 1,
-                last_date_played: new Date()
+                last_date_played: (new Date()).toDateString()
             });
         }
         else {
-            if (String(snapshot.data().last_date_played).split(" at")[0] != String(new Date()).split(" at")[0]) {
+            if (snapshot.data().last_date_played != (new Date()).toDateString()) {
                 await updateDoc(playerRef, {
-                    last_date_played: new Date()
+                    last_date_played: (new Date()).toDateString()
                 });
                 this.increment_achievement("unique_days_played");
             }
@@ -359,7 +359,7 @@ export class AchievementDatabase {
             //Get player doc and previous data if it exists
             const playerRef = doc(this.db, "achievements", player_name);
             const snapshot = await getDoc(playerRef);
-            const value = (snapshot.data()?.[achievement] != undefined) ? Number(snapshot.data()?.[achievement])+1 : 1
+            const value = (snapshot.data()?.[achievement] != undefined) ? Number(snapshot.data()?.[achievement])+1 : 1;
 
             //Update document
             await updateDoc(playerRef, {
