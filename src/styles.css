@@ -1389,3 +1389,14 @@ body {
   justify-content: center;
   align-items: center;
 }
+/*****************************************************************************************
+*
+* Media Player
+*
+******************************************************************************************/
+.media_player iframe {
+  border-radius:8px; 
+  position:fixed; 
+  bottom:10px; 
+  right:10px;
+}
