@@ -75,6 +75,7 @@ export class RoomController {
     await this.gameSetup();
     this.view.render(this.model.getState());
     this.gameController?.gameRerender();
+    this.view.dragElement(document.getElementById("media_player")!);
   }
 
   private async gameSetup() {
