@@ -1397,6 +1397,14 @@ body {
 .media_player iframe {
   border-radius:8px; 
   position:fixed; 
-  bottom:10px; 
+  bottom:150px;
   right:10px;
+  z-index:100;
+  width:380;
+  height:300;
+}
+.media_player_header div {
+  cursor:move;
+  z-index:1001;
+  background-color:black;
 }
