@@ -59,15 +59,16 @@
       <div class="opponents-container" id="opponents"></div>
       <div class="center-main" id="center-content" style="display: none;"></div> <!--This is where the room specific inner content will go (like flipped for cribbage)-->
       <div id="played-container" class="played-container"></div>
-      <div id="media_player" class="media_player">
-        <div id="media_player_header" class="player_header">MOVE ME OR ELSE</div>
-          <iframe
-              data-testid="embed-iframe"
-              src="https://open.spotify.com/embed/playlist/62dcOrotfvGu6k6UzyuDIg?utm_source=generator"
-              frameborder="0"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy">
-          </iframe>
+      <div id="media_player">
+        <div id="media_player_header">|||</div>
+        <iframe
+          id="spotify"
+          data-testid="embed-iframe"
+          src="https://open.spotify.com/embed/playlist/62dcOrotfvGu6k6UzyuDIg?utm_source=generator"
+          frameborder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy">
+        </iframe>
       </div>
       <div class="local-indicator" data-type='turn' id="local-turn-indicator">T</div>
       <div class="roles">

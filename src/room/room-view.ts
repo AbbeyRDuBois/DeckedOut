@@ -129,7 +129,6 @@ export class RoomView {
         this.handlers.onRoleChange(btn.dataset.color!);
       });
     });
-
     // Attach media player controls (drag + resize)
     this.attachMediaPlayerControls();
   }
