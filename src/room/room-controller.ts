@@ -42,6 +42,10 @@ export class RoomController {
       onRoleChange: async (role: string) => {
         await this.model.updateRole(role);
       }
+      ,
+      onMediaChanged: (media) => {
+        this.model.setMediaState(media);
+      }
     };
 
     this.view.setHandlers(handlers);
@@ -67,6 +71,9 @@ export class RoomController {
         });
       }
     });
+
+    // Initial render of media player on pointerdown to ensure correct positioning
+    window.addEventListener('pointerdown', () => this.view.renderMediaPlayer(this.model.getState()));
   }
 
   async init() {
@@ -74,7 +81,6 @@ export class RoomController {
     // Ensure a game instance and controller exist for this room (guest or host)
     await this.gameSetup();
     this.view.render(this.model.getState());
-    this.gameController?.gameRerender();
   }
 
   private async gameSetup() {
@@ -120,11 +126,11 @@ export class RoomController {
     this.view.navigateToHome();
 
     if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
-      const adb = new AchievementDatabase()
-        await adb.logPlayer(String(localStorage.getItem("user_id")))
-        await adb.increment_achievement("total_games_played")
+      const adb = new AchievementDatabase();
+        await adb.logPlayer(String(localStorage.getItem("user_id")));
+        await adb.increment_achievement("total_games_played");
         if (this.game instanceof Cribbage) {
-          await adb.increment_achievement("total_cribbage_games_played")
+          await adb.increment_achievement("total_cribbage_games_played");
         }
       }
 
