@@ -42,6 +42,10 @@ export class RoomController {
       onRoleChange: async (role: string) => {
         await this.model.updateRole(role);
       }
+      ,
+      onMediaChanged: (media) => {
+        this.model.setMediaState(media);
+      }
     };
 
     this.view.setHandlers(handlers);
@@ -67,6 +71,9 @@ export class RoomController {
         });
       }
     });
+
+    // Initial render of media player on pointerdown to ensure correct positioning
+    window.addEventListener('pointerdown', () => this.view.renderMediaPlayer(this.model.getState()));
   }
 
   async init() {
@@ -74,8 +81,6 @@ export class RoomController {
     // Ensure a game instance and controller exist for this room (guest or host)
     await this.gameSetup();
     this.view.render(this.model.getState());
-    this.gameController?.gameRerender();
-    this.view.dragElement(document.getElementById("media_player")!);
   }
 
   private async gameSetup() {

@@ -1394,7 +1394,7 @@ body {
 * Media Player
 *
 ******************************************************************************************/
-#media_player {
+.media_player {
   border-radius: 8px; 
   position: fixed; 
   bottom: 170px;
@@ -1402,17 +1402,33 @@ body {
   z-index: 100;
   width: 380px;
   height: 300px;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
 }
-#media_player_header {
-  cursor: move;
-  z-index: 1001;
-  background-color: black;
-  color: white;
-  text-align: center;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-}
-#spotify {
+.media_player iframe {
   width: 100%;
   height: 100%;
+  border: none;
+  pointer-events: none;
+}
+.media_player_header {
+  z-index: 1001;
+  color: white;
+  text-align: center;
+  position: absolute;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.player_header:hover,
+.media_player_header:hover {
+  background: rgba(0,0,0,0.45);
 }
