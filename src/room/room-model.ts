@@ -16,9 +16,27 @@ export class Room {
   private db!: Database;
   private state: RoomState;
   public events = new EventEmitter<{ stateChanged: {}; error: string }>();
-
   constructor(gameType: string, roomId: string) {
-    this.state = { roomId, gameType, started: false, settingsOpen: false, theme: 'dark', cardTheme: 'Classic', hostId: ''};
+    this.state = { 
+      roomId, 
+      gameType, 
+      started: false, 
+      settingsOpen: false, 
+      theme: 'dark', 
+      cardTheme: 'Classic', 
+      hostId: '',
+      mediaPlayer: {
+        x: window.innerWidth - 410,
+        y: window.innerHeight - 310,
+        width: 400,
+        height: 300
+      }
+    };
+  }
+
+  setMediaState(media: { x: number; y: number; width: number; height: number }){
+    this.state.mediaPlayer = { ...this.state.mediaPlayer, ...media };
+    this.events.emit('stateChanged', this.getState());
   }
 
   getState(): RoomState { return { 
