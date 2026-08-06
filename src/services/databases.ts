@@ -8,6 +8,7 @@
 import {
   arrayUnion,
   collection,
+  deleteDoc,
   doc,
   DocumentData,
   Firestore,
@@ -24,7 +25,7 @@ import {
   setDoc,
   Transaction,
   updateDoc,
-  where,
+  writeBatch,
 } from "firebase/firestore";
 import { app } from "./authentication";
 import { BaseGame } from "../base-game/base-model";
@@ -52,6 +53,7 @@ export class Database {
   private events = new EventEmitter<{ stateChanged: any }>();
   private hostId: string = "";
   private localId: string = "";
+  private unsubscribers: (() => void)[] = [];
 
   constructor() {
     if (getFirestoreInstance() == null) {
@@ -168,18 +170,33 @@ export class Database {
     });
   }
 
+  dispose() {
+    this.unsubscribers.forEach((unsub) => unsub());
+    this.unsubscribers = [];
+  }
+
   async delete() {
+    this.dispose();
+
     const players = await getDocs(this.playersRef());
     const teams = await getDocs(this.teamsRef());
     const logs = await getDocs(this.logsRef());
+    const refs = [...players.docs, ...teams.docs, ...logs.docs].map(
+      (d) => d.ref,
+    );
 
-    //Delete all docs then finally the room
-    await runTransaction(this.db, async (transaction: Transaction) => {
-      players.docs.forEach((docSnap) => transaction.delete(docSnap.ref));
-      teams.docs.forEach((docSnap) => transaction.delete(docSnap.ref));
-      logs.docs.forEach((docSnap) => transaction.delete(docSnap.ref));
-      transaction.delete(this.roomRef);
-    });
+    //Batch deletes incase file is big
+    while (refs.length) {
+      const batch = writeBatch(this.db);
+      refs.splice(0, 499).forEach((ref) => batch.delete(ref));
+      try {
+        await batch.commit();
+        console.log("Deleted room", this.roomRef.path);
+      } catch (e) {
+        console.error("Delete failed", e);
+      }
+    }
+    await deleteDoc(this.roomRef);
   }
 
   //Pulls everything in the game data and in the Teams/Players collections
@@ -198,6 +215,12 @@ export class Database {
   // If just updating the state, put the fields in changes.
   // If adding onto a preexisting array (such as crib), put those values in arrayUnionValues (just the new parts).
   async update(changes: any = {}, arrayUnionValues: any = {}) {
+    const room = await getDoc(this.roomRef);
+
+    if (!room.exists()) {
+      return;
+    }
+
     if (
       (!changes || Object.keys(changes).length === 0) &&
       (!arrayUnionValues || Object.keys(arrayUnionValues).length === 0)
@@ -258,16 +281,26 @@ export class Database {
 
   //Updates the Team in the DB
   async updateTeam(team: any) {
+    const room = await getDoc(this.roomRef);
+
+    if (!room.exists()) {
+      return;
+    }
+
     try {
-      await runTransaction(this.db, async (transaction: Transaction) => {
-        transaction.set(doc(this.teamsRef(), team.id), team, { merge: true });
-      });
+      await setDoc(doc(this.teamsRef(), team.id), team, { merge: true });
     } catch (e) {
       console.error("Error updating Team:", e);
     }
   }
 
   async addGuest(player: any, team: any) {
+    const room = await getDoc(this.roomRef);
+
+    if (!room.exists()) {
+      return;
+    }
+
     try {
       await runTransaction(this.db, async (transaction: Transaction) => {
         transaction.set(doc(this.playersRef(), player.id), player, {
@@ -292,12 +325,14 @@ export class Database {
 
   //Updates the Player in the DB
   async updatePlayer(player: any) {
+    const room = await getDoc(this.roomRef);
+
+    if (!room.exists()) {
+      return;
+    }
+
     try {
-      await runTransaction(this.db, async (transaction: Transaction) => {
-        transaction.set(doc(this.playersRef(), player.id), player, {
-          merge: true,
-        });
-      });
+      await setDoc(doc(this.playersRef(), player.id), player, { merge: true });
     } catch (e) {
       console.error("Error updating player:", e);
     }
@@ -305,13 +340,16 @@ export class Database {
 
   //Adds the log to the DB
   async addLog(message: string) {
+    const room = await getDoc(this.roomRef);
+
+    if (!room.exists()) {
+      return;
+    }
+
     try {
-      await runTransaction(this.db, async (transaction: Transaction) => {
-        const logRef = doc(this.logsRef());
-        transaction.set(logRef, {
-          message,
-          timestamp: serverTimestamp(),
-        });
+      await setDoc(doc(this.logsRef()), {
+        message,
+        timestamp: serverTimestamp(),
       });
     } catch (e) {
       console.error("Error adding log:", e);
@@ -324,10 +362,10 @@ export class Database {
    *
    ******************************************/
   setupListeners() {
-    this.listenForUpdates();
-    this.listenForLogs();
-    this.listenForTeams();
-    this.listenForPlayers();
+    this.unsubscribers.push(this.listenForUpdates());
+    this.unsubscribers.push(this.listenForLogs());
+    this.unsubscribers.push(this.listenForTeams());
+    this.unsubscribers.push(this.listenForPlayers());
   }
 
   listenForLogs() {
@@ -377,8 +415,10 @@ export class Database {
   listenForUpdates() {
     return onSnapshot(this.roomRef, async (docSnap: any) => {
       if (!docSnap.exists()) {
+        this.dispose();
         alert("Room deleted or closed.");
         window.location.href = "index.html";
+        return;
       }
 
       const remote = docSnap.data();
@@ -400,11 +440,7 @@ export class AchievementDatabase {
 
   constructor() {
     if (getFirestoreInstance() == null) {
-      this.db = initializeFirestore(app, {
-        localCache: persistentLocalCache({
-          tabManager: persistentSingleTabManager({}),
-        }),
-      });
+      this.db = initializeFirestore(app, {});
       setFirestoreInstance(this.db);
     } else {
       this.db = getFirestoreInstance()!;
