@@ -25,23 +25,7 @@ export class Room {
       theme: "dark",
       cardTheme: "Classic",
       hostId: "",
-      mediaPlayer: {
-        x: window.innerWidth - 410,
-        y: window.innerHeight - 310,
-        width: 400,
-        height: 300,
-      },
     };
-  }
-
-  setMediaState(media: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }) {
-    this.state.mediaPlayer = { ...this.state.mediaPlayer, ...media };
-    this.events.emit("stateChanged", this.getState());
   }
 
   getState(): RoomState {
