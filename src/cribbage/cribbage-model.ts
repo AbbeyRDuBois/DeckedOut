@@ -373,12 +373,11 @@ export class Cribbage extends BaseGame {
     if (this.roundState != RoundState.Pointing) {
       const playerJoker = player
         .getHand()
-        .findIndex((c: Card) => c.getRank() == "JK");
-      if (playerJoker != -1) {
-        card.setFlipped(true);
-
-        player.removeFromHand(playerJoker);
-        player.addToHand(card);
+        .filter((c: Card) => c.getRank() == "JK")?.[0];
+      if (playerJoker != null) {
+        playerJoker.setFlipped(true);
+        playerJoker.setRank(card.getRank());
+        playerJoker.setSuit(card.getSuit());
 
         this.events.emit("stateChanged", {});
         this.updatePlayer(player);

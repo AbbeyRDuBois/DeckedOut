@@ -38,8 +38,14 @@ export class Card {
   getRank(): string {
     return this.rank;
   }
+  setRank(rank: string) {
+    this.rank = rank;
+  }
   getSuit(): string {
     return this.suit;
+  }
+  setSuit(suit: string) {
+    this.suit = suit;
   }
   getFlipped(): boolean {
     return this.flipped;
