@@ -120,7 +120,7 @@ export class Room {
         adb.increment_achievement("times_becoming_tl");
         break;
       default:
-        roleName = "Neutral";
+        roleName = "Genderless";
         break;
     }
 

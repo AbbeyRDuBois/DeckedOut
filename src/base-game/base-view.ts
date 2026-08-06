@@ -366,14 +366,7 @@ export abstract class BaseView {
 
         const name = document.createElement("span");
         name.textContent = player.name;
-        if (player.roleColor === "neutral") {
-          //Set's the player back to the themed text color
-          name.style.color = getComputedStyle(document.body)
-            .getPropertyValue("--text-color")
-            .trim();
-        } else {
-          name.style.color = player.roleColor;
-        }
+        name.style.color = player.roleColor;
 
         const score = document.createElement("span");
         score.textContent = player.score;
