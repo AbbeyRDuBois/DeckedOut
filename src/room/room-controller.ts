@@ -1,10 +1,10 @@
 /****************************************************************************
- * 
+ *
  *  Room Controller
- * 
+ *
  *      Handles the room specific events like starting, leaving
  *      A big part of this is the waiting overlay events where people choose their team/names and game options
- * 
+ *
  ****************************************************************************/
 
 import { Room } from "./room-model";
@@ -23,42 +23,50 @@ export class RoomController {
   private game: Cribbage | Wavelength | undefined;
   private gameController: CribbageController | WavelengthController | undefined;
 
-  constructor(private model: Room, private view: RoomView) {
+  constructor(
+    private model: Room,
+    private view: RoomView,
+  ) {
     //Connect the listener handlers to actual functions outlined in the model
     const handlers: RoomViewHandlers = {
-      onLeave: async () => { await this.onLeaveRoom(); },
-      onCopyId: async () => { await navigator.clipboard.writeText(this.model.getState().roomId); },
+      onLeave: async () => {
+        await this.onLeaveRoom();
+      },
+      onCopyId: async () => {
+        await navigator.clipboard.writeText(this.model.getState().roomId);
+      },
       onThemeChange: (theme: string) => {
         this.model.setTheme(theme);
-        document.body.setAttribute('data-theme', theme);
+        document.body.setAttribute("data-theme", theme);
       },
       onCardThemeChange: (theme: string) => {
         this.model.setCardTheme(theme);
       },
-      onSettingsToggle: () =>  {
+      onSettingsToggle: () => {
         // Toggle and persist settings panel state
         this.model.toggleSettings();
       },
       onRoleChange: async (role: string) => {
         await this.model.updateRole(role);
-      }
-      ,
+      },
       onMediaChanged: (media) => {
         this.model.setMediaState(media);
-      }
+      },
     };
 
     this.view.setHandlers(handlers);
 
-    this.model.events.on('stateChanged', (s) => {
+    this.model.events.on("stateChanged", (s) => {
       this.view.render(s);
       this.gameController?.gameRerender();
     });
-    
-    this.model.events.on('error', (msg) => console.error('RoomModel error:', msg));
+
+    this.model.events.on("error", (msg) =>
+      console.error("RoomModel error:", msg),
+    );
 
     // Resizes elements on page when window resizes (throttled with rAF)
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       if (!this.resizePending) {
         this.resizePending = true;
         requestAnimationFrame(() => {
@@ -66,14 +74,16 @@ export class RoomController {
           this.view.render(this.model.getState());
           this.gameController?.gameRerender();
           // Let game-specific controllers re-render if they want
-          window.dispatchEvent(new CustomEvent('room:resize'));
+          window.dispatchEvent(new CustomEvent("room:resize"));
           this.resizePending = false;
         });
       }
     });
 
     // Initial render of media player on pointerdown to ensure correct positioning
-    window.addEventListener('pointerdown', () => this.view.renderMediaPlayer(this.model.getState()));
+    window.addEventListener("pointerdown", () =>
+      this.view.renderMediaPlayer(this.model.getState()),
+    );
   }
 
   async init() {
@@ -98,19 +108,27 @@ export class RoomController {
     // Wire the shared game view (so room's game view is used)
     const gameView: any = this.view.getGameView();
 
-    switch(state.gameType){
-      case 'cribbage':
+    switch (state.gameType) {
+      case "cribbage":
         this.game = new Cribbage(deck, players, teams, db);
-        this.gameController = new CribbageController((this.game as Cribbage), gameView, db);
+        this.gameController = new CribbageController(
+          this.game as Cribbage,
+          gameView,
+          db,
+        );
         break;
-      case 'wavelength':
+      case "wavelength":
         this.game = new Wavelength(deck, players, teams, db);
-        this.gameController = new WavelengthController((this.game as Wavelength), gameView, db);
+        this.gameController = new WavelengthController(
+          this.game as Wavelength,
+          gameView,
+          db,
+        );
         break;
       default:
     }
 
-    if (this.game){
+    if (this.game) {
       // Make sure DB knows about this game instance so snapshot handling can call guestSetup
       db.setGame(this.game);
 
@@ -125,20 +143,22 @@ export class RoomController {
     const db = this.model.getDbInstance();
     this.view.navigateToHome();
 
-    if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
+    if (
+      localStorage.getItem("user_id") != null &&
+      localStorage.getItem("user_id")!.length > 0
+    ) {
       const adb = new AchievementDatabase();
-        await adb.logPlayer(String(localStorage.getItem("user_id")));
-        await adb.increment_achievement("total_games_played");
-        if (this.game instanceof Cribbage) {
-          await adb.increment_achievement("total_cribbage_games_played");
-        }
+      await adb.logPlayer(String(localStorage.getItem("user_id")));
+      await adb.increment_achievement("total_games_played");
+      if (this.game instanceof Cribbage) {
+        await adb.increment_achievement("total_cribbage_games_played");
       }
+    }
 
     //If the host leaves or if game is started bomb everything
-    if (db.isHost() || this.game?.getStarted()){
+    if (db.isHost() || this.game?.getStarted()) {
       db.delete();
-    }
-    else{
+    } else {
       db.leave();
     }
   }

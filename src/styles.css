@@ -4,7 +4,7 @@
   *
   *********************************************************************************************************************************************/
 
-  /*Default Theme (dark)*/
+/*Default Theme (dark)*/
 :root {
   /*Sizing*/
   --top-height: 5vh;
@@ -12,138 +12,150 @@
   --side-width: 18vw;
 
   /*Colors*/
-  --logs:  #6d6d6d;
-  --teams:  #6d6d6d;
+  --logs: #6d6d6d;
+  --teams: #6d6d6d;
   --scoreboard: #6d6d6d;
   --hand: #4a4a4a;
   --background: #1c1c1c;
   --top_bar: #4a4a4a;
-  --settings:#4a4a4a; 
-  --border:  #4a4a4a;
+  --settings: #4a4a4a;
+  --border: #4a4a4a;
   --text-bg: lightgrey;
   --text-color: white;
-  --bl-btn:#005fff;
-  --rd-btn:tomato;
-  --gn-btn:#01b401;
-  --overlay-background: rgb(from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8);
+  --bl-btn: #005fff;
+  --rd-btn: tomato;
+  --gn-btn: #01b401;
+  --overlay-background: rgb(
+    from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8
+  );
 }
 
-body[data-theme='light'] {
-  --logs:  white;
-  --teams:  white;
+body[data-theme="light"] {
+  --logs: white;
+  --teams: white;
   --scoreboard: white;
   --hand: ivory;
   --background: whiteSmoke;
   --top_bar: ivory;
-  --settings:ivory;
-  --border:  ivory;
+  --settings: ivory;
+  --border: ivory;
   --text-bg: white;
   --text-color: black;
-  --bl-btn:#005fff;
-  --rd-btn:red;
-  --gn-btn:#01b401;
-  --overlay-background: rgb(from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8);
+  --bl-btn: #005fff;
+  --rd-btn: red;
+  --gn-btn: #01b401;
+  --overlay-background: rgb(
+    from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8
+  );
 }
 
-body[data-theme='pink_rose'] {
-  --logs:  floralWhite;
-  --teams:  floralWhite;
+body[data-theme="pink_rose"] {
+  --logs: floralWhite;
+  --teams: floralWhite;
   --scoreboard: floralWhite;
   --hand: mistyRose;
   --background: ivory;
   --top_bar: mistyRose;
-  --settings:mistyRose;
-  --border:  mistyRose;
+  --settings: mistyRose;
+  --border: mistyRose;
   --text-bg: floralWhite;
   --text-color: black;
-  --bl-btn:dodgerBlue;
-  --rd-btn:tomato;
-  --gn-btn:mediumSeaGreen;
-  --overlay-background: rgb(from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8);
+  --bl-btn: dodgerBlue;
+  --rd-btn: tomato;
+  --gn-btn: mediumSeaGreen;
+  --overlay-background: rgb(
+    from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8
+  );
 }
 
-body[data-theme='ocean'] {
-  --logs:  teal;
-  --teams:  teal;
+body[data-theme="ocean"] {
+  --logs: teal;
+  --teams: teal;
   --scoreboard: teal;
   --hand: darkSlateGrey;
   --background: lightSeaGreen;
   --top_bar: darkSlateGrey;
   --settings: darkSlateGrey;
-  --border:  darkSlateGrey;
+  --border: darkSlateGrey;
   --text-bg: teal;
   --text-color: white;
-  --bl-btn:dodgerBlue;
-  --rd-btn:tomato;
-  --gn-btn:mediumSeaGreen;
-  --overlay-background: rgb(from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8);
+  --bl-btn: dodgerBlue;
+  --rd-btn: tomato;
+  --gn-btn: mediumSeaGreen;
+  --overlay-background: rgb(
+    from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8
+  );
 }
 
-body[data-theme='navy'] {
-  --logs:  #344a5d;
-  --teams:  #344a5d;
+body[data-theme="navy"] {
+  --logs: #344a5d;
+  --teams: #344a5d;
   --scoreboard: #344a5d;
   --hand: #22303c;
   --background: #19232c;
   --top_bar: #22303c;
-  --settings:#22303c;
-  --border:  #22303c;
+  --settings: #22303c;
+  --border: #22303c;
   --text-bg: #344a5d;
   --text-color: #a9a9a9;
-  --bl-btn:#213571;
-  --rd-btn:#6f0000;
-  --gn-btn:#154f30;
-  --overlay-background: rgb(from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8);
+  --bl-btn: #213571;
+  --rd-btn: #6f0000;
+  --gn-btn: #154f30;
+  --overlay-background: rgb(
+    from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8
+  );
 }
 
-body[data-theme='cursed'] {
-  --logs:  url("./assets/Window_Themes/Cursed/Logs.png");
-  --teams:  url("./assets/Window_Themes/Cursed/Teams.png");
-  --scoreboard:  url("./assets/Window_Themes/Cursed/ScoreBoard.png");
+body[data-theme="cursed"] {
+  --logs: url("./assets/Window_Themes/Cursed/Logs.png");
+  --teams: url("./assets/Window_Themes/Cursed/Teams.png");
+  --scoreboard: url("./assets/Window_Themes/Cursed/ScoreBoard.png");
   --hand: url("./assets/Window_Themes/Cursed/Hand.png");
-  --background:  url("./assets/Window_Themes/Cursed/Background.png");
-  --top_bar:  url("./assets/Window_Themes/Cursed/Top_Bar.png");
+  --background: url("./assets/Window_Themes/Cursed/Background.png");
+  --top_bar: url("./assets/Window_Themes/Cursed/Top_Bar.png");
   --settings: url("./assets/Window_Themes/Cursed/Settings.png");
   --border: black;
-  --text-bg:black;
+  --text-bg: black;
   --text-color: white;
-  --bl-btn:#005fff;
-  --rd-btn:tomato;
-  --gn-btn:#01b401;
+  --bl-btn: #005fff;
+  --rd-btn: tomato;
+  --gn-btn: #01b401;
   --overlay-background: rgba(0, 0, 0, 0.78);
 }
 
-body[data-theme='blessed'] {
-  --logs:  #39FF14;
-  --teams:  #39FF14;
-  --scoreboard: #39FF14;
-  --hand: #39FF14;
-  --background: #39FF14;
-  --top_bar: #39FF14;
-  --settings:#39FF14;
-  --border:  white;
-  --text-bg: #39FF14;
+body[data-theme="blessed"] {
+  --logs: #39ff14;
+  --teams: #39ff14;
+  --scoreboard: #39ff14;
+  --hand: #39ff14;
+  --background: #39ff14;
+  --top_bar: #39ff14;
+  --settings: #39ff14;
+  --border: white;
+  --text-bg: #39ff14;
   --text-color: tomato;
-  --bl-btn:#39FF14;
-  --rd-btn:#39FF14;
-  --gn-btn:#39FF14;
-  --overlay-background: rgb(from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8);
+  --bl-btn: #39ff14;
+  --rd-btn: #39ff14;
+  --gn-btn: #39ff14;
+  --overlay-background: rgb(
+    from var(--background) calc(r * 0.7) calc(g * 0.7) calc(b * 0.7) / 0.8
+  );
 }
 
-body[data-theme='fancy'] {
-  --logs:  url("./assets/Window_Themes/Fancy/Logs.png");
-  --teams:  url("./assets/Window_Themes/Fancy/ScoreBoard.png");
-  --scoreboard:  url("./assets/Window_Themes/Fancy/ScoreBoard.png");
+body[data-theme="fancy"] {
+  --logs: url("./assets/Window_Themes/Fancy/Logs.png");
+  --teams: url("./assets/Window_Themes/Fancy/ScoreBoard.png");
+  --scoreboard: url("./assets/Window_Themes/Fancy/ScoreBoard.png");
   --hand: url("./assets/Window_Themes/Fancy/Hand.png");
-  --background:  url("./assets/Window_Themes/Fancy/Background.png");
-  --top_bar:  url("./assets/Window_Themes/Fancy/Top_Bar.png");
+  --background: url("./assets/Window_Themes/Fancy/Background.png");
+  --top_bar: url("./assets/Window_Themes/Fancy/Top_Bar.png");
   --settings: url("./assets/Window_Themes/Fancy/Settings.png");
   --border: black;
-  --text-bg:lightgrey;
+  --text-bg: lightgrey;
   --text-color: black;
-  --bl-btn:#005fff;
-  --rd-btn:tomato;
-  --gn-btn:#01b401;
+  --bl-btn: #005fff;
+  --rd-btn: tomato;
+  --gn-btn: #01b401;
   --overlay-background: rgba(0, 0, 0, 0.78);
 }
 
@@ -159,8 +171,8 @@ body {
   background: var(--background);
   background-size: 100% 100%;
   margin: 0;
-  padding:0;
-  overflow: hidden;   /* disables scrolling */
+  padding: 0;
+  overflow: hidden; /* disables scrolling */
 }
 .input {
   background: var(--text-bg);
@@ -173,15 +185,15 @@ body {
   width: 100vw;
   height: 100vh;
 
-  grid-template-rows: 
-      var(--top-height)
-      calc(100vh - var(--top-height) - var(--bottom-height))
-      var(--bottom-height);
+  grid-template-rows:
+    var(--top-height)
+    calc(100vh - var(--top-height) - var(--bottom-height))
+    var(--bottom-height);
 
-  grid-template-columns: 
-      var(--side-width)
-      calc(100vw - 2 * var(--side-width))
-      var(--side-width);
+  grid-template-columns:
+    var(--side-width)
+    calc(100vw - 2 * var(--side-width))
+    var(--side-width);
 }
 
 /*Other grid sections specified below */
@@ -192,7 +204,7 @@ body {
   background-repeat: no-repeat;
   background-position: center;
   background-image: var(--background);
-  position:relative;
+  position: relative;
 }
 
 .center-main {
@@ -240,7 +252,9 @@ body {
   border-radius: 10px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
   z-index: 2;
 }
 #signInBtn:hover {
@@ -375,7 +389,9 @@ body {
   border-radius: 14px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
   justify-self: center;
 }
 .join-btn:hover {
@@ -398,7 +414,9 @@ body {
   border-radius: 14px;
   cursor: pointer;
   font-weight: 800;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 .create-room-btn:hover {
   background: color-mix(in srgb, var(--bl-btn) 80%, black);
@@ -445,15 +463,15 @@ body {
   border-radius: 4px;
 }
 .leave-room:hover {
-  background: color-mix(in srgb, var(--rd-btn) 80%, black)
+  background: color-mix(in srgb, var(--rd-btn) 80%, black);
 }
 
 .options {
-  display:flex;
+  display: flex;
   position: absolute;
   right: 1%;
   gap: 10px;
-  top: .5%;
+  top: 0.5%;
 }
 
 /***************************************
@@ -463,10 +481,10 @@ body {
 ***************************************/
 .roles {
   position: absolute;
-  bottom: 10px;   /* Distance from the bottom of center-main */
-  right: 10px;    /* Distance from the right of center-main */
+  bottom: 10px; /* Distance from the bottom of center-main */
+  right: 10px; /* Distance from the right of center-main */
   display: flex;
-  gap: 8px;       /* Space between buttons */
+  gap: 8px; /* Space between buttons */
 }
 .roles button {
   padding: 5px 8px;
@@ -489,17 +507,17 @@ body {
 #treasure {
   background: tomato;
 }
-#garbage:hover{
-  background: color-mix(in srgb, teal 80%, black)
+#garbage:hover {
+  background: color-mix(in srgb, teal 80%, black);
 }
-#dumpster:hover{
-  background: color-mix(in srgb, lightgreen 80%, black)
+#dumpster:hover {
+  background: color-mix(in srgb, lightgreen 80%, black);
 }
-#glamour:hover{
-  background: color-mix(in srgb, orange 80%, black)
+#glamour:hover {
+  background: color-mix(in srgb, orange 80%, black);
 }
-#treasure:hover{
-  background: color-mix(in srgb, tomato 80%, black)
+#treasure:hover {
+  background: color-mix(in srgb, tomato 80%, black);
 }
 
 /***************************************
@@ -530,7 +548,7 @@ body {
 #settings-panel.closed {
   display: none;
 }
-.settings-panel h2{
+.settings-panel h2 {
   text-align: center;
   border-bottom: 2px solid var(--border);
 }
@@ -546,9 +564,9 @@ body {
   cursor: pointer;
   border-radius: 10px;
   border: none;
-  z-index: 21; 
+  z-index: 21;
 }
-.theme-selector{
+.theme-selector {
   background: var(--text-bg);
   color: var(--text-color);
   border-radius: 6px;
@@ -607,8 +625,8 @@ body {
   z-index: 40;
 }
 .popup-overlay#joker-popup {
-  backdrop-filter: none;               /* Removes the blur */
-  background: transparent;       /* Removes the dark overlay */
+  backdrop-filter: none; /* Removes the blur */
+  background: transparent; /* Removes the dark overlay */
   z-index: 40;
 }
 .popup {
@@ -619,8 +637,8 @@ body {
   align-items: center;
   padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-  align-items: stretch;  
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  align-items: stretch;
 }
 #waiting-popup .room-info {
   position: absolute;
@@ -629,7 +647,7 @@ body {
   font-size: 12px;
   font-weight: bold;
 }
-.waiting-container{
+.waiting-container {
   flex-direction: column; /*Stacks children vertically*/
   display: inline-flex;
   align-items: center;
@@ -655,7 +673,7 @@ body {
   transition: background-color 0.2s ease;
 }
 #start-game:hover {
-  background: color-mix(in srgb, var(--bl-btn) 80%, black)
+  background: color-mix(in srgb, var(--bl-btn) 80%, black);
 }
 
 /*Team Selector Part of Popup*/
@@ -717,7 +735,7 @@ body {
   margin-left: 4px;
 }
 .move-player:hover {
-  background: color-mix(in srgb, var(--bl-btn) 80%, black)
+  background: color-mix(in srgb, var(--bl-btn) 80%, black);
 }
 #add-del-container {
   display: flex;
@@ -734,12 +752,12 @@ body {
   cursor: pointer;
 }
 .add-del-btn:hover {
-  background: color-mix(in srgb, var(--text-bg) 80%, black)
+  background: color-mix(in srgb, var(--text-bg) 80%, black);
 }
 
 /*Game mode selection part of popup*/
-#teams-container{
-  display:flex;
+#teams-container {
+  display: flex;
   align-items: center;
   gap: 10px;
 }
@@ -753,13 +771,13 @@ body {
 #options-container {
   display: flex;
   flex-direction: column;
-  align-items: center;        /* horizontal center */
+  align-items: center; /* horizontal center */
   padding: 15px;
-  gap: 10px;                  /* space between title and content */
+  gap: 10px; /* space between title and content */
 }
 
 .options-title {
-  flex: 0 0 auto;             /* never grows, stays at top */
+  flex: 0 0 auto; /* never grows, stays at top */
   text-align: center;
   color: var(--text-color);
   font-size: x-large;
@@ -771,17 +789,17 @@ body {
   gap: 15px;
 }
 
-.option{
-  display:flex;
+.option {
+  display: flex;
 }
 
-.menu-selector{
+.menu-selector {
   display: flex;
   background: var(--text-bg);
   flex-direction: column;
   align-items: center;
   border-radius: 5px;
-  margin-bottom:10px;
+  margin-bottom: 10px;
 }
 
 /*Winner Popup*/
@@ -890,7 +908,7 @@ body {
 }
 .indicator[data-type="turn"] {
   background: gold;
-  color: black
+  color: black;
 }
 .indicator[data-type="crib"] {
   background: purple;
@@ -917,7 +935,7 @@ body {
 .local-indicator[data-type="turn"] {
   left: 20%;
   background: gold;
-  color:black;
+  color: black;
 }
 /***************************************
 *
@@ -952,7 +970,10 @@ body {
 *
 ***************************************************************************************************************************************/
 .card {
-  transition: border 0.3s,ease, transform 0.2s ease;
+  transition:
+    border 0.3s,
+    ease,
+    transform 0.2s ease;
   cursor: pointer;
   border-radius: 15px;
 }
@@ -969,7 +990,8 @@ body {
 .card.flipped .card-hinge {
   transform: rotateY(180deg);
 }
-.card-face, .card-back {
+.card-face,
+.card-back {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -992,8 +1014,8 @@ body {
 *
 ***************************************************************************************************************************************/
 #opponents {
-  display:flex;
-  margin-top: .5%;
+  display: flex;
+  margin-top: 0.5%;
   height: 30%;
   flex-direction: row;
   align-items: center;
@@ -1009,7 +1031,7 @@ body {
 .opponent {
   display: flex;
   flex-direction: column;
-  height: 100%;          /* must be defined by parent */
+  height: 100%; /* must be defined by parent */
   width: 100%;
 }
 
@@ -1019,7 +1041,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events:none;
+  pointer-events: none;
 }
 
 .opp-unplayed > *,
@@ -1045,17 +1067,17 @@ body {
   gap: 6px;
   justify-content: center;
   overflow-x: auto;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
   background: var(--hand);
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  overflow: hidden;   /* disables scrolling */
+  overflow: hidden; /* disables scrolling */
   padding: 1%;
 }
 #hand.hand-disabled .card {
   pointer-events: none;
-  filter: grayscale(100%) brightness(1.5);/*Grey scales the card*/
+  filter: grayscale(100%) brightness(1.5); /*Grey scales the card*/
   cursor: default;
   transform: none !important; /* Prevents hover effect */
   border: 2px solid transparent;
@@ -1078,9 +1100,9 @@ body {
 *
 *********************************************************************************************************************************************/
 #throwing {
-  position: absolute; 
+  position: absolute;
   bottom: 0%;
-  left: 50%;          
+  left: 50%;
   transform: translateY(-50%);
   height: 60%;
   transform: translateX(-50%); /* center horizontally */
@@ -1090,13 +1112,13 @@ body {
   font-size: 30px;
 }
 #flipped {
-  position: absolute; 
+  position: absolute;
   top: 45%;
-  left: 10%;   
-  height: 70%;       
+  left: 10%;
+  height: 70%;
   transform: translateY(-50%);
-  pointer-events: none;   
-  cursor: default;               
+  pointer-events: none;
+  cursor: default;
 }
 
 /***************************************
@@ -1104,19 +1126,19 @@ body {
 * Pegging
 *
 ***************************************/
-#peggingContainer { 
+#peggingContainer {
   position: absolute;
   top: 40%;
-  right: 10%;            /* align to right edge */
+  right: 10%; /* align to right edge */
   transform: translateY(-50%); /* center vertically */
   cursor: default;
 }
-#pegging{
+#pegging {
   font-size: 20px;
 }
 #peggingTotal {
-  display:flex;
-  justify-content:center;
+  display: flex;
+  justify-content: center;
   font-size: 40px;
 }
 /***************************************
@@ -1134,12 +1156,12 @@ body {
   border-radius: 10px;
 }
 
-#joker-deck{
+#joker-deck {
   flex: 3;
 }
 
 #joker-hand {
-  flex:1;
+  flex: 1;
   display: flex;
 }
 
@@ -1277,7 +1299,9 @@ body {
 }
 
 @keyframes dotBounce {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     opacity: 0.3;
     transform: translateY(0);
   }
@@ -1292,31 +1316,31 @@ body {
 * Wavelength
 *
 ******************************************************************************************/
-.prompt { 
-  font-size: 1.4rem; 
-  font-weight: 700; 
-  text-align: center; 
+.prompt {
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
   margin-bottom: 5%;
 }
-.wave-board { 
+.wave-board {
   width: 100%;
-  border-radius: 24px; 
-  position: relative; 
-  padding: 10px 6px 8px; 
-  display:flex;
-  align-items:center; 
-  justify-content:center;
+  border-radius: 24px;
+  position: relative;
+  padding: 10px 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 14px;
   overflow: hidden;
 }
-.ticks { 
-  width: 100%; 
-  display:flex;
+.ticks {
+  width: 100%;
+  display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
   gap: 2px;
-  position: relative; 
+  position: relative;
   z-index: 1;
 }
 .tick {
@@ -1354,7 +1378,10 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 1;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 .tick-button.selected {
   background: var(--bl-btn);
@@ -1364,20 +1391,20 @@ body {
   opacity: 0.35;
   cursor: not-allowed;
 }
-.wave-submit { 
-  padding: 10px 18px; 
-  border-radius: 10px; 
-  border: none; 
-  background: var(--bl-btn); 
-  color: var(--text-color); 
-  cursor: pointer; 
+.wave-submit {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--bl-btn);
+  color: var(--text-color);
+  cursor: pointer;
   font-weight: 800;
   display: inline-flex;
   justify-content: center;
   align-items: center;
 }
-.wave-submit:hover { 
-  background: color-mix(in srgb, var(--bl-btn) 85%, black); 
+.wave-submit:hover {
+  background: color-mix(in srgb, var(--bl-btn) 85%, black);
 }
 .goal {
   padding: 10px 18px;
@@ -1395,8 +1422,8 @@ body {
 *
 ******************************************************************************************/
 #media_player {
-  border-radius: 8px; 
-  position: fixed; 
+  border-radius: 8px;
+  position: fixed;
   bottom: 170px;
   right: 10px;
   z-index: 100;

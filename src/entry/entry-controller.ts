@@ -1,9 +1,9 @@
 /****************************************************************************
- * 
+ *
  *  Entry Controller of DeckedOut
- * 
+ *
  *      Handles the entry events like joining and hosting a room
- * 
+ *
  ****************************************************************************/
 
 import { EntryModel } from "./entry-model";
@@ -14,7 +14,7 @@ import { AchievementDatabase } from "../services/databases";
 export class EntryController {
   constructor(
     private model: EntryModel,
-    private view: EntryView
+    private view: EntryView,
   ) {}
 
   ///Binds all the buttons in view with their functionality
@@ -58,12 +58,14 @@ export class EntryController {
   };
 
   private handleSignIn = async () => {
-    if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
+    if (
+      localStorage.getItem("user_id") != null &&
+      localStorage.getItem("user_id")!.length > 0
+    ) {
       localStorage.setItem("user_id", "");
       localStorage.setItem("user_name", "");
       this.view.showSignIn();
-    }
-    else {
+    } else {
       const [userId, username] = await signInWithGoogle();
       this.view.setUsername(String(username));
       this.view.hideSignIn();
