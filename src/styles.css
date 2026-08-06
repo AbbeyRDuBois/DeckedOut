@@ -1267,6 +1267,7 @@ body {
 ***************************************/
 .loading-overlay {
   display: flex;
+  background: var(--background);
   z-index: 70;
 }
 

@@ -97,6 +97,14 @@ export class Database {
     return this.db;
   }
 
+  private getLocalPlayerId(): string {
+    const playerId = localStorage.getItem("playerId") || this.localId;
+    if (playerId) {
+      this.localId = playerId;
+    }
+    return this.localId;
+  }
+
   async init(
     name: string,
     host: Player,
@@ -106,7 +114,7 @@ export class Database {
     this.roomId = newRoomRef.id;
     this.roomRef = newRoomRef;
     this.hostId = host.getId();
-    this.localId = localStorage.getItem("playerId")!;
+    this.getLocalPlayerId();
 
     await runTransaction(this.db, async (transaction: Transaction) => {
       transaction.set(newRoomRef, initialValues);
@@ -129,11 +137,12 @@ export class Database {
     this.roomId = roomId;
     this.roomRef = doc(this.db, name, roomId);
     this.hostId = (await this.pullState()).hostId;
+    this.getLocalPlayerId();
     return this;
   }
 
   async leave() {
-    const playerId = this.localId;
+    const playerId = this.getLocalPlayerId()!;
     const teamsSnapshot = await getDocs(this.teamsRef());
     const deleteTeam = teamsSnapshot.docs.find((teamDoc: any) =>
       teamDoc.data().playerIds?.includes(playerId),
