@@ -46,10 +46,4 @@ export type RoomState = {
   cardTheme: string;
   hostId?: string;
   [key: string]: any;
-  mediaPlayer: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
 };
