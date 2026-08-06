@@ -83,6 +83,7 @@ export class RoomController {
     // Ensure a game instance and controller exist for this room (guest or host)
     await this.gameSetup();
     this.view.render(this.model.getState());
+    this.gameController?.gameRerender();
   }
 
   private async gameSetup() {
