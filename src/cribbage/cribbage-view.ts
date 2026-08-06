@@ -1,22 +1,41 @@
 /****************************************************************************
- * 
+ *
  *  Cribbage View (Extends Base View )
- * 
+ *
  *     Renders the Cribbage specific elements onto the page
  *        Flipped card, joker popups so on
- * 
+ *
  ****************************************************************************/
 
 import { BaseView } from "../base-game/base-view";
 import { CardPlain, PlayerPlain } from "../types";
 
-const rankOrder = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+const rankOrder = [
+  "A",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "J",
+  "Q",
+  "K",
+];
 
 export class CribbageView extends BaseView {
   onDeckChange?: (mode: string) => void;
   onGameModeChange?: (mode: string) => void;
 
-  render(state: any, localPlayerId: string, hostId: string, onCardClick?: (cardId: number) => void) {
+  render(
+    state: any,
+    localPlayerId: string,
+    hostId: string,
+    onCardClick?: (cardId: number) => void,
+  ) {
     super.render(state, localPlayerId, hostId, onCardClick); //Calls base first then does specific game renders
     this.renderPeggingTotal(state);
     this.renderFlipped(state);
@@ -24,69 +43,68 @@ export class CribbageView extends BaseView {
     this.renderScoringOverlay(state);
   }
 
-  renderPeggingTotal(state: any){
-    const peggingTotal = document.getElementById('peggingTotal')!;
+  renderPeggingTotal(state: any) {
+    const peggingTotal = document.getElementById("peggingTotal")!;
     peggingTotal.innerHTML = `${state.peggingTotal}`;
   }
 
-  renderFlipped(state: any){
+  renderFlipped(state: any) {
     const flippedDiv = document.getElementById("flipped")!;
-    flippedDiv.innerHTML = '';
-    flippedDiv.appendChild(this.createCardElement(state.flipped, { container: flippedDiv }));
+    flippedDiv.innerHTML = "";
+    flippedDiv.appendChild(
+      this.createCardElement(state.flipped, { container: flippedDiv }),
+    );
   }
 
   //Cribbage Specific Options when setting up the game
   override renderGameOptions(options: any, hostId: string) {
     super.renderGameOptions(options, hostId);
-    let optionsContainer = document.getElementById('options-content')!;
-    optionsContainer.innerHTML = '';
+    let optionsContainer = document.getElementById("options-content")!;
+    optionsContainer.innerHTML = "";
 
     // Deck selector
-    const deckOption = document.createElement('div');
-    deckOption.classList.add('option');
+    const deckOption = document.createElement("div");
+    deckOption.classList.add("option");
 
-    const deckLabel = document.createElement('label');
-    deckLabel.textContent = 'Deck: ';
+    const deckLabel = document.createElement("label");
+    deckLabel.textContent = "Deck: ";
 
-    const deckSelect = document.createElement('select');
-    deckSelect.classList.add('menu-selector');
-    ['Standard', 'Joker'].forEach(mode => {
-      const opt = document.createElement('option');
+    const deckSelect = document.createElement("select");
+    deckSelect.classList.add("menu-selector");
+    ["Standard", "Joker"].forEach((mode) => {
+      const opt = document.createElement("option");
       opt.value = mode;
       opt.textContent = mode;
       deckSelect.appendChild(opt);
     });
 
     deckSelect.value = options.deckMode;
-    deckSelect.onchange = () => 
-      this.onDeckChange?.(deckSelect.value);
+    deckSelect.onchange = () => this.onDeckChange?.(deckSelect.value);
 
     deckOption.append(deckLabel, deckSelect);
 
-
-    const modeOption = document.createElement('div');
-    modeOption.classList.add('option');
+    const modeOption = document.createElement("div");
+    modeOption.classList.add("option");
     // Game mode selector
-    const modeLabel = document.createElement('label');
-    modeLabel.textContent = 'Mode: ';
+    const modeLabel = document.createElement("label");
+    modeLabel.textContent = "Mode: ";
 
-    const modeSelect = document.createElement('select');
-    modeSelect.classList.add('menu-selector');
-    ['Standard', 'Mega'].forEach(mode => {
-      const opt = document.createElement('option');
+    const modeSelect = document.createElement("select");
+    modeSelect.classList.add("menu-selector");
+    ["Standard", "Mega"].forEach((mode) => {
+      const opt = document.createElement("option");
       opt.value = mode;
       opt.textContent = mode;
       modeSelect.appendChild(opt);
     });
 
     modeSelect.value = options.gameMode;
-    modeSelect.onchange = () =>
-      this.onGameModeChange?.(modeSelect.value);
+    modeSelect.onchange = () => this.onGameModeChange?.(modeSelect.value);
 
     modeOption.append(modeLabel, modeSelect);
 
     //Disable Guests from selecting Game Options
-    if (hostId != localStorage.getItem('playerId')){
+    if (hostId != localStorage.getItem("playerId")) {
       modeSelect.disabled = true;
       deckSelect.disabled = true;
     }
@@ -94,74 +112,75 @@ export class CribbageView extends BaseView {
     optionsContainer.append(deckOption, modeOption);
   }
 
-  renderIndicators(state: any, localPlayerId: string){
+  renderIndicators(state: any, localPlayerId: string) {
     //Local indicators first
     const localTurn = document.getElementById("local-turn")!;
     const localCrib = document.getElementById("local-owner")!;
 
-    if (state.currentPlayer.id == localPlayerId){
-      localTurn.classList.add('active');
+    if (state.currentPlayer.id == localPlayerId) {
+      localTurn.classList.add("active");
     } else {
-      localTurn.classList.remove('active');
+      localTurn.classList.remove("active");
     }
 
-    if(state.cribOwner.id == localPlayerId){
-      localCrib.classList.add('active');
+    if (state.cribOwner.id == localPlayerId) {
+      localCrib.classList.add("active");
     } else {
-      localCrib.classList.remove('active');
+      localCrib.classList.remove("active");
     }
 
     //Opponent indicators
-    const opponents = Object.fromEntries(Object.entries(state.players).filter(([id]) => id !== localPlayerId)) as Record<string, PlayerPlain>;
+    const opponents = Object.fromEntries(
+      Object.entries(state.players).filter(([id]) => id !== localPlayerId),
+    ) as Record<string, PlayerPlain>;
 
-     Object.values(opponents).forEach((opponent: PlayerPlain, index: number) => {
+    Object.values(opponents).forEach((opponent: PlayerPlain, index: number) => {
       const oppTurn = document.getElementById(`${opponent.name}-turn`)!;
       const oppCrib = document.getElementById(`${opponent.name}-owner`)!;
 
-      if (state.currentPlayer.id == opponent.id){
-        oppTurn.classList.add('active');
+      if (state.currentPlayer.id == opponent.id) {
+        oppTurn.classList.add("active");
       } else {
-        oppTurn.classList.remove('active');
+        oppTurn.classList.remove("active");
       }
 
-      if(state.cribOwner.id == opponent.id){
-        oppCrib.classList.add('active');
+      if (state.cribOwner.id == opponent.id) {
+        oppCrib.classList.add("active");
       } else {
-        oppCrib.classList.remove('active');
+        oppCrib.classList.remove("active");
       }
-    })
+    });
 
     //Show if throwing round or not
-    if(state.roundState == "Throwing"){
-      document.getElementById('throwing')!.style.display = "flex";
-    }
-    else{
-      document.getElementById('throwing')!.style.display = "none";
+    if (state.roundState == "Throwing") {
+      document.getElementById("throwing")!.style.display = "flex";
+    } else {
+      document.getElementById("throwing")!.style.display = "none";
     }
   }
 
   //The turn and crib indicators for the opponents
-  override createIndicators(opponent: PlayerPlain){
-    const turn = document.createElement('div');
-    turn.classList.add('indicator');
-    turn.dataset.type = 'turn';
-    turn.innerHTML= "T";
-    turn.id = `${opponent.name}-turn`
+  override createIndicators(opponent: PlayerPlain) {
+    const turn = document.createElement("div");
+    turn.classList.add("indicator");
+    turn.dataset.type = "turn";
+    turn.innerHTML = "T";
+    turn.id = `${opponent.name}-turn`;
 
-    const crib = document.createElement('div');
-    crib.classList.add('indicator');
-    crib.dataset.type = 'crib';
-    crib.innerHTML= "C";
-    crib.id = `${opponent.name}-owner`
+    const crib = document.createElement("div");
+    crib.classList.add("indicator");
+    crib.dataset.type = "crib";
+    crib.innerHTML = "C";
+    crib.id = `${opponent.name}-owner`;
 
-    return [turn, crib]
+    return [turn, crib];
   }
-  
+
   // Call to render the card-select popup for when a joker is available in cribbage
   renderJokerPopup(
     cards: CardPlain[],
     onCardClick: (cardId: number) => void,
-    choiceCards: CardPlain[]
+    choiceCards: CardPlain[],
   ) {
     const overlay = document.getElementById("joker-overlay")!;
     overlay.style.display = "flex";
@@ -169,7 +188,7 @@ export class CribbageView extends BaseView {
     // Clear deck section
     const deckSection = document.getElementById("joker-deck")!;
     const deckRows = deckSection.querySelectorAll(".joker-row");
-    deckRows.forEach(row => row.innerHTML = "");
+    deckRows.forEach((row) => (row.innerHTML = ""));
 
     // Render deck cards (full deck)
     cards.forEach((card, index) => {
@@ -179,7 +198,7 @@ export class CribbageView extends BaseView {
         container: rowEl,
         clickable: true,
         startsFlipped: card.flipped,
-        onClick: () => onCardClick(card.id)
+        onClick: () => onCardClick(card.id),
       });
 
       rowEl.appendChild(cardDiv);
@@ -193,9 +212,9 @@ export class CribbageView extends BaseView {
       choiceCards.forEach((card, index) => {
         const cardDiv = this.createCardElement(card, {
           container: handSection,
-          startsFlipped: true
+          startsFlipped: true,
         });
-        cardDiv.style.pointerEvents = 'none';
+        cardDiv.style.pointerEvents = "none";
         handSection.appendChild(cardDiv);
       });
     }
@@ -206,9 +225,7 @@ export class CribbageView extends BaseView {
   }
 
   renderScoringOverlay(state: any) {
-    const overlay = document.querySelector(
-      ".scoring-overlay"
-    ) as HTMLElement;
+    const overlay = document.querySelector(".scoring-overlay") as HTMLElement;
 
     if (state.roundState !== "Scoring") {
       overlay.classList.add("hidden");
@@ -217,10 +234,7 @@ export class CribbageView extends BaseView {
 
     overlay.classList.remove("hidden");
 
-    const slide =
-      state.presentation.slides[
-        state.presentation.index
-      ];
+    const slide = state.presentation.slides[state.presentation.index];
 
     this.renderSlide(slide, state);
   }
@@ -234,14 +248,21 @@ export class CribbageView extends BaseView {
     handEl.innerHTML = "";
 
     if (slide.type === "HAND") {
-      const player = Object.entries(state.players).find(([id]) => id == slide.playerId)?.[1] as PlayerPlain;
+      const player = Object.entries(state.players).find(
+        ([id]) => id == slide.playerId,
+      )?.[1] as PlayerPlain;
       nameEl.textContent = `${player.name}'s Hand`;
 
-      const sortedHand = player.hand.sort((a,b) => rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank));
+      const sortedHand = player.hand.sort(
+        (a, b) => rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank),
+      );
 
       for (const card of sortedHand) {
-        const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
-        cardEl.style.pointerEvents = 'none';
+        const cardEl = this.createCardElement(card, {
+          container: handEl,
+          startsFlipped: true,
+        });
+        cardEl.style.pointerEvents = "none";
         handEl.appendChild(cardEl);
       }
 
@@ -250,18 +271,26 @@ export class CribbageView extends BaseView {
       plus.textContent = "+";
       handEl.appendChild(plus);
 
-      const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
-      flippedEl.style.pointerEvents = 'none';
+      const flippedEl = this.createCardElement(state.flipped, {
+        container: handEl,
+        startsFlipped: true,
+      });
+      flippedEl.style.pointerEvents = "none";
       handEl.appendChild(flippedEl);
     }
 
     if (slide.type === "CRIB") {
-      const dealer = Object.entries(state.players).find(([id]) => id == slide.dealerId)?.[1] as PlayerPlain;
+      const dealer = Object.entries(state.players).find(
+        ([id]) => id == slide.dealerId,
+      )?.[1] as PlayerPlain;
       nameEl.textContent = `${dealer.name}'s Crib`;
 
       for (const card of state.crib) {
-        const cardEl = this.createCardElement(card, { container: handEl, startsFlipped: true });
-        cardEl.style.pointerEvents = 'none';
+        const cardEl = this.createCardElement(card, {
+          container: handEl,
+          startsFlipped: true,
+        });
+        cardEl.style.pointerEvents = "none";
         handEl.appendChild(cardEl);
       }
 
@@ -269,11 +298,15 @@ export class CribbageView extends BaseView {
       plus.textContent = "+";
       handEl.appendChild(plus);
 
-      const flippedEl = this.createCardElement(state.flipped, { container: handEl, startsFlipped: true });
-      flippedEl.style.pointerEvents = 'none';
+      const flippedEl = this.createCardElement(state.flipped, {
+        container: handEl,
+        startsFlipped: true,
+      });
+      flippedEl.style.pointerEvents = "none";
       handEl.appendChild(flippedEl);
     }
 
     scoreEl.textContent = `Total Points: ${slide.points}`;
     grandEl.textContent = `Grand Total: ${slide.grandTotal}`;
-  }}
+  }
+}

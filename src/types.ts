@@ -25,17 +25,17 @@ export type TeamPlain = {
 };
 
 export type RoomAction =
-| { type: "JOIN_ROOM"; playerId: string; name: string;}
-| { type: "LEAVE_ROOM"; playerId: string;}
-| { type: "GAME_ACTION"; playerId: string; payload: any;}
-| { type: "UPDATE_PLAYER"; player: any;}
-| { type: "UPDATE_TEAM"; team: any;}
-| { type: "ADD_LOG"; log: string;}
-| { type: "PLAY_CARD"; playerId: string; cardId: number;}
-| { type: "MOVE_PLAYER"; playerId: string; fromTeam: any; toTeam: any;}
-| { type: "UPDATE_NAME"; name: string; team: any}
-| { type: "ADD_TEAM";}
-| { type: "REMOVE_TEAM";};
+  | { type: "JOIN_ROOM"; playerId: string; name: string }
+  | { type: "LEAVE_ROOM"; playerId: string }
+  | { type: "GAME_ACTION"; playerId: string; payload: any }
+  | { type: "UPDATE_PLAYER"; player: any }
+  | { type: "UPDATE_TEAM"; team: any }
+  | { type: "ADD_LOG"; log: string }
+  | { type: "PLAY_CARD"; playerId: string; cardId: number }
+  | { type: "MOVE_PLAYER"; playerId: string; fromTeam: any; toTeam: any }
+  | { type: "UPDATE_NAME"; name: string; team: any }
+  | { type: "ADD_TEAM" }
+  | { type: "REMOVE_TEAM" };
 
 export type RoomState = {
   roomId: string;
@@ -47,9 +47,9 @@ export type RoomState = {
   hostId?: string;
   [key: string]: any;
   mediaPlayer: {
-      x: number,
-      y: number,
-      width: number,
-      height: number
+    x: number;
+    y: number;
+    width: number;
+    height: number;
   };
 };

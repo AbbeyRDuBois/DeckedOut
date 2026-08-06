@@ -1,13 +1,13 @@
 /****************************************************************************
- * 
+ *
  *  Base Model (Parent of all Games)
- * 
+ *
  *      Implements core functionality most games should have to play their game
  *          Basic getters/setters
  *          Player order/teams
  *      Sets/updates the game state as events happen through the game
  *      Emits these new state updates out so controller recieves and does next steps if necessary
- * 
+ *
  ****************************************************************************/
 
 import { DocumentData } from "firebase/firestore";
@@ -44,12 +44,12 @@ export abstract class BaseGame {
   protected adb: AchievementDatabase;
   protected pointGoal: number = 0; //Always should set this in game specific constructor
 
-  constructor( deck: Deck, players: Player[], teams: Team[], db: Database){
+  constructor(deck: Deck, players: Player[], teams: Team[], db: Database) {
     this.deck = deck;
     this.players = players;
     this.teams = teams;
     this.db = db;
-    this.adb = new AchievementDatabase()
+    this.adb = new AchievementDatabase();
   }
 
   abstract start(): void;
@@ -58,62 +58,81 @@ export abstract class BaseGame {
   abstract cardPlayed(playerId: string, cardId: number): void | Promise<void>;
 
   /******************************************
-   * 
+   *
    *  Basic Getters/Setters
-   * 
+   *
    ******************************************/
-  isHost(): boolean{ return this.db.isHost(); }
-  getEnded(): boolean { return this.ended; }
-  getStarted() { return this.started; }
-  setStarted(started: boolean) { this.started = started; }
-  getLogs(): string[] { return this.logs; }
-  setLogs(logs: string[]) { 
+  isHost(): boolean {
+    return this.db.isHost();
+  }
+  getEnded(): boolean {
+    return this.ended;
+  }
+  getStarted() {
+    return this.started;
+  }
+  setStarted(started: boolean) {
+    this.started = started;
+  }
+  getLogs(): string[] {
+    return this.logs;
+  }
+  setLogs(logs: string[]) {
     this.logs = logs;
-    this.events.emit('stateChanged', {}); 
+    this.events.emit("stateChanged", {});
   }
-  setHandState(player: Player){
+  setHandState(player: Player) {
     // Model informs that the hand/state should change.
-    this.events.emit('handStateChanged', { playerId: player.getId(), enabled: true });
+    this.events.emit("handStateChanged", {
+      playerId: player.getId(),
+      enabled: true,
+    });
   }
-  getPointGoal(): number { return this.pointGoal; }
+  getPointGoal(): number {
+    return this.pointGoal;
+  }
 
   /******************************************
-   * 
+   *
    *  Player Getters/Setters
-   * 
+   *
    ******************************************/
-  getPlayers() { return this.players; }
-  setPlayers(players: Player[]){
+  getPlayers() {
+    return this.players;
+  }
+  setPlayers(players: Player[]) {
     this.players = players;
   }
 
   setPlayersFromDB(players: any) {
-    this.players = players.map((p:any) => Player.fromPlainObject(p));
+    this.players = players.map((p: any) => Player.fromPlainObject(p));
     this.players.sort((a, b) => a.getOrder() - b.getOrder());
-    this.events.emit('stateChanged', {});
+    this.events.emit("stateChanged", {});
   }
 
   setPlayerFromDB(player: any) {
     const updatedPlayer = Player.fromPlainObject(player);
-    const index = this.players.findIndex(p => p.getId() === updatedPlayer.getId());
+    const index = this.players.findIndex(
+      (p) => p.getId() === updatedPlayer.getId(),
+    );
     if (index !== -1) {
       this.players[index] = updatedPlayer;
     } else {
       this.players.push(updatedPlayer);
     }
     this.players.sort((a, b) => a.getOrder() - b.getOrder());
-    this.events.emit('stateChanged', {});
+    this.events.emit("stateChanged", {});
   }
 
   removePlayerFromDB(playerId: string) {
-    this.players = this.players.filter(p => p.getId() !== playerId);
-    this.events.emit('stateChanged', {});
+    this.players = this.players.filter((p) => p.getId() !== playerId);
+    this.events.emit("stateChanged", {});
   }
 
-  getPlayer(playerId: string): Player{
-    return this.players.find(p => p.getId() === playerId)!;
+  getPlayer(playerId: string): Player {
+    return this.players.find((p) => p.getId() === playerId)!;
   }
-  setPlayerOrder(){
+  setPlayerOrder() {
     // If no teams exist, preserve players and just shuffle the player order
     if (!this.teams || this.teams.length === 0) {
       this.players = this.shuffle(this.players);
@@ -128,7 +147,9 @@ export abstract class BaseGame {
     }
 
     const newOrder: Player[] = [];
-    const tempTeams = this.teams.map(t => ({ players: [...t.getPlayerIds()] }));
+    const tempTeams = this.teams.map((t) => ({
+      players: [...t.getPlayerIds()],
+    }));
     let stillHasPlayers = true;
     let order = 0;
 
@@ -148,107 +169,127 @@ export abstract class BaseGame {
   }
 
   /******************************************
-   * 
+   *
    *  Team Getters/Setters
-   * 
+   *
    ******************************************/
-  getTeams(): Team[] { return this.teams; }
+  getTeams(): Team[] {
+    return this.teams;
+  }
   setTeamsFromDB(teams: any) {
-    this.teams = teams.map((t:any) => Team.fromPlainObject(t));
+    this.teams = teams.map((t: any) => Team.fromPlainObject(t));
     this.teams.sort((a, b) => a.getOrder() - b.getOrder());
-    this.events.emit('stateChanged', {});
+    this.events.emit("stateChanged", {});
   }
 
   setTeamFromDB(team: any) {
     const updatedTeam = Team.fromPlainObject(team);
-    const index = this.teams.findIndex(t => t.getId() === updatedTeam.getId());
+    const index = this.teams.findIndex(
+      (t) => t.getId() === updatedTeam.getId(),
+    );
     if (index !== -1) {
       this.teams[index] = updatedTeam;
     } else {
       this.teams.push(updatedTeam);
     }
     this.teams.sort((a, b) => a.getOrder() - b.getOrder());
-    this.events.emit('stateChanged', {});
+    this.events.emit("stateChanged", {});
   }
 
   removeTeamFromDB(teamId: string) {
-    this.teams = this.teams.filter(t => t.getId() !== teamId);
-    this.events.emit('stateChanged', {});
+    this.teams = this.teams.filter((t) => t.getId() !== teamId);
+    this.events.emit("stateChanged", {});
   }
-
   getPlayerTeam(playerId: string): Team | null {
-    return this.teams.find(team => team.getPlayerIds().includes(playerId)) || null;
+    return (
+      this.teams.find((team) => team.getPlayerIds().includes(playerId)) || null
+    );
   }
 
   //Allows the controller/view to subscribe to event
-  on<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
+  on<K extends keyof BaseEvents>(
+    event: K,
+    listener: (payload: BaseEvents[K]) => void,
+  ) {
     this.events.on(event, listener);
   }
 
   //Allows controller/view to unsubscribe to event
-  off<K extends keyof BaseEvents>(event: K, listener: (payload: BaseEvents[K]) => void) {
+  off<K extends keyof BaseEvents>(
+    event: K,
+    listener: (payload: BaseEvents[K]) => void,
+  ) {
     this.events.off(event, listener);
   }
 
   /******************************************
-   * 
+   *
    *  State Updates
-   * 
+   *
    ******************************************/
   async updateLocalState(data: any) {
-    this.currentPlayer = data.currentPlayer ? Player.fromPlainObject(data.currentPlayer) : this.currentPlayer;
+    this.currentPlayer = data.currentPlayer
+      ? Player.fromPlainObject(data.currentPlayer)
+      : this.currentPlayer;
     this.ended = data.ended ?? false;
-    this.events.emit('stateChanged', this.toPlainObject());
+    this.events.emit("stateChanged", this.toPlainObject());
   }
 
-  async updateTeam(team: Team){
+  async updateTeam(team: Team) {
     await this.db.updateTeam(team.toPlainObject());
   }
 
-  async updateTeams(teams: Team[]){
-    await Promise.all(teams.map(t => this.updateTeam(t)));
+  async updateTeams(teams: Team[]) {
+    await Promise.all(teams.map((t) => this.updateTeam(t)));
   }
 
-  async updatePlayer(player: Player){
+  async updatePlayer(player: Player) {
     await this.db.updatePlayer(player.toPlainObject());
   }
 
-  async updatePlayers(players: Player[]){
-    await Promise.all(players.map(player => this.updatePlayer(player)));
+  async updatePlayers(players: Player[]) {
+    await Promise.all(players.map((player) => this.updatePlayer(player)));
   }
-
 
   //Have to do this to send the state to Firebase (they only like plain objects)
   toPlainObject() {
     return {
-      players: Object.fromEntries(this.players.map(p => [p.getId(), p.toPlainObject()])),
-      teams: Object.fromEntries(this.teams.map(t => [t.getName(), t.toPlainObject()])),
+      players: Object.fromEntries(
+        this.players.map((p) => [p.getId(), p.toPlainObject()]),
+      ),
+      teams: Object.fromEntries(
+        this.teams.map((t) => [t.getName(), t.toPlainObject()]),
+      ),
       deck: this.deck.toPlainObject(),
       currentPlayer: this.currentPlayer.toPlainObject(),
       started: this.started,
-      ended: this.ended
+      ended: this.ended,
     };
   }
 
   //For Joker Popup
   getFullPlainDeck(): CardPlain[] {
     const deck = new Deck();
-    return deck.getDeck().map(card => ({
+    return deck.getDeck().map((card) => ({
       id: card.getId(),
       suit: card.getSuit(),
       rank: card.getRank(),
       flipped: true,
-      played: false
+      played: false,
     }));
   }
 
   nextPlayer() {
-    const index = this.players.findIndex(p => p.getId() === this.currentPlayer.getId());
+    const index = this.players.findIndex(
+      (p) => p.getId() === this.currentPlayer.getId(),
+    );
     this.currentPlayer = this.players[(index + 1) % this.players.length];
   }
 
   findTeamByPlayer(player: Player): Team {
-    return this.teams.find(team => team.getPlayerIds().includes(player.getId()))!;
+    return this.teams.find((team) =>
+      team.getPlayerIds().includes(player.getId()),
+    )!;
   }
 
   //Shuffles the player/team order
@@ -261,23 +302,26 @@ export abstract class BaseGame {
     return arr;
   }
 
-    //If someone won, trigger event to end the game
-  async checkIfWon(player: Player){
+  //If someone won, trigger event to end the game
+  async checkIfWon(player: Player) {
     let team = this.findTeamByPlayer(player)!;
 
-    if (team.getScore() >= this.pointGoal){
+    if (team.getScore() >= this.pointGoal) {
       this.ended = true;
       await this.db.addLog(`${player.getName()} won the game!`);
       await this.updateTeams(this.teams);
       await this.updatePlayers(this.players);
       await this.db.update({
-        ended: this.ended
+        ended: this.ended,
       });
-      if (localStorage.getItem("user_id") != null && localStorage.getItem("user_id")!.length > 0) {
-        await this.adb.logPlayer(String(localStorage.getItem("user_id")))
-        await this.adb.increment_achievement("total_wins")
+      if (
+        localStorage.getItem("user_id") != null &&
+        localStorage.getItem("user_id")!.length > 0
+      ) {
+        await this.adb.logPlayer(String(localStorage.getItem("user_id")));
+        await this.adb.increment_achievement("total_wins");
         if (this instanceof Cribbage) {
-          await this.adb.increment_achievement("total_cribbage_wins")
+          await this.adb.increment_achievement("total_cribbage_wins");
         }
       }
     }

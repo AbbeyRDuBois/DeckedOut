@@ -1,10 +1,10 @@
 /****************************************************************************
- * 
+ *
  *  Room Entry (Called when the user navigates to the room)
- * 
+ *
  *    This handles setting up the room on load and renders everything on first entry.
  *    Need this so people can actually see what's going on
- * 
+ *
  ****************************************************************************/
 
 import { CribbageView } from "../cribbage/cribbage-view";
@@ -15,16 +15,15 @@ import { RoomView } from "./room-view";
 import "../styles.css";
 
 const GameViewMap: Record<string, any> = {
-    'cribbage': CribbageView,
-    'wavelength': WavelengthView
-}
+  cribbage: CribbageView,
+  wavelength: WavelengthView,
+};
 
 //This sets up the main functionality of the rooms on load
 window.onload = async () => {
   const params = new URLSearchParams(window.location.search);
   const roomId = params.get("roomId");
   const gameType = params.get("game")!;
-
 
   const model = new Room(gameType!, roomId!);
   const view = new RoomView(new GameViewMap[gameType]());
@@ -33,7 +32,7 @@ window.onload = async () => {
   // Show loading screen immediately
   view.showLoadingScreen();
 
-  await view.renderGameContent(gameType)
+  await view.renderGameContent(gameType);
 
   await controller.init();
 

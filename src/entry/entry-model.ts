@@ -1,9 +1,9 @@
 /****************************************************************************
- * 
+ *
  *  Entry Model of DeckedOut
- * 
+ *
  *      Handles the nitty gritty of actually joining or creating the room and updates/creates the db accordingly
- * 
+ *
  ****************************************************************************/
 import { v4 } from "uuid";
 import { Player } from "../player";
@@ -14,18 +14,18 @@ export class EntryModel {
   private db!: Database;
 
   async createRoom(gameType: string, username: string): Promise<string> {
-    const playerId = v4();  //Generates a unique playerId
+    const playerId = v4(); //Generates a unique playerId
     // Saves the player's Id in storage
     // This helps us be able to tell who is making actions later on in the application
     localStorage.setItem("playerId", playerId);
-    
+
     const player = new Player(playerId, username);
-  
+
     this.db = await new Database().init("rooms", player, {
       hostId: playerId,
       gameType,
-      started: false
-    })
+      started: false,
+    });
 
     return this.db.getRoomId();
   }
@@ -45,14 +45,16 @@ export class EntryModel {
     if (!state) throw new Error("Room does not exist");
     if (state.started) throw new Error("Game already started");
 
-    const players: Player[] = (state.players || []).map((p:any) => Player.fromPlainObject(p));
+    const players: Player[] = (state.players || []).map((p: any) =>
+      Player.fromPlainObject(p),
+    );
     const teams = state.teams || [];
 
     if (state.maxPlayers && players.length >= state.maxPlayers) {
       throw new Error("Game is full");
     }
 
-    if (players.find(p => p.getName() === username)){
+    if (players.find((p) => p.getName() === username)) {
       throw new Error("Person Already has that Username");
     }
 

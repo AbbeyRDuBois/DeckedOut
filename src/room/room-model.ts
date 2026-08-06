@@ -1,10 +1,10 @@
 /****************************************************************************
- * 
+ *
  *  Room Model
- * 
+ *
  *      Handles the initialization of room
  *      Handles the roomState that controller/view use to handle events and render
- * 
+ *
  ****************************************************************************/
 
 import { EventEmitter } from "../event-emitter";
@@ -17,42 +17,49 @@ export class Room {
   private state: RoomState;
   public events = new EventEmitter<{ stateChanged: {}; error: string }>();
   constructor(gameType: string, roomId: string) {
-    this.state = { 
-      roomId, 
-      gameType, 
-      started: false, 
-      settingsOpen: false, 
-      theme: 'dark', 
-      cardTheme: 'Classic', 
-      hostId: '',
+    this.state = {
+      roomId,
+      gameType,
+      started: false,
+      settingsOpen: false,
+      theme: "dark",
+      cardTheme: "Classic",
+      hostId: "",
       mediaPlayer: {
         x: window.innerWidth - 410,
         y: window.innerHeight - 310,
         width: 400,
-        height: 300
-      }
+        height: 300,
+      },
     };
   }
 
-  setMediaState(media: { x: number; y: number; width: number; height: number }){
+  setMediaState(media: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) {
     this.state.mediaPlayer = { ...this.state.mediaPlayer, ...media };
-    this.events.emit('stateChanged', this.getState());
+    this.events.emit("stateChanged", this.getState());
   }
 
-  getState(): RoomState { return { 
-    ...this.state
-   }; }
+  getState(): RoomState {
+    return {
+      ...this.state,
+    };
+  }
 
   setTheme(theme: string) {
     this.state.theme = theme;
-    localStorage.setItem("theme", theme)
-    this.events.emit('stateChanged', this.getState());
+    localStorage.setItem("theme", theme);
+    this.events.emit("stateChanged", this.getState());
   }
-  
+
   setCardTheme(theme: string) {
     this.state.cardTheme = theme;
-    localStorage.setItem("card_theme", theme)
-    this.events.emit('stateChanged', this.getState());
+    localStorage.setItem("card_theme", theme);
+    this.events.emit("stateChanged", this.getState());
   }
 
   async findPlayerById(playerId: string): Promise<any> {
@@ -72,31 +79,31 @@ export class Room {
       this.updateLocalState(remote);
       this.db.setupListeners();
     } catch (e: any) {
-      this.events.emit('error', e.message || String(e));
+      this.events.emit("error", e.message || String(e));
       throw e;
     }
   }
 
   toggleSettings() {
     this.state.settingsOpen = !this.state.settingsOpen;
-    this.events.emit('stateChanged', this.getState());
+    this.events.emit("stateChanged", this.getState());
   }
-  
+
   //Updates state from Database values
   updateLocalState(remote: any) {
-    if (typeof remote.started === 'boolean') {
+    if (typeof remote.started === "boolean") {
       this.state.started = remote.started;
     }
 
-    if (typeof remote.settingsOpen === 'boolean') {
+    if (typeof remote.settingsOpen === "boolean") {
       this.state.settingsOpen = remote.settingsOpen;
     }
 
-    if (typeof remote.hostId === 'string') {
+    if (typeof remote.hostId === "string") {
       this.state.hostId = remote.hostId;
     }
 
-    this.events.emit('stateChanged', this.getState());
+    this.events.emit("stateChanged", this.getState());
   }
 
   getDbInstance() {
@@ -111,7 +118,7 @@ export class Room {
 
     var roleName = "";
     const adb = new AchievementDatabase();
-    switch (trueColor){
+    switch (trueColor) {
       case "teal":
         roleName = "Garbage Man";
         adb.increment_achievement("times_becoming_gm");

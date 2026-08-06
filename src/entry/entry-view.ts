@@ -1,13 +1,12 @@
 /****************************************************************************
- * 
+ *
  *  Entry View of DeckedOut
- * 
+ *
  *      Renders the "Amazing" look of the create/join room section of the app (it needs work)
- * 
+ *
  ****************************************************************************/
 
 export class EntryView {
-
   constructor() {
     const name = String(localStorage.getItem("user_name"));
     if (localStorage.getItem("user_name") != null && name.length > 0) {
@@ -15,20 +14,31 @@ export class EntryView {
       this.setUsername(name);
     }
   }
-  
-  getUsername(): string { return (document.getElementById("username") as HTMLInputElement).value; }
-  getRoomId(): string { return (document.getElementById("roomId") as HTMLInputElement).value; }
-  setUsername(name: string) { (document.getElementById("username") as HTMLInputElement).value = name; }
-  hideSignIn() { document.getElementById("signInBtn")!.textContent = "Sign Out"; }
-  showSignIn() { document.getElementById("signInBtn")!.textContent = "Sign In"; }
+
+  getUsername(): string {
+    return (document.getElementById("username") as HTMLInputElement).value;
+  }
+  getRoomId(): string {
+    return (document.getElementById("roomId") as HTMLInputElement).value;
+  }
+  setUsername(name: string) {
+    (document.getElementById("username") as HTMLInputElement).value = name;
+  }
+  hideSignIn() {
+    document.getElementById("signInBtn")!.textContent = "Sign Out";
+  }
+  showSignIn() {
+    document.getElementById("signInBtn")!.textContent = "Sign In";
+  }
 
   showError(message: string) {
     alert(message);
   }
 
   bindCreateRoom(handler: (gameType: string) => void) {
-    document.querySelectorAll<HTMLButtonElement>(".create-room-btn")
-      .forEach(btn => {
+    document
+      .querySelectorAll<HTMLButtonElement>(".create-room-btn")
+      .forEach((btn) => {
         btn.addEventListener("click", () => {
           const gameType = btn.dataset.gameType;
           if (gameType) handler(gameType);
@@ -37,13 +47,11 @@ export class EntryView {
   }
 
   bindJoinRoom(handler: () => void) {
-    document.getElementById("joinBtn")!
-      .addEventListener("click", handler);
+    document.getElementById("joinBtn")!.addEventListener("click", handler);
   }
 
   bindSignIn(handler: () => void) {
-    document.getElementById("signInBtn")!
-      .addEventListener("click", handler);
+    document.getElementById("signInBtn")!.addEventListener("click", handler);
   }
 
   navigateToRoom(roomId: string, gameType: string) {
