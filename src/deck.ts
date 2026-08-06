@@ -1,5 +1,6 @@
 import { DocumentData } from "firebase/firestore";
-import { Card, SUITS, RANKS } from "./card";
+import { Card } from "./card";
+import { RANKS, SUITS } from "./types";
 
 export class Deck {
   protected deck: Card[] = [];
