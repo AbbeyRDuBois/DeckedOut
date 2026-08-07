@@ -134,14 +134,21 @@ export class Cribbage extends BaseGame {
   async setGameMode(mode: string) {
     this.gameMode = mode;
 
-    if (mode == "Standard") {
-      this.pointGoal = 121;
-      this.skunkLength = 90;
-      this.handSize = 4;
-    } else {
-      this.pointGoal = 241;
-      this.skunkLength = 180;
-      this.handSize = 8;
+    switch (mode) {
+      case "Mega":
+        this.pointGoal = 241;
+        this.skunkLength = 180;
+        this.handSize = 8;
+        break;
+      case "Reverse":
+        this.pointGoal = 61;
+        this.skunkLength = 45;
+        this.handSize = 4;
+        break;
+      default:
+        this.pointGoal = 121;
+        this.skunkLength = 90;
+        this.handSize = 4;
     }
 
     await this.db.update({
@@ -214,6 +221,37 @@ export class Cribbage extends BaseGame {
       presentation: this.presentation,
       logs: this.logs,
     };
+  }
+
+  override async checkIfWon(player: Player) {
+    if (this.gameMode == "Reverse") {
+      let winningTeam = this.teams.filter(
+        (team) => team.getScore() < this.pointGoal,
+      );
+
+      //Only one team that hasn't reached benchmark yet
+      if (winningTeam.length == 1) {
+        this.ended = true;
+        await this.db.addLog(`${player.getName()} won the game!`);
+        await this.updateTeams(this.teams);
+        await this.updatePlayers(this.players);
+        await this.db.update({
+          ended: this.ended,
+        });
+        if (
+          localStorage.getItem("user_id") != null &&
+          localStorage.getItem("user_id")!.length > 0
+        ) {
+          await this.adb.logPlayer(String(localStorage.getItem("user_id")));
+          await this.adb.increment_achievement("total_wins");
+          if (this instanceof Cribbage) {
+            await this.adb.increment_achievement("total_cribbage_wins");
+          }
+        }
+      }
+    } else {
+      super.checkIfWon(player);
+    }
   }
 
   //The beginning of it all!

@@ -75,7 +75,7 @@ export class CribbageView extends BaseView {
 
     const modeSelect = document.createElement("select");
     modeSelect.classList.add("menu-selector");
-    ["Standard", "Mega"].forEach((mode) => {
+    ["Standard", "Mega", "Reverse"].forEach((mode) => {
       const opt = document.createElement("option");
       opt.value = mode;
       opt.textContent = mode;

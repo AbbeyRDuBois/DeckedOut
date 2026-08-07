@@ -12,7 +12,7 @@ import { Database } from "../services/databases";
 import { Card } from "../card";
 import { Deck } from "../deck";
 import { BaseController } from "../base-game/base-controller";
-
+import { Team } from "../team";
 export class CribbageController extends BaseController<Cribbage, CribbageView> {
   private scoringPresentationTimer: number | null = null;
   private readonly SLIDE_DURATION_MS = 5000; // 5 seconds per slide
@@ -54,12 +54,25 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
     this.gameRerender();
 
     if (this.game.getEnded()) {
-      const winner = this.game
-        .getTeams()
-        .find((t) => t.getScore() >= this.game.getPointGoal());
-      const losers = this.game
-        .getTeams()
-        .filter((t) => t.getName() != winner?.getName());
+      let winner: Team | null = null;
+      let losers = [];
+
+      if (this.game.getGameMode() == "Reverse") {
+        winner = this.game
+          .getTeams()
+          .find((t) => t.getScore() < this.game.getPointGoal())!;
+        losers = this.game
+          .getTeams()
+          .filter((t) => t.getName() != winner?.getName());
+      } else {
+        winner = this.game
+          .getTeams()
+          .find((t) => t.getScore() >= this.game.getPointGoal())!;
+        losers = this.game
+          .getTeams()
+          .filter((t) => t.getName() != winner?.getName());
+      }
+
       const winnerPlayers = winner
         ?.getPlayerIds()
         .map((id) => this.game.getPlayer(id));
