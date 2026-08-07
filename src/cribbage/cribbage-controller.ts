@@ -55,24 +55,20 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
 
     if (this.game.getEnded()) {
       let winner: Team | null = null;
-      let losers = [];
 
       if (this.game.getGameMode() == "Reverse") {
         winner = this.game
           .getTeams()
           .find((t) => t.getScore() < this.game.getPointGoal())!;
-        losers = this.game
-          .getTeams()
-          .filter((t) => t.getName() != winner?.getName());
       } else {
         winner = this.game
           .getTeams()
           .find((t) => t.getScore() >= this.game.getPointGoal())!;
-        losers = this.game
-          .getTeams()
-          .filter((t) => t.getName() != winner?.getName());
       }
 
+      const losers = this.game
+        .getTeams()
+        .filter((t) => t.getName() != winner?.getName());
       const winnerPlayers = winner
         ?.getPlayerIds()
         .map((id) => this.game.getPlayer(id));
