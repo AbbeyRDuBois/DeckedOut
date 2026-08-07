@@ -235,6 +235,7 @@ export class Cribbage extends BaseGame {
       flipped: this.flipped.toPlainObject(),
       roundState: this.roundState,
       started: this.started,
+      crib: this.crib.map((card) => card.toPlainObject()),
     });
   }
 
