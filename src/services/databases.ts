@@ -119,10 +119,18 @@ export class Database {
     this.getLocalPlayerId();
 
     await runTransaction(this.db, async (transaction: Transaction) => {
+      const initialTeam = new Team(
+        host.getName(),
+        [host.getId()],
+        0,
+        0,
+        host.getId(),
+      );
+
       transaction.set(newRoomRef, initialValues);
       transaction.set(
-        doc(this.teamsRef(), host.getId()),
-        new Team(host.getName(), [host.getId()], 0).toPlainObject(),
+        doc(this.teamsRef(), initialTeam.getId()),
+        initialTeam.toPlainObject(),
         { merge: true },
       );
       transaction.set(
