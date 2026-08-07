@@ -145,6 +145,11 @@ export class Cribbage extends BaseGame {
         this.skunkLength = 45;
         this.handSize = 4;
         break;
+      case "Mini":
+        this.pointGoal = 61;
+        this.skunkLength = 15;
+        this.handSize = 3;
+        break;
       default:
         this.pointGoal = 121;
         this.skunkLength = 90;
