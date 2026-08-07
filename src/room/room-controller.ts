@@ -83,6 +83,7 @@ export class RoomController {
     // Ensure a game instance and controller exist for this room (guest or host)
     await this.gameSetup();
     this.view.render(this.model.getState());
+    this.gameController?.gameRerender();
   }
 
   private async gameSetup() {
@@ -133,7 +134,6 @@ export class RoomController {
 
   async onLeaveRoom() {
     const db = this.model.getDbInstance();
-    this.view.navigateToHome();
 
     if (
       localStorage.getItem("user_id") != null &&
@@ -149,9 +149,11 @@ export class RoomController {
 
     //If the host leaves or if game is started bomb everything
     if (db.isHost() || this.game?.getStarted()) {
-      db.delete();
+      await db.delete();
     } else {
-      db.leave();
+      await db.leave();
     }
+
+    this.view.navigateToHome();
   }
 }

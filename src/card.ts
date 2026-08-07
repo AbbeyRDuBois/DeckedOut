@@ -1,26 +1,5 @@
 import { DocumentData } from "firebase/firestore";
-
-export const RANKS = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K",
-];
-export const SUITS = [
-  { name: "Clubs", symbol: "♣", color: "black" },
-  { name: "Diamonds", symbol: "♦", color: "crimson" },
-  { name: "Hearts", symbol: "♥", color: "crimson" },
-  { name: "Spades", symbol: "♠", color: "black" },
-];
+import { RANKS, SUITS } from "./types";
 
 export type CardOptions = {
   container?: HTMLElement;
@@ -59,8 +38,14 @@ export class Card {
   getRank(): string {
     return this.rank;
   }
+  setRank(rank: string) {
+    this.rank = rank;
+  }
   getSuit(): string {
     return this.suit;
+  }
+  setSuit(suit: string) {
+    this.suit = suit;
   }
   getFlipped(): boolean {
     return this.flipped;

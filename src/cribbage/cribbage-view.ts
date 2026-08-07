@@ -8,23 +8,7 @@
  ****************************************************************************/
 
 import { BaseView } from "../base-game/base-view";
-import { CardPlain, PlayerPlain } from "../types";
-
-const rankOrder = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K",
-];
+import { CardPlain, PlayerPlain, RANKS } from "../types";
 
 export class CribbageView extends BaseView {
   onDeckChange?: (mode: string) => void;
@@ -209,6 +193,8 @@ export class CribbageView extends BaseView {
       const handSection = document.getElementById("joker-hand")!;
       handSection.innerHTML = "";
 
+      choiceCards.sort((a, b) => RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank));
+
       choiceCards.forEach((card, index) => {
         const cardDiv = this.createCardElement(card, {
           container: handSection,
@@ -254,7 +240,7 @@ export class CribbageView extends BaseView {
       nameEl.textContent = `${player.name}'s Hand`;
 
       const sortedHand = player.hand.sort(
-        (a, b) => rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank),
+        (a, b) => RANKS.indexOf(a.rank) - RANKS.indexOf(b.rank),
       );
 
       for (const card of sortedHand) {

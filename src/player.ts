@@ -9,7 +9,7 @@ export class Player {
   private score: number = 0;
   private team: number = 0;
   private order: number = 0;
-  private roleColor: string = "neutral";
+  private roleColor: string = "lightskyblue";
 
   constructor(id: string, name: string) {
     this.id = id;

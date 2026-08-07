@@ -47,8 +47,7 @@ export class Cribbage extends BaseGame {
   /* Basic getters                                         */
   /* ----------------------------------------------------- */
   setFlipped() {
-    //this.flipped = this.deck.getCard()!;
-    this.flipped = this.deck.getDeck()[this.deck.length() - 1];
+    this.flipped = this.deck.getCard()!;
   }
   getFlipped(): Card {
     return this.flipped;
@@ -194,29 +193,6 @@ export class Cribbage extends BaseGame {
       }
     }
 
-    //Check to see if all players have thrown, if they have move the state
-    if (
-      this.roundState == RoundState.Throwing &&
-      this.players.every((p) => p.getHand().length === this.handSize)
-    ) {
-      this.roundState = RoundState.Pegging;
-      this.flipped.setFlipped(true);
-      await this.findNibs();
-
-      let changes: any = {};
-      changes.roundState = this.roundState;
-      changes.flipped = this.flipped.toPlainObject();
-
-      // If the flipped card is a Joker, we must pause pegging until the crib owner selects a replacement
-      if (this.flipped.getRank() === "JK") {
-        this.awaitingJokerSelection = true;
-        changes.awaitingJokerSelection = true;
-      }
-
-      await this.db.update(changes);
-      this.setHandState(this.currentPlayer);
-    }
-
     await super.updateLocalState(data); //Call this last for the stateChange event
   }
 
@@ -259,6 +235,7 @@ export class Cribbage extends BaseGame {
       flipped: this.flipped.toPlainObject(),
       roundState: this.roundState,
       started: this.started,
+      crib: this.crib.map((card) => card.toPlainObject()),
     });
   }
 
@@ -279,7 +256,6 @@ export class Cribbage extends BaseGame {
     if (this.players.length === 3) {
       this.crib.push(this.deck.getCard()!);
     }
-    this.crib.push(this.deck.getDeck()[this.deck.length() - 1]);
   }
 
   //Pushes the start of game changes to the other clients
@@ -313,6 +289,24 @@ export class Cribbage extends BaseGame {
       );
 
       arrayUnion = { crib: [card.toPlainObject()] };
+
+      //Check to see if all players have thrown, if they have move the state
+      if (this.players.every((p) => p.getHand().length === this.handSize)) {
+        this.roundState = RoundState.Pegging;
+        this.flipped.setFlipped(true);
+        await this.findNibs();
+
+        changes.roundState = this.roundState;
+        changes.flipped = this.flipped.toPlainObject();
+
+        // If the flipped card is a Joker, we must pause pegging until the crib owner selects a replacement
+        if (this.flipped.getRank() === "JK") {
+          this.awaitingJokerSelection = true;
+          changes.awaitingJokerSelection = true;
+        }
+
+        this.setHandState(this.currentPlayer);
+      }
     } else {
       // Pegging: if we're waiting for a joker selection, block all plays
       if (this.awaitingJokerSelection) return;
@@ -373,12 +367,11 @@ export class Cribbage extends BaseGame {
     if (this.roundState != RoundState.Pointing) {
       const playerJoker = player
         .getHand()
-        .findIndex((c: Card) => c.getRank() == "JK");
-      if (playerJoker != -1) {
-        card.setFlipped(true);
-
-        player.removeFromHand(playerJoker);
-        player.addToHand(card);
+        .filter((c: Card) => c.getRank() == "JK")?.[0];
+      if (playerJoker != null) {
+        playerJoker.setFlipped(true);
+        playerJoker.setRank(card.getRank());
+        playerJoker.setSuit(card.getSuit());
 
         this.events.emit("stateChanged", {});
         this.updatePlayer(player);
@@ -395,6 +388,7 @@ export class Cribbage extends BaseGame {
       this.flipped.setFlipped(true);
       // Selection made, unfreeze play
       this.awaitingJokerSelection = false;
+      await this.findNibs();
 
       const changes = {
         flipped: this.flipped.toPlainObject(),
@@ -662,6 +656,9 @@ export class Cribbage extends BaseGame {
       const team = this.findTeamByPlayer(player)!;
       team.addToScore(2);
       player.addToScore(2);
+
+      this.updateTeam(team);
+      this.updatePlayer(player);
       await this.db.addLog(`${player.getName()} got Nibs! +2 points`);
     }
   }

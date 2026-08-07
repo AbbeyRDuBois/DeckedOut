@@ -98,7 +98,7 @@ export class Room {
     const player = await this.findPlayerById(localStorage.getItem("playerId")!);
 
     var trueColor = role;
-    if (role === player.roleColor) trueColor = "lavender";
+    if (role === player.roleColor) trueColor = "lightskyblue";
 
     var roleName = "";
     const adb = new AchievementDatabase();
@@ -120,7 +120,7 @@ export class Room {
         adb.increment_achievement("times_becoming_tl");
         break;
       default:
-        roleName = "Neutral";
+        roleName = "Genderless";
         break;
     }
 

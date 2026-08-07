@@ -47,3 +47,26 @@ export type RoomState = {
   hostId?: string;
   [key: string]: any;
 };
+
+export const RANKS = [
+  "A",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "J",
+  "Q",
+  "K",
+];
+
+export const SUITS = [
+  { name: "Clubs", symbol: "♣", color: "black" },
+  { name: "Diamonds", symbol: "♦", color: "crimson" },
+  { name: "Hearts", symbol: "♥", color: "crimson" },
+  { name: "Spades", symbol: "♠", color: "black" },
+];
