@@ -9,7 +9,7 @@
 import { DocumentData } from "firebase/firestore";
 import { BaseGame } from "../base-game/base-model";
 import { Card } from "../card";
-import { CardPlain } from "../types";
+import { CardPlain, RANKS } from "../types";
 import { Player } from "../player";
 import { Deck, JokerDeck } from "../deck";
 import { Database } from "../services/databases";
@@ -621,7 +621,10 @@ export class Cribbage extends BaseGame {
   }
 
   findRuns(cards: Card[]): number {
-    let handValues = cards.map((card) => card.toInt());
+    let handValues = cards
+      .map((card) => RANKS.indexOf(card.getRank()))
+      .sort((a, b) => a - b);
+
     let totalMult = 1;
     let mult = 1;
     let runLength = 1;
