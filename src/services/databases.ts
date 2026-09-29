@@ -477,20 +477,103 @@ export class AchievementDatabase {
     }
   }
 
-  //Call to increment a counter for the provided achievement
-  async increment_achievement(achievement: string) {
+  //Pass in username on log in to initialize/update players
+  async logCurPlayer() {
     //Check if logged in
     const player_name = String(localStorage.getItem("user_id"));
 
     //If logged in
     if (localStorage.getItem("user_id") != null && player_name?.length > 0) {
+      //Get player doc
+      const playerRef = doc(this.db, "achievements", player_name);
+      const snapshot = await getDoc(playerRef);
+
+      //If player doesn't exist, create the player. Else, update data on login.
+      if (!snapshot.exists()) {
+        await setDoc(playerRef, {
+          unique_days_played: 1,
+          last_date_played: new Date().toDateString(),
+        });
+      } else {
+        if (snapshot.data().last_date_played != new Date().toDateString()) {
+          await updateDoc(playerRef, {
+            last_date_played: new Date().toDateString(),
+          });
+          this.increment_achievement("unique_days_played");
+        }
+      }
+    }
+  }
+
+  //Call to increment a counter for the provided achievement by "increment" (1 if no value is passed in)
+  async increment_achievement(achievement: string, increment: number = 1) {
+    //Check if logged in
+    const player_name = String(localStorage.getItem("user_id"));
+
+    //If logged in
+    if (localStorage.getItem("user_id") != null && player_name?.length > 0) {
+      //Make sure that user data exists
+      this.logCurPlayer();
+
       //Get player doc and previous data if it exists
       const playerRef = doc(this.db, "achievements", player_name);
       const snapshot = await getDoc(playerRef);
       const value =
         snapshot.data()?.[achievement] != undefined
-          ? Number(snapshot.data()?.[achievement]) + 1
-          : 1;
+          ? Number(snapshot.data()?.[achievement]) + increment
+          : increment;
+
+      //Update document
+      await updateDoc(playerRef, {
+        [achievement]: value,
+      });
+    }
+  }
+
+  //Call to save highest number between passed value and current value for the provided achievement
+  async take_highest(achievement: string, pass_value: number) {
+    //Check if logged in
+    const player_name = String(localStorage.getItem("user_id"));
+
+    //If logged in
+    if (localStorage.getItem("user_id") != null && player_name?.length > 0) {
+      //Make sure that user data exists
+      this.logCurPlayer();
+      
+      //Get player doc and previous data if it exists
+      const playerRef = doc(this.db, "achievements", player_name);
+      const snapshot = await getDoc(playerRef);
+      
+      let value = pass_value;
+      if (snapshot.data()?.[achievement] != undefined && Number(snapshot.data()?.[achievement]) > pass_value) {
+        value = Number(snapshot.data()?.[achievement]);
+      }
+
+      //Update document
+      await updateDoc(playerRef, {
+        [achievement]: value,
+      });
+    }
+  }
+
+  //Call to save lowest number between passed value and current value for the provided achievement
+  async take_lowest(achievement: string, pass_value: number) {
+    //Check if logged in
+    const player_name = String(localStorage.getItem("user_id"));
+
+    //If logged in
+    if (localStorage.getItem("user_id") != null && player_name?.length > 0) {
+      //Make sure that user data exists
+      this.logCurPlayer();
+      
+      //Get player doc and previous data if it exists
+      const playerRef = doc(this.db, "achievements", player_name);
+      const snapshot = await getDoc(playerRef);
+      
+      let value = pass_value;
+      if (snapshot.data()?.[achievement] != undefined && Number(snapshot.data()?.[achievement]) < pass_value) {
+        value = Number(snapshot.data()?.[achievement]);
+      }
 
       //Update document
       await updateDoc(playerRef, {

@@ -9,10 +9,22 @@
 
 import { BaseView } from "../base-game/base-view";
 import { CardPlain, PlayerPlain, RANKS } from "../types";
+import { AchievementDatabase } from "../services/databases";
 
 export class CribbageView extends BaseView {
-  onDeckChange?: (mode: string) => void;
-  onGameModeChange?: (mode: string) => void;
+  private gameMode: string = "Standard";
+  private deck: string = "Standard";
+  protected adb: AchievementDatabase = new AchievementDatabase();
+
+  onDeckChange(mode: string) {
+    this.deck = mode;
+    //TODO: Show deck mode in view at top of screen
+  }
+
+  onGameModeChange(mode: string) {
+    this.gameMode = mode;
+    //TODO: Show game mode in view at top of screen
+  }
 
   render(
     state: any,
@@ -210,7 +222,22 @@ export class CribbageView extends BaseView {
     document.getElementById("joker-overlay")!.style.display = "none";
   }
 
-  renderScoringOverlay(state: any) {
+  private handlePointAchievements = async (points: number, isHand: Boolean = true) => {
+    //Achievement checking for points in hand (functions safe for not logged in players, though no effect).
+    let suffix: string = isHand ? "hand" : "crib";
+
+    await this.adb.increment_achievement("total_points_scored_in_cribbage", points);
+
+    if (this.gameMode == "Reverse")                               { await this.adb.take_highest("highest_reverse_standard_" + suffix, points); await this.adb.take_lowest("lowest_reverse_standard_" + suffix, points); }
+    else if (this.gameMode == "Reverse" && this.deck == "Joker")  { await this.adb.take_highest("highest_reverse_joker_" + suffix, points); await this.adb.take_lowest("lowest_reverse_joker_" + suffix, points); }
+    else if (this.gameMode == "Mini")                             { await this.adb.take_highest("highest_mini_standard_" + suffix, points); await this.adb.take_lowest("lowest_mini_standard_" + suffix, points); }
+    else if (this.gameMode == "Mini" && this.deck == "Joker")     { await this.adb.take_highest("highest_mini_joker_" + suffix, points); await this.adb.take_lowest("lowest_mini_joker_" + suffix, points); }
+    else if (this.gameMode == "Mega")                             { await this.adb.take_highest("highest_mega_standard_" + suffix, points); await this.adb.take_lowest("lowest_mega_standard_" + suffix, points); }
+    else if (this.gameMode == "Mega" && this.deck == "Joker")     { await this.adb.take_highest("highest_mega_joker_" + suffix, points); await this.adb.take_lowest("lowest_mega_joker_" + suffix, points); }
+    else                                                          { await this.adb.take_highest("highest_standard_" + suffix, points); await this.adb.take_lowest("lowest_standard_" + suffix, points); }
+  }
+
+  async renderScoringOverlay(state: any) {
     const overlay = document.querySelector(".scoring-overlay") as HTMLElement;
 
     if (state.roundState !== "Scoring") {
@@ -221,6 +248,10 @@ export class CribbageView extends BaseView {
     overlay.classList.remove("hidden");
 
     const slide = state.presentation.slides[state.presentation.index];
+
+    if (slide.playerId == localStorage.getItem("playerId")!) {
+      await this.handlePointAchievements(slide.points, slide.type === "HAND");
+    }
 
     this.renderSlide(slide, state);
   }

@@ -9,7 +9,7 @@
  ****************************************************************************/
 
 import { BaseGame } from "./base-model";
-import { Database } from "../services/databases";
+import { AchievementDatabase, Database } from "../services/databases";
 import { BaseView, BaseViewHandlers } from "./base-view";
 import { Team } from "../team";
 
@@ -21,6 +21,7 @@ export abstract class BaseController<
     protected game: TGame,
     protected view: TView,
     protected db: Database,
+    protected adb: AchievementDatabase,
   ) {
     //All (this.game.on) define the events that were emitted from the model
 
@@ -119,6 +120,7 @@ export abstract class BaseController<
 
     if (!this.game?.getStarted()) {
       // Start the game model (deal cards, set flipped, etc.) and save game state
+      this.adb?.logCurPlayer();
       await this.game?.start();
     }
   }

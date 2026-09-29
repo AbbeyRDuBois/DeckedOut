@@ -89,6 +89,7 @@ export class RoomController {
   private async gameSetup() {
     const state = this.model.getState();
     const db = this.model.getDbInstance();
+    const adb = new AchievementDatabase();
     const remote = await db.pullState();
 
     // If already setup, skip
@@ -108,6 +109,7 @@ export class RoomController {
           this.game as Cribbage,
           gameView,
           db,
+          adb
         );
         break;
       case "wavelength":
@@ -116,6 +118,7 @@ export class RoomController {
           this.game as Wavelength,
           gameView,
           db,
+          adb,
         );
         break;
       default:
@@ -134,18 +137,6 @@ export class RoomController {
 
   async onLeaveRoom() {
     const db = this.model.getDbInstance();
-
-    if (
-      localStorage.getItem("user_id") != null &&
-      localStorage.getItem("user_id")!.length > 0
-    ) {
-      const adb = new AchievementDatabase();
-      await adb.logPlayer(String(localStorage.getItem("user_id")));
-      await adb.increment_achievement("total_games_played");
-      if (this.game instanceof Cribbage) {
-        await adb.increment_achievement("total_cribbage_games_played");
-      }
-    }
 
     //If the host leaves or if game is started bomb everything
     if (db.isHost() || this.game?.getStarted()) {

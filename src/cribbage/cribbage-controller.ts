@@ -8,7 +8,7 @@
 
 import { Cribbage, RoundState } from "./cribbage-model";
 import { CribbageView } from "./cribbage-view";
-import { Database } from "../services/databases";
+import { AchievementDatabase, Database } from "../services/databases";
 import { Card } from "../card";
 import { Deck } from "../deck";
 import { BaseController } from "../base-game/base-controller";
@@ -16,9 +16,10 @@ import { Team } from "../team";
 export class CribbageController extends BaseController<Cribbage, CribbageView> {
   private scoringPresentationTimer: number | null = null;
   private readonly SLIDE_DURATION_MS = 5000; // 5 seconds per slide
+  private achievements_handled: Boolean = false;
 
-  constructor(game: Cribbage, view: CribbageView, db: Database) {
-    super(game, view, db);
+  constructor(game: Cribbage, view: CribbageView, db: Database, adb: AchievementDatabase) {
+    super(game, view, db, adb);
 
     // Only add Cribbage-specific event listeners not in BaseController
     this.game.on(
@@ -40,6 +41,36 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
     await this.game.setGameMode(mode);
     this.gameOptions(this.db.getHostId());
   };
+
+  private handleEndingAchievements = async (winner: Team) => {
+    //Achievement checking for wins/losses (functions safe for not logged in players, though no effect) if not done already.
+    if (this.achievements_handled == false) {
+      this.achievements_handled = true;
+      await this.adb.increment_achievement("total_games_played");
+
+      if (winner.getPlayerIds().includes(localStorage.getItem("playerId")!)) {
+        await this.adb.increment_achievement("total_wins");
+        await this.adb.increment_achievement("total_cribbage_wins");
+
+        if (this.game.getGameMode() == "Reverse")                                       { await this.adb.increment_achievement("reverse_standard_wins"); }
+        if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Joker") { await this.adb.increment_achievement("reverse_joker_wins"); }
+        if (this.game.getGameMode() == "Mini")                                          { await this.adb.increment_achievement("mini_standard_wins"); }
+        if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mini_joker_wins"); }
+        if (this.game.getGameMode() == "Mega")                                          { await this.adb.increment_achievement("mega_standard_wins"); }
+        if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mega_joker_wins"); }
+      } else {
+        await this.adb.increment_achievement("total_losses");
+        await this.adb.increment_achievement("total_cribbage_losses");
+
+        if (this.game.getGameMode() == "Reverse")                                       { await this.adb.increment_achievement("reverse_standard_losses"); }
+        if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Joker") { await this.adb.increment_achievement("reverse_joker_losses"); }
+        if (this.game.getGameMode() == "Mini")                                          { await this.adb.increment_achievement("mini_standard_losses"); }
+        if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mini_joker_losses"); }
+        if (this.game.getGameMode() == "Mega")                                          { await this.adb.increment_achievement("mega_standard_losses"); }
+        if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mega_joker_losses"); }
+      }
+    }
+  }
 
   override gameOptions(hostId: string) {
     const options = {
@@ -79,6 +110,8 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
           .getPlayerIds()
           .map((id: string) => this.game.getPlayer(id)),
       }));
+
+      this.handleEndingAchievements(winner);
 
       this.view.renderWinner(winner, loserTeams, winnerPlayers);
       return;
@@ -181,6 +214,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
               .getDeck()
               .find((c) => c.getId() === cardId);
             if (selectedCard) {
+              this.adb.increment_achievement("times_changing_crib_joker")
               await this.game.applyJokerCard(selectedCard, localId);
             }
           },
@@ -239,6 +273,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
           this.view.hideJokerPopup();
           const selected = fullDeck.getDeck().find((c) => c.getId() === cardId);
           if (!selected) return;
+          await this.adb.increment_achievement("times_changing_hand_joker")
           await this.game.applyJokerCard(selected, localId);
         },
         localPlayer.getHand().map((c) => c.toPlainObject()),
@@ -261,6 +296,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
           this.view.hideJokerPopup();
           const selected = fullDeck.getDeck().find((c) => c.getId() === cardId);
           if (!selected) return;
+          await this.adb.increment_achievement("times_changing_flipped_joker")
           await this.game.applyJokerCard(selected, localId);
         },
         localPlayer?.getHand().map((c) => c.toPlainObject()) || [],
