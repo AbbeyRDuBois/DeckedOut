@@ -8,15 +8,15 @@
 
 import { Wavelength } from "./wave-model";
 import { WavelengthView } from "./wave-view";
-import { Database } from "../services/databases";
+import { AchievementDatabase, Database } from "../services/databases";
 import { BaseController } from "../base-game/base-controller";
 
 export class WavelengthController extends BaseController<
   Wavelength,
   WavelengthView
 > {
-  constructor(game: Wavelength, view: WavelengthView, db: Database) {
-    super(game, view, db);
+  constructor(game: Wavelength, view: WavelengthView, db: Database, adb: AchievementDatabase) {
+    super(game, view, db, adb);
     this.view.onSubmit = this.handleSubmit;
     this.view.attachSubmitButton();
   }

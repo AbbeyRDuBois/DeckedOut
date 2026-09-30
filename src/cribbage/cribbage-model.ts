@@ -243,16 +243,6 @@ export class Cribbage extends BaseGame {
         await this.db.update({
           ended: this.ended,
         });
-        if (
-          localStorage.getItem("user_id") != null &&
-          localStorage.getItem("user_id")!.length > 0
-        ) {
-          await this.adb.logPlayer(String(localStorage.getItem("user_id")));
-          await this.adb.increment_achievement("total_wins");
-          if (this instanceof Cribbage) {
-            await this.adb.increment_achievement("total_cribbage_wins");
-          }
-        }
       }
     } else {
       super.checkIfWon(player);
