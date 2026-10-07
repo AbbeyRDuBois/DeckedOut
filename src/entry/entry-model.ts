@@ -87,7 +87,7 @@ export class EntryModel {
           const achievementListElement = document.getElementById("achievement-list") as HTMLUListElement;
 
           if (achievementData != null) {
-            for (let [achievement, data] of Object.entries(achievementData)) {
+            for (let [achievement, data] of Object.entries(achievementData).sort(([keyA], [keyB]) => keyA.localeCompare(keyB))) {
               let achievementItem = document.createElement("li");
               achievementItem.textContent = `${achievement}\t\t:\t${data}`;
               achievementListElement.appendChild(achievementItem);
