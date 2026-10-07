@@ -8,10 +8,16 @@
 import { v4 } from "uuid";
 import { Player } from "../player";
 import { Team } from "../team";
-import { Database } from "../services/databases";
+import { Database, AchievementDatabase } from "../services/databases";
 
 export class EntryModel {
   private db!: Database;
+  private adb!: AchievementDatabase;
+
+  constructor () {
+    this.adb = new AchievementDatabase();
+    this.showAchievements();
+  }
 
   async createRoom(gameType: string, username: string): Promise<string> {
     const playerId = v4(); //Generates a unique playerId
@@ -64,5 +70,27 @@ export class EntryModel {
     await this.db.addGuest(player.toPlainObject(), team.toPlainObject());
 
     return state.gameType;
+  }
+
+  //Adds achievements to a new tab
+  async showAchievements() {
+    if (
+          localStorage.getItem("user_id") != null &&
+          localStorage.getItem("user_id")!.length > 0
+        ) {
+          //Init player
+          await this.adb.logCurPlayer();
+
+          //Get and show achievements (if any)
+          let achievementData = await this.adb.getCurPlayerAchievements();
+          const achievementListElement = document.getElementById("achievement-list") as HTMLUListElement;
+
+          if (achievementData != null) {
+            for (let [achievement, data] of Object.entries(achievementData)) {
+              let achievementItem = document.createElement("li");
+              achievementItem.textContent = `${achievement}\t\t:\t${data}`;
+              achievementListElement.appendChild(achievementItem);
+            }
+    }}
   }
 }
