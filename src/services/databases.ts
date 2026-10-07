@@ -455,7 +455,15 @@ export class AchievementDatabase {
     }
   }
 
-  //Get dictionary of player data for player
+  //Get list of player names
+  async getPlayers() {
+    const playersRef = await getDocs(collection(this.db, "achievements"));
+    const players: String[] = playersRef.docs.map(doc => doc.id);
+
+    return players;
+  }
+
+  //Get JSON of player data for player
   async getPlayerAchievements(player_name: string) {
     //Get player doc
     const playerRef = doc(this.db, "achievements", player_name);

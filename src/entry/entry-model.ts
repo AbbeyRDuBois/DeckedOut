@@ -82,6 +82,7 @@ export class EntryModel {
           await this.adb.logCurPlayer();
 
           //Get and show achievements (if any)
+          //TODO: Have each player from this.adb.getPlayers() have their own column using this.adb.getCurPlayerAchievements(player) with their name (player) at the top. Also make "Achievements" section scrollable so this works lol
           let achievementData = await this.adb.getCurPlayerAchievements();
           const achievementListElement = document.getElementById("achievement-list") as HTMLUListElement;
 
