@@ -226,15 +226,15 @@ export class CribbageView extends BaseView {
     //Achievement checking for points in hand (functions safe for not logged in players, though no effect).
     let suffix: string = isHand ? "hand" : "crib";
 
-    await this.adb.increment_achievement("total_points_scored_in_cribbage", points);
+    if (isHand) { await this.adb.increment_achievement("total_points_scored_in_cribbage_hands", points); }
 
-    if (this.gameMode == "Reverse")                               { await this.adb.take_highest("highest_reverse_standard_" + suffix, points); await this.adb.take_lowest("lowest_reverse_standard_" + suffix, points); }
-    else if (this.gameMode == "Reverse" && this.deck == "Joker")  { await this.adb.take_highest("highest_reverse_joker_" + suffix, points); await this.adb.take_lowest("lowest_reverse_joker_" + suffix, points); }
-    else if (this.gameMode == "Mini")                             { await this.adb.take_highest("highest_mini_standard_" + suffix, points); await this.adb.take_lowest("lowest_mini_standard_" + suffix, points); }
-    else if (this.gameMode == "Mini" && this.deck == "Joker")     { await this.adb.take_highest("highest_mini_joker_" + suffix, points); await this.adb.take_lowest("lowest_mini_joker_" + suffix, points); }
-    else if (this.gameMode == "Mega")                             { await this.adb.take_highest("highest_mega_standard_" + suffix, points); await this.adb.take_lowest("lowest_mega_standard_" + suffix, points); }
-    else if (this.gameMode == "Mega" && this.deck == "Joker")     { await this.adb.take_highest("highest_mega_joker_" + suffix, points); await this.adb.take_lowest("lowest_mega_joker_" + suffix, points); }
-    else                                                          { await this.adb.take_highest("highest_standard_" + suffix, points); await this.adb.take_lowest("lowest_standard_" + suffix, points); }
+    if (this.gameMode == "Reverse" && this.deck == "Joker")             { await this.adb.take_highest("highest_reverse_joker_" + suffix, points); await this.adb.take_lowest("lowest_reverse_joker_" + suffix, points); }
+    else if (this.gameMode == "Reverse" && this.deck == "Standard")     { await this.adb.take_highest("highest_reverse_standard_" + suffix, points); await this.adb.take_lowest("lowest_reverse_standard_" + suffix, points); }
+    else if (this.gameMode == "Mini" && this.deck == "Joker")           { await this.adb.take_highest("highest_mini_joker_" + suffix, points); await this.adb.take_lowest("lowest_mini_joker_" + suffix, points); }
+    else if (this.gameMode == "Mini" && this.deck == "Standard")        { await this.adb.take_highest("highest_mini_standard_" + suffix, points); await this.adb.take_lowest("lowest_mini_standard_" + suffix, points); }
+    else if (this.gameMode == "Mega" && this.deck == "Joker")           { await this.adb.take_highest("highest_mega_joker_" + suffix, points); await this.adb.take_lowest("lowest_mega_joker_" + suffix, points); }
+    else if (this.gameMode == "Mega" && this.deck == "Standard")        { await this.adb.take_highest("highest_mega_standard_" + suffix, points); await this.adb.take_lowest("lowest_mega_standard_" + suffix, points); }
+    else                                                                { await this.adb.take_highest("highest_standard_" + suffix, points); await this.adb.take_lowest("lowest_standard_" + suffix, points); }
   }
 
   async renderScoringOverlay(state: any) {
