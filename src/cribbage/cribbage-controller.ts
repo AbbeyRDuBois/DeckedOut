@@ -43,7 +43,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
   };
 
   private handleEndingAchievements = async (winner: Team) => {
-    //Achievement checking for wins/losses (functions safe for not logged in players, though no effect) if not done already.
+    //Achievement checking for wins/losses (functions safe for not logged in players, though no effect) if not done already. Also total points scored.
     if (this.achievements_handled == false) {
       this.achievements_handled = true;
       await this.adb.increment_achievement("total_games_played");
@@ -52,22 +52,22 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
         await this.adb.increment_achievement("total_wins");
         await this.adb.increment_achievement("total_cribbage_wins");
 
-        if (this.game.getGameMode() == "Reverse")                                       { await this.adb.increment_achievement("reverse_standard_wins"); }
-        if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Joker") { await this.adb.increment_achievement("reverse_joker_wins"); }
-        if (this.game.getGameMode() == "Mini")                                          { await this.adb.increment_achievement("mini_standard_wins"); }
-        if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mini_joker_wins"); }
-        if (this.game.getGameMode() == "Mega")                                          { await this.adb.increment_achievement("mega_standard_wins"); }
-        if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mega_joker_wins"); }
+        if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Joker")           { await this.adb.increment_achievement("reverse_joker_wins"); }
+        else if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Standard")   { await this.adb.increment_achievement("reverse_standard_wins"); }
+        else if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Joker")         { await this.adb.increment_achievement("mini_joker_wins"); }
+        else if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Standard")      { await this.adb.increment_achievement("mini_standard_wins"); }
+        else if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Joker")         { await this.adb.increment_achievement("mega_joker_wins"); }
+        else if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Standard")      { await this.adb.increment_achievement("mega_standard_wins"); }
       } else {
         await this.adb.increment_achievement("total_losses");
         await this.adb.increment_achievement("total_cribbage_losses");
 
-        if (this.game.getGameMode() == "Reverse")                                       { await this.adb.increment_achievement("reverse_standard_losses"); }
-        if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Joker") { await this.adb.increment_achievement("reverse_joker_losses"); }
-        if (this.game.getGameMode() == "Mini")                                          { await this.adb.increment_achievement("mini_standard_losses"); }
-        if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mini_joker_losses"); }
-        if (this.game.getGameMode() == "Mega")                                          { await this.adb.increment_achievement("mega_standard_losses"); }
-        if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Joker")    { await this.adb.increment_achievement("mega_joker_losses"); }
+        if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Joker")           { await this.adb.increment_achievement("reverse_joker_losses"); }
+        else if (this.game.getGameMode() == "Reverse" && this.game.getDeckMode() == "Standard")   { await this.adb.increment_achievement("reverse_standard_losses"); }
+        else if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Joker")         { await this.adb.increment_achievement("mini_joker_losses"); }
+        else if (this.game.getGameMode() == "Mini" && this.game.getDeckMode() == "Standard")      { await this.adb.increment_achievement("mini_standard_losses"); }
+        else if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Joker")         { await this.adb.increment_achievement("mega_joker_losses"); }
+        else if (this.game.getGameMode() == "Mega" && this.game.getDeckMode() == "Standard")      { await this.adb.increment_achievement("mega_standard_losses"); }
       }
     }
   }
@@ -273,7 +273,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
           this.view.hideJokerPopup();
           const selected = fullDeck.getDeck().find((c) => c.getId() === cardId);
           if (!selected) return;
-          await this.adb.increment_achievement("times_changing_hand_joker")
+          await this.adb.increment_achievement("times_changing_hand_joker");
           await this.game.applyJokerCard(selected, localId);
         },
         localPlayer.getHand().map((c) => c.toPlainObject()),
@@ -296,7 +296,7 @@ export class CribbageController extends BaseController<Cribbage, CribbageView> {
           this.view.hideJokerPopup();
           const selected = fullDeck.getDeck().find((c) => c.getId() === cardId);
           if (!selected) return;
-          await this.adb.increment_achievement("times_changing_flipped_joker")
+          await this.adb.increment_achievement("times_changing_flipped_joker");
           await this.game.applyJokerCard(selected, localId);
         },
         localPlayer?.getHand().map((c) => c.toPlainObject()) || [],
