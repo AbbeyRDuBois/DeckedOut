@@ -455,6 +455,43 @@ export class AchievementDatabase {
     }
   }
 
+  //Get list of player names
+  async getPlayers() {
+    const playersRef = await getDocs(collection(this.db, "achievements"));
+    const players: String[] = playersRef.docs.map(doc => doc.id);
+
+    return players;
+  }
+
+  //Get JSON of player data for player
+  async getPlayerAchievements(player_name: string) {
+    //Get player doc
+    const playerRef = doc(this.db, "achievements", player_name);
+    const snapshot = await getDoc(playerRef);
+
+    //If player exists, return json of data, else return null
+    if (snapshot.exists()) {
+      return snapshot.data();
+    }
+    
+    return null;
+  }
+
+  //Get dictionary of player data for current player
+  async getCurPlayerAchievements() {
+    //Get player doc
+    const player_name = String(localStorage.getItem("user_id"));
+    const playerRef = doc(this.db, "achievements", player_name);
+    const snapshot = await getDoc(playerRef);
+
+    //If player exists, return json of data. Else, return null
+    if (snapshot.exists()) {
+      return snapshot.data();
+    }
+    
+    return null;
+  }
+
   //Pass in username on log in to initialize/update players
   async logPlayer(player_name: string) {
     //Get player doc
@@ -477,7 +514,7 @@ export class AchievementDatabase {
     }
   }
 
-  //Pass in username on log in to initialize/update players
+  //Log in to initialize/update current player
   async logCurPlayer() {
     //Check if logged in
     const player_name = String(localStorage.getItem("user_id"));

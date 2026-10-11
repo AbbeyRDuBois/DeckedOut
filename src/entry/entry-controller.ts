@@ -9,7 +9,6 @@
 import { EntryModel } from "./entry-model";
 import { EntryView } from "./entry-view";
 import { signInWithGoogle } from "../services/authentication";
-import { AchievementDatabase } from "../services/databases";
 
 export class EntryController {
   constructor(
@@ -70,8 +69,7 @@ export class EntryController {
       this.view.setUsername(String(username));
       this.view.hideSignIn();
 
-      const db = new AchievementDatabase();
-      db.logPlayer(String(userId));
+      this.model.showAchievements();
     }
   };
 }

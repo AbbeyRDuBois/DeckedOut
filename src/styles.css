@@ -323,6 +323,9 @@ body {
   text-align: center;
   opacity: 0.85;
 }
+#achievement-list {
+  list-style-type: none;
+}
 .menu-input {
   display: grid;
   gap: 12px;
