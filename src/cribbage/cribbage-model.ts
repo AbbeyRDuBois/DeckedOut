@@ -645,6 +645,7 @@ export class Cribbage extends BaseGame {
       }
     }
 
+    totalMult *= mult;
     if (runLength >= 3) {
       points += runLength * totalMult;
     }
