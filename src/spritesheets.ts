@@ -113,6 +113,8 @@ export class StarWarsSheet extends SpriteSheet {
 
 export class GenshinSheet extends SpriteSheet {
   image = `url(${genshinSheet})`;
+  card_width = 100;
+  gap = 0;
 }
 
 export class HollowSheet extends SpriteSheet {
