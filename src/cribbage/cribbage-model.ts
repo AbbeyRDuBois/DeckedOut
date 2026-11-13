@@ -697,6 +697,7 @@ export class Cribbage extends BaseGame {
       this.updateTeam(team);
       this.updatePlayer(player);
       await this.db.addLog(`${player.getName()} got Nibs! +2 points`);
+      this.checkIfWon(player);
     }
   }
 
