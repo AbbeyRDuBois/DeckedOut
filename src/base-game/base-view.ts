@@ -113,6 +113,7 @@ export abstract class BaseView {
       const teamNameInput = document.createElement("input");
       teamNameInput.id = `team-name`;
       teamNameInput.value = team.name;
+      teamNameInput.maxLength = 20;
       teamNameInput.addEventListener("blur", async () => {
         const newName = teamNameInput.value.trim();
         if (newName !== team.name && newName !== "") {
