@@ -141,7 +141,7 @@ export class Wavelength extends BaseGame {
     await this.updatePlayers(this.players);
     await this.updateTeams(this.teams);
 
-    this.players.forEach((player) => this.checkIfWon(player));
+    this.players.map(async (player) => await this.checkIfWon(player));
 
     // Advance to next player and reset for next round
     this.nextPlayer();
@@ -154,6 +154,7 @@ export class Wavelength extends BaseGame {
     changes.currentPlayer = this.currentPlayer.toPlainObject();
     changes.goal = this.goal;
     changes.guesses = this.guesses;
+    changes.ended = this.ended;
 
     //Reset prompt
     this.setPrompt();

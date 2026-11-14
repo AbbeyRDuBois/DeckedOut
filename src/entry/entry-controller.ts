@@ -47,8 +47,8 @@ export class EntryController {
       return;
     }
 
-    if (username.length > 15) {
-      this.view.showError("Username too long.");
+    if (username.length > 20 || username.includes("'")) {
+      this.view.showError("Username too long or has invalid character.");
       return;
     }
 
